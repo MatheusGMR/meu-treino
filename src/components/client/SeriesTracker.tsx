@@ -50,8 +50,8 @@ export const SeriesTracker = ({
 
   return (
     <div className="space-y-4">
-      <Card className="p-6">
-        <h3 className="font-semibold mb-4">
+      <Card className="p-6 border-border">
+        <h3 className="font-semibold mb-4 text-foreground">
           Série {currentSet} de {sets}
         </h3>
 

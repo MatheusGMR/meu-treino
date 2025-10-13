@@ -28,10 +28,10 @@ export const TodayWorkoutCard = () => {
   const isCompleted = todayWorkout.completed;
 
   return (
-    <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300 group">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 opacity-50" />
+    <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300 group border-primary/20">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10" />
       <div 
-        className="absolute inset-0 bg-cover bg-center opacity-20 group-hover:opacity-30 transition-opacity"
+        className="absolute inset-0 bg-cover bg-center opacity-10 group-hover:opacity-20 transition-opacity"
         style={{ 
           backgroundImage: "url('https://images.unsplash.com/photo-1534258936925-c58bed479fcb?w=800')" 
         }}
@@ -39,14 +39,14 @@ export const TodayWorkoutCard = () => {
       
       <div className="relative p-8 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-3xl font-bold">🔥 Treino do Dia</h2>
+          <h2 className="text-3xl font-bold text-foreground">🔥 Treino do Dia</h2>
           {isCompleted && (
             <CheckCircle2 className="w-8 h-8 text-green-500" />
           )}
         </div>
         
         <div className="space-y-2">
-          <h3 className="text-xl font-semibold">{session?.description}</h3>
+          <h3 className="text-xl font-semibold text-foreground">{session?.description}</h3>
           <p className="text-muted-foreground">
             {session?.session_type} • {exerciseCount} exercícios
           </p>

@@ -7,10 +7,10 @@ const ClientDashboard = () => {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 space-y-8">
         <div>
-          <h1 className="text-4xl font-bold mb-2">
+          <h1 className="text-4xl font-bold mb-2 text-foreground">
             Olá, {user?.user_metadata?.full_name || "Aluno"}! 👋
           </h1>
           <p className="text-muted-foreground">Seu progresso este mês</p>

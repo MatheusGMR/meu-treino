@@ -122,7 +122,7 @@ const WorkoutSessionExecution = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8 max-w-4xl space-y-6">
-        <h2 className="text-3xl font-bold text-center">
+        <h2 className="text-3xl font-bold text-center text-foreground">
           {currentExercise.exercises?.name}
         </h2>
 
