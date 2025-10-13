@@ -45,7 +45,22 @@ export type Database = {
           start_date?: string | null
           status?: Database["public"]["Enums"]["client_status"] | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "client_assignments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_assignments_personal_id_fkey"
+            columns: ["personal_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       client_workouts: {
         Row: {
@@ -88,6 +103,20 @@ export type Database = {
           workout_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "client_workouts_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_workouts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "client_workouts_workout_id_fkey"
             columns: ["workout_id"]
@@ -197,16 +226,36 @@ export type Database = {
           waist_circumference?: number | null
           weight?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "physical_assessments_assessed_by_fkey"
+            columns: ["assessed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "physical_assessments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
           avatar_url: string | null
           birth_date: string | null
           created_at: string | null
+          emergency_contact: string | null
+          emergency_phone: string | null
           full_name: string
           gender: string | null
+          goals: string | null
           id: string
+          medical_conditions: string | null
+          notes: string | null
           phone: string | null
           updated_at: string | null
         }
@@ -214,9 +263,14 @@ export type Database = {
           avatar_url?: string | null
           birth_date?: string | null
           created_at?: string | null
+          emergency_contact?: string | null
+          emergency_phone?: string | null
           full_name: string
           gender?: string | null
+          goals?: string | null
           id: string
+          medical_conditions?: string | null
+          notes?: string | null
           phone?: string | null
           updated_at?: string | null
         }
@@ -224,9 +278,14 @@ export type Database = {
           avatar_url?: string | null
           birth_date?: string | null
           created_at?: string | null
+          emergency_contact?: string | null
+          emergency_phone?: string | null
           full_name?: string
           gender?: string | null
+          goals?: string | null
           id?: string
+          medical_conditions?: string | null
+          notes?: string | null
           phone?: string | null
           updated_at?: string | null
         }
