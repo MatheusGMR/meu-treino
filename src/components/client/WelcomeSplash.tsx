@@ -1,5 +1,5 @@
-import { Dumbbell } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import logoJmIcon from "@/assets/logo-jm-icon.png";
 
 export const WelcomeSplash = () => {
   const { user } = useAuth();
@@ -9,8 +9,12 @@ export const WelcomeSplash = () => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-primary via-primary-glow to-accent animate-in fade-in zoom-in-95 duration-500">
       <div className="text-center space-y-6 px-4">
         <div className="flex justify-center">
-          <div className="w-20 h-20 rounded-full bg-background/20 backdrop-blur-sm flex items-center justify-center">
-            <Dumbbell className="w-12 h-12 text-background" />
+          <div className="w-28 h-28 rounded-2xl bg-background/20 backdrop-blur-sm flex items-center justify-center p-4">
+            <img 
+              src={logoJmIcon} 
+              alt="JM" 
+              className="w-full h-full object-contain"
+            />
           </div>
         </div>
         

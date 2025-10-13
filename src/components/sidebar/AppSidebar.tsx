@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import logoJmFull from "@/assets/logo-jm-full.png";
 
 export const AppSidebar = () => {
   const location = useLocation();
@@ -22,11 +23,12 @@ export const AppSidebar = () => {
     <div className="flex flex-col h-full bg-sidebar border-r border-sidebar-border">
       {/* Logo */}
       <div className="p-6 border-b border-sidebar-border">
-        <Link to="/dashboard" className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center">
-            <Dumbbell className="w-6 h-6 text-primary-foreground" />
-          </div>
-          <span className="text-lg font-bold">Junior Mello</span>
+        <Link to="/dashboard" className="flex items-center justify-center">
+          <img 
+            src={logoJmFull} 
+            alt="Junior Mello Treinamentos" 
+            className="h-12 w-auto"
+          />
         </Link>
       </div>
 

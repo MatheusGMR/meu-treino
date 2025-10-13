@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { Dumbbell, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
+import logoJmFull from "@/assets/logo-jm-full.png";
+import logoJmIcon from "@/assets/logo-jm-icon.png";
 
 export const Navbar = () => {
   return (
@@ -7,11 +9,17 @@ export const Navbar = () => {
       <div className="container px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center">
-              <Dumbbell className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-bold text-foreground">Junior Mello</span>
+          <div className="flex items-center">
+            <img 
+              src={logoJmFull} 
+              alt="Junior Mello Treinamentos" 
+              className="h-10 w-auto hidden sm:block"
+            />
+            <img 
+              src={logoJmIcon} 
+              alt="JM" 
+              className="h-10 w-10 sm:hidden"
+            />
           </div>
 
           {/* Desktop Navigation */}

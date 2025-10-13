@@ -1,7 +1,9 @@
-import { Dumbbell, Menu, Home, History, LogOut } from "lucide-react";
+import { Menu, Home, History, LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import logoJmFull from "@/assets/logo-jm-full.png";
+import logoJmIcon from "@/assets/logo-jm-icon.png";
 import {
   Sheet,
   SheetContent,
@@ -26,11 +28,17 @@ export const ClientHeader = () => {
       <div className="container mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/client/dashboard" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center">
-              <Dumbbell className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-bold text-foreground hidden sm:block">Junior Mello</span>
+          <Link to="/client/dashboard" className="flex items-center">
+            <img 
+              src={logoJmFull} 
+              alt="Junior Mello Treinamentos" 
+              className="h-10 w-auto hidden sm:block"
+            />
+            <img 
+              src={logoJmIcon} 
+              alt="JM" 
+              className="h-10 w-10 sm:hidden"
+            />
           </Link>
 
           {/* Desktop Menu */}
@@ -67,12 +75,13 @@ export const ClientHeader = () => {
             </SheetTrigger>
             <SheetContent side="left" className="w-3/4 max-w-sm">
               <SheetHeader>
-                <SheetTitle className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-                    <Dumbbell className="w-5 h-5 text-primary-foreground" />
-                  </div>
-                  <span className="text-foreground font-semibold">Junior Mello</span>
-                </SheetTitle>
+            <SheetTitle className="flex items-center">
+              <img 
+                src={logoJmFull} 
+                alt="Junior Mello Treinamentos" 
+                className="h-8 w-auto"
+              />
+            </SheetTitle>
               </SheetHeader>
               
               <nav className="flex flex-col gap-2 mt-8">
