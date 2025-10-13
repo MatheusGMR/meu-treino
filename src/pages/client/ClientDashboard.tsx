@@ -9,8 +9,8 @@ const ClientDashboard = () => {
   const { user } = useAuth();
 
   return (
-    <BackgroundWrapper overlayOpacity="medium">
-      <div className="min-h-screen">
+    <BackgroundWrapper overlayOpacity="dark">
+      <div className="min-h-screen dark">
         <div className="container mx-auto px-4 py-8 space-y-8">
           <div>
             <h1 className="text-4xl md:text-5xl font-bold mb-2">

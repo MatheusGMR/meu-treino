@@ -2,7 +2,7 @@ import heroImage from "@/assets/hero-fitness.jpg";
 
 interface BackgroundWrapperProps {
   children: React.ReactNode;
-  overlayOpacity?: "light" | "medium" | "heavy";
+  overlayOpacity?: "light" | "medium" | "heavy" | "dark";
 }
 
 export const BackgroundWrapper = ({ children, overlayOpacity = "medium" }: BackgroundWrapperProps) => {
@@ -10,6 +10,7 @@ export const BackgroundWrapper = ({ children, overlayOpacity = "medium" }: Backg
     light: "bg-gradient-to-r from-background/80 via-background/90 to-background/70",
     medium: "bg-gradient-to-r from-background via-background/95 to-background/60",
     heavy: "bg-gradient-to-r from-background via-background/98 to-background/85",
+    dark: "bg-gradient-to-r from-background/99 via-background/98 to-background/96 backdrop-blur-sm",
   };
 
   return (
