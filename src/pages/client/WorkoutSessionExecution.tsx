@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +11,6 @@ import { ExerciseNotes } from "@/components/client/ExerciseNotes";
 import { SessionProgressBar } from "@/components/client/SessionProgressBar";
 import { useCompleteSession } from "@/hooks/useSessionCompletion";
 import { toast } from "@/hooks/use-toast";
-import confetti from "canvas-confetti";
 
 const WorkoutSessionExecution = () => {
   const { sessionId } = useParams();
@@ -81,10 +80,9 @@ const WorkoutSessionExecution = () => {
 
     completeSessionMutation.mutate(todaySchedule.id, {
       onSuccess: () => {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 }
+        toast({
+          title: "🎉 Parabéns!",
+          description: "Treino completado com sucesso!",
         });
         setTimeout(() => navigate("/client/dashboard"), 2000);
       },
