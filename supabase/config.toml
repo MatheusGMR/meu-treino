@@ -1,1 +1,4 @@
 project_id = "halfhlgkutibalmuuohx"
+
+[functions.schedule-workout-sessions]
+verify_jwt = true

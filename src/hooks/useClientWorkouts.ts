@@ -58,26 +58,47 @@ export const useAssignWorkout = () => {
 
       const totalSessions = workoutData?.length || 0;
 
-      const { error } = await supabase.from("client_workouts").insert({
-        client_id: clientId,
-        workout_id: workoutId,
-        assigned_by: user.id,
-        start_date: startDate,
-        end_date: endDate || null,
-        notes: notes || null,
-        status: "Ativo",
-        total_sessions: totalSessions,
-        completed_sessions: 0,
-      });
+      const { data: insertedWorkout, error } = await supabase
+        .from("client_workouts")
+        .insert({
+          client_id: clientId,
+          workout_id: workoutId,
+          assigned_by: user.id,
+          start_date: startDate,
+          end_date: endDate || null,
+          notes: notes || null,
+          status: "Ativo",
+          total_sessions: totalSessions,
+          completed_sessions: 0,
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Chamar Edge Function para agendar sessões automaticamente
+      const { error: scheduleError } = await supabase.functions.invoke(
+        'schedule-workout-sessions',
+        {
+          body: { 
+            client_workout_id: insertedWorkout.id
+          }
+        }
+      );
+
+      if (scheduleError) {
+        console.error('Erro ao agendar sessões:', scheduleError);
+        // Não bloqueia a atribuição, mas loga erro
+      }
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["client-workouts", variables.clientId] });
       queryClient.invalidateQueries({ queryKey: ["client-details", variables.clientId] });
+      queryClient.invalidateQueries({ queryKey: ["today-workout", variables.clientId] });
+      queryClient.invalidateQueries({ queryKey: ["client-active-workouts", variables.clientId] });
       toast({
-        title: "Treino atribuído!",
-        description: "O treino foi atribuído ao cliente com sucesso.",
+        title: "Treino atribuído e agendado!",
+        description: "O treino foi atribuído e as sessões foram agendadas automaticamente.",
       });
     },
     onError: (error: any) => {

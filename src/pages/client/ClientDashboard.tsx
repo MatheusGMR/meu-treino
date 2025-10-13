@@ -1,6 +1,7 @@
 import { MonthlyMetricsCards } from "@/components/client/MonthlyMetricsCards";
 import { TodayWorkoutCard } from "@/components/client/TodayWorkoutCard";
 import { RecentHistoryTimeline } from "@/components/client/RecentHistoryTimeline";
+import { WorkoutSelector } from "@/components/client/WorkoutSelector";
 import { useAuth } from "@/hooks/useAuth";
 import { BackgroundWrapper } from "@/components/BackgroundWrapper";
 
@@ -24,7 +25,9 @@ const ClientDashboard = () => {
 
         <TodayWorkoutCard />
 
-          <RecentHistoryTimeline />
+        <WorkoutSelector />
+
+        <RecentHistoryTimeline />
         </div>
       </div>
     </BackgroundWrapper>
