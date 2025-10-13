@@ -41,7 +41,7 @@ const Login = () => {
             <img 
               src={logoJmFull} 
               alt="Junior Mello Treinamentos" 
-              className="h-24 w-auto object-contain"
+              className="h-24 w-auto object-contain rounded-xl"
             />
           </div>
           <CardTitle className="text-2xl">Bem-vindo de volta</CardTitle>

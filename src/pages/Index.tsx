@@ -109,7 +109,7 @@ const Index = () => {
               <img 
                 src={logoJmFull} 
                 alt="Junior Mello Treinamentos" 
-                className="h-12 w-auto object-contain"
+                className="h-12 w-auto object-contain rounded-lg"
               />
             </div>
             <p className="text-sm text-muted-foreground">

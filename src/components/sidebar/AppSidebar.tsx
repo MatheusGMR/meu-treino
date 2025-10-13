@@ -27,7 +27,7 @@ export const AppSidebar = () => {
           <img 
             src={logoJmFull} 
             alt="Junior Mello Treinamentos" 
-            className="h-12 w-auto"
+            className="h-12 w-auto rounded-lg"
           />
         </Link>
       </div>

@@ -32,12 +32,12 @@ export const ClientHeader = () => {
             <img 
               src={logoJmFull} 
               alt="Junior Mello Treinamentos" 
-              className="h-10 w-auto hidden sm:block"
+              className="h-10 w-auto hidden sm:block rounded-lg"
             />
             <img 
               src={logoJmIcon} 
               alt="JM" 
-              className="h-10 w-10 sm:hidden"
+              className="h-10 w-10 sm:hidden rounded-lg"
             />
           </Link>
 
@@ -79,7 +79,7 @@ export const ClientHeader = () => {
               <img 
                 src={logoJmFull} 
                 alt="Junior Mello Treinamentos" 
-                className="h-8 w-auto"
+                className="h-8 w-auto rounded-lg"
               />
             </SheetTitle>
               </SheetHeader>

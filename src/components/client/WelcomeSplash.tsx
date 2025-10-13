@@ -13,7 +13,7 @@ export const WelcomeSplash = () => {
             <img 
               src={logoJmIcon} 
               alt="JM" 
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain rounded-xl"
             />
           </div>
         </div>
