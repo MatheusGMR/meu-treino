@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      assignment_history: {
+        Row: {
+          change_reason: string | null
+          changed_at: string
+          changed_by: string
+          client_id: string
+          created_at: string | null
+          id: string
+          new_personal_id: string | null
+          old_personal_id: string | null
+        }
+        Insert: {
+          change_reason?: string | null
+          changed_at?: string
+          changed_by: string
+          client_id: string
+          created_at?: string | null
+          id?: string
+          new_personal_id?: string | null
+          old_personal_id?: string | null
+        }
+        Update: {
+          change_reason?: string | null
+          changed_at?: string
+          changed_by?: string
+          client_id?: string
+          created_at?: string | null
+          id?: string
+          new_personal_id?: string | null
+          old_personal_id?: string | null
+        }
+        Relationships: []
+      }
       client_assignments: {
         Row: {
           client_id: string | null
@@ -50,7 +83,21 @@ export type Database = {
             foreignKeyName: "client_assignments_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "admin_clients_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_assignments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_assignments_personal_id_fkey"
+            columns: ["personal_id"]
+            isOneToOne: false
+            referencedRelation: "admin_clients_overview"
             referencedColumns: ["id"]
           },
           {
@@ -107,7 +154,21 @@ export type Database = {
             foreignKeyName: "client_workouts_assigned_by_fkey"
             columns: ["assigned_by"]
             isOneToOne: false
+            referencedRelation: "admin_clients_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_workouts_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_workouts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "admin_clients_overview"
             referencedColumns: ["id"]
           },
           {
@@ -161,6 +222,13 @@ export type Database = {
           session_order?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "daily_workout_schedule_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "admin_clients_overview"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "daily_workout_schedule_client_id_fkey"
             columns: ["client_id"]
@@ -289,7 +357,21 @@ export type Database = {
             foreignKeyName: "physical_assessments_assessed_by_fkey"
             columns: ["assessed_by"]
             isOneToOne: false
+            referencedRelation: "admin_clients_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "physical_assessments_assessed_by_fkey"
+            columns: ["assessed_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "physical_assessments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "admin_clients_overview"
             referencedColumns: ["id"]
           },
           {
@@ -393,6 +475,13 @@ export type Database = {
           weight_used?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "session_completions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "admin_clients_overview"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "session_completions_client_id_fkey"
             columns: ["client_id"]
@@ -596,7 +685,43 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      admin_clients_overview: {
+        Row: {
+          assignment_notes: string | null
+          avatar_url: string | null
+          birth_date: string | null
+          completed_sessions: number | null
+          end_date: string | null
+          full_name: string | null
+          gender: string | null
+          goals: string | null
+          id: string | null
+          medical_conditions: string | null
+          personal_id: string | null
+          personal_name: string | null
+          phone: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["client_status"] | null
+          total_assessments: number | null
+          total_workouts: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_assignments_personal_id_fkey"
+            columns: ["personal_id"]
+            isOneToOne: false
+            referencedRelation: "admin_clients_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_assignments_personal_id_fkey"
+            columns: ["personal_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       has_role: {

@@ -13,6 +13,7 @@ export const AppSidebar = () => {
   const { signOut } = useAuth();
   const { isPersonal, isAdmin, isClient } = useRole();
   const [treinosOpen, setTreinosOpen] = useState(true);
+  const [adminOpen, setAdminOpen] = useState(true);
 
   const isActive = (path: string) => location.pathname === path;
   const isParentActive = (paths: string[]) => paths.some(path => location.pathname.startsWith(path));
@@ -136,18 +137,90 @@ export const AppSidebar = () => {
         )}
 
         {isAdmin && (
-          <Link to="/admin/users">
-            <Button
-              variant="ghost"
-              className={cn(
-                "w-full justify-start gap-3",
-                isActive("/admin/users") && "bg-sidebar-accent text-sidebar-accent-foreground"
-              )}
-            >
-              <Crown className="w-5 h-5" />
-              Usuários
-            </Button>
-          </Link>
+          <Collapsible open={adminOpen} onOpenChange={setAdminOpen}>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full justify-between",
+                  isParentActive(["/admin"]) && "bg-sidebar-accent text-sidebar-accent-foreground"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <Crown className="w-5 h-5" />
+                  Administração
+                </div>
+                <ChevronRight className={cn("w-4 h-4 transition-transform", adminOpen && "rotate-90")} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pl-4 mt-1 space-y-1">
+              <Link to="/admin/dashboard">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "w-full justify-start gap-3",
+                    isActive("/admin/dashboard") && "bg-sidebar-accent text-sidebar-accent-foreground"
+                  )}
+                >
+                  <Home className="w-4 h-4" />
+                  Dashboard
+                </Button>
+              </Link>
+              <Link to="/admin/professionals">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "w-full justify-start gap-3",
+                    isActive("/admin/professionals") && "bg-sidebar-accent text-sidebar-accent-foreground"
+                  )}
+                >
+                  <Users className="w-4 h-4" />
+                  Profissionais
+                </Button>
+              </Link>
+              <Link to="/admin/clients">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "w-full justify-start gap-3",
+                    isActive("/admin/clients") && "bg-sidebar-accent text-sidebar-accent-foreground"
+                  )}
+                >
+                  <Users className="w-4 h-4" />
+                  Clientes
+                </Button>
+              </Link>
+              <Link to="/admin/assignments">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "w-full justify-start gap-3",
+                    isActive("/admin/assignments") && "bg-sidebar-accent text-sidebar-accent-foreground"
+                  )}
+                >
+                  <Activity className="w-4 h-4" />
+                  Atribuições
+                </Button>
+              </Link>
+              <Link to="/admin/users">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "w-full justify-start gap-3",
+                    isActive("/admin/users") && "bg-sidebar-accent text-sidebar-accent-foreground"
+                  )}
+                >
+                  <Settings className="w-4 h-4" />
+                  Usuários
+                </Button>
+              </Link>
+            </CollapsibleContent>
+          </Collapsible>
         )}
 
         <Separator className="my-4" />

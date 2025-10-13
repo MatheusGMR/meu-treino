@@ -18,6 +18,11 @@ import ClientDetails from "./pages/personal/ClientDetails";
 import ClientDashboard from "./pages/client/ClientDashboard";
 import WorkoutSessionExecution from "./pages/client/WorkoutSessionExecution";
 import ClientHistory from "./pages/client/ClientHistory";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import Professionals from "./pages/admin/Professionals";
+import AllClients from "./pages/admin/AllClients";
+import Assignments from "./pages/admin/Assignments";
+import Users from "./pages/admin/Users";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -118,6 +123,57 @@ const App = () => (
                 <AuthGuard>
                   <RoleGuard allowedRoles={["client"]}>
                     <ClientHistory />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            {/* Admin routes */}
+            <Route
+              path="/admin/dashboard"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["admin"]}>
+                    <AdminDashboard />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/admin/professionals"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["admin"]}>
+                    <Professionals />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/admin/clients"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["admin"]}>
+                    <AllClients />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/admin/assignments"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["admin"]}>
+                    <Assignments />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["admin"]}>
+                    <Users />
                   </RoleGuard>
                 </AuthGuard>
               }

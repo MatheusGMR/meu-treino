@@ -14,6 +14,11 @@ const Dashboard = () => {
     return <Navigate to="/client/dashboard" replace />;
   }
 
+  // Redirecionar admins para dashboard administrativo
+  if (isAdmin) {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+
   return (
     <AppLayout>
       <div className="p-8">
