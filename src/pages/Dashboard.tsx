@@ -1,5 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
+import { Navigate } from "react-router-dom";
 import { AppLayout } from "@/layouts/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dumbbell, Users, Activity, TrendingUp } from "lucide-react";
@@ -7,6 +8,11 @@ import { Dumbbell, Users, Activity, TrendingUp } from "lucide-react";
 const Dashboard = () => {
   const { user } = useAuth();
   const { isPersonal, isClient, isAdmin } = useRole();
+
+  // Redirecionar clientes para seu dashboard específico
+  if (isClient) {
+    return <Navigate to="/client/dashboard" replace />;
+  }
 
   return (
     <AppLayout>

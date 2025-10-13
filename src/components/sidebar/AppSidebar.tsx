@@ -121,32 +121,18 @@ export const AppSidebar = () => {
         )}
 
         {isClient && (
-          <>
-            <Link to="/client/dashboard">
-              <Button
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start gap-3",
-                  isActive("/client/dashboard") && "bg-sidebar-accent text-sidebar-accent-foreground"
-                )}
-              >
-                <Home className="w-5 h-5" />
-                Meu Dashboard
-              </Button>
-            </Link>
-            <Link to="/client/history">
-              <Button
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start gap-3",
-                  isActive("/client/history") && "bg-sidebar-accent text-sidebar-accent-foreground"
-                )}
-              >
-                <BarChart className="w-5 h-5" />
-                Histórico
-              </Button>
-            </Link>
-          </>
+          <Link to="/client/history">
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-full justify-start gap-3",
+                isActive("/client/history") && "bg-sidebar-accent text-sidebar-accent-foreground"
+              )}
+            >
+              <BarChart className="w-5 h-5" />
+              Histórico
+            </Button>
+          </Link>
         )}
 
         {isAdmin && (
