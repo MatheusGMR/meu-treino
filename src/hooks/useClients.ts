@@ -162,11 +162,12 @@ export const useAddClient = () => {
     mutationFn: async (data: AddClient) => {
       if (!user) throw new Error("User not authenticated");
 
-      // 1. Criar usuário no auth
+      // 1. Criar usuário no auth com auto-confirmação mas SEM auto-login
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/`,
           data: {
             full_name: data.full_name,
             role: "client",
@@ -174,10 +175,18 @@ export const useAddClient = () => {
         },
       });
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("Failed to create user");
+      if (authError) {
+        if (authError.message.includes("User already registered")) {
+          throw new Error("Este email já está cadastrado no sistema");
+        }
+        throw authError;
+      }
+      if (!authData.user) throw new Error("Falha ao criar usuário");
 
       const clientId = authData.user.id;
+      
+      // Fazer logout do cliente recém-criado para manter sessão do personal
+      await supabase.auth.signOut();
 
       // 2. Atualizar perfil
       const { error: profileError } = await supabase
