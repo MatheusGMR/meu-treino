@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import logoJmIcon from "@/assets/logo-jm-icon.png";
+import logoJmFull from "@/assets/logo-jm-full.png";
 import { toast } from "sonner";
 import { BackgroundWrapper } from "@/components/BackgroundWrapper";
 
@@ -38,13 +38,11 @@ const Login = () => {
         <Card className="w-full max-w-md hover:shadow-glow transition-all duration-300">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="w-20 h-20 rounded-xl bg-background/10 backdrop-blur-sm flex items-center justify-center p-3">
-              <img 
-                src={logoJmIcon} 
-                alt="Junior Mello" 
-                className="w-full h-full object-contain"
-              />
-            </div>
+            <img 
+              src={logoJmFull} 
+              alt="Junior Mello Treinamentos" 
+              className="h-24 w-auto object-contain"
+            />
           </div>
           <CardTitle className="text-2xl">Bem-vindo de volta</CardTitle>
           <CardDescription>Entre com suas credenciais para continuar</CardDescription>
