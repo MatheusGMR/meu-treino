@@ -20,7 +20,7 @@ export const AppSidebar = () => {
   const isParentActive = (paths: string[]) => paths.some(path => location.pathname.startsWith(path));
 
   return (
-    <div className="flex flex-col h-full bg-sidebar border-r border-sidebar-border">
+    <div className="flex flex-col h-full bg-transparent border-r border-sidebar-border/50">
       {/* Logo */}
       <div className="p-6 border-b border-sidebar-border">
         <Link to="/dashboard" className="flex items-center justify-center">
