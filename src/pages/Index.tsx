@@ -84,12 +84,16 @@ const Index = () => {
                 Junte-se a centenas de profissionais que já transformam vidas através da nossa plataforma
               </p>
               <div className="flex flex-wrap gap-4 justify-center">
-                <button className="px-8 py-4 rounded-lg bg-gradient-primary text-primary-foreground font-bold text-lg shadow-glow hover:shadow-xl hover:scale-105 transition-all duration-300">
-                  Cadastre-se Gratuitamente
-                </button>
-                <button className="px-8 py-4 rounded-lg border-2 border-primary bg-transparent text-primary hover:bg-primary hover:text-primary-foreground font-bold text-lg transition-all duration-300">
-                  Falar com Vendas
-                </button>
+                <a href="/auth/register">
+                  <button className="px-8 py-4 rounded-lg bg-gradient-primary text-primary-foreground font-bold text-lg shadow-glow hover:shadow-xl hover:scale-105 transition-all duration-300">
+                    Cadastre-se Gratuitamente
+                  </button>
+                </a>
+                <a href="/auth/login">
+                  <button className="px-8 py-4 rounded-lg border-2 border-primary bg-transparent text-primary hover:bg-primary hover:text-primary-foreground font-bold text-lg transition-all duration-300">
+                    Já tenho conta
+                  </button>
+                </a>
               </div>
             </div>
           </div>

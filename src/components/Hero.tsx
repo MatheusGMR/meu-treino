@@ -34,12 +34,16 @@ export const Hero = () => {
           </p>
 
           <div className="flex flex-wrap gap-4 mb-12">
-            <Button variant="hero" size="lg" className="text-lg">
-              Começar Agora
-            </Button>
-            <Button variant="outline" size="lg" className="text-lg">
-              Saiba Mais
-            </Button>
+            <a href="/auth/register">
+              <Button variant="hero" size="lg" className="text-lg">
+                Começar Agora
+              </Button>
+            </a>
+            <a href="#features">
+              <Button variant="outline" size="lg" className="text-lg">
+                Saiba Mais
+              </Button>
+            </a>
           </div>
 
           {/* Stats */}

@@ -32,8 +32,12 @@ export const Navbar = () => {
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="ghost">Entrar</Button>
-            <Button variant="hero">Começar Grátis</Button>
+            <a href="/auth/login">
+              <Button variant="ghost">Entrar</Button>
+            </a>
+            <a href="/auth/register">
+              <Button variant="hero">Começar Grátis</Button>
+            </a>
           </div>
 
           {/* Mobile Menu Button */}

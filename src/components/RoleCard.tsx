@@ -37,9 +37,11 @@ export const RoleCard = ({ title, description, features, icon: Icon, variant = "
         </ul>
       </CardContent>
       <CardFooter>
-        <Button className="w-full" variant={variant === "primary" ? "hero" : "default"}>
-          Acessar Dashboard
-        </Button>
+        <a href="/auth/register" className="w-full">
+          <Button className="w-full" variant={variant === "primary" ? "hero" : "default"}>
+            Começar Agora
+          </Button>
+        </a>
       </CardFooter>
     </Card>
   );

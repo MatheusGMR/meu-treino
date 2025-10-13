@@ -14,16 +14,431 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      client_assignments: {
+        Row: {
+          client_id: string | null
+          created_at: string | null
+          end_date: string | null
+          id: string
+          notes: string | null
+          personal_id: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["client_status"] | null
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          personal_id?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["client_status"] | null
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          personal_id?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["client_status"] | null
+        }
+        Relationships: []
+      }
+      client_workouts: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          client_id: string | null
+          completed_sessions: number | null
+          end_date: string | null
+          id: string
+          notes: string | null
+          start_date: string | null
+          status: string | null
+          total_sessions: number | null
+          workout_id: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          client_id?: string | null
+          completed_sessions?: number | null
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          start_date?: string | null
+          status?: string | null
+          total_sessions?: number | null
+          workout_id?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          client_id?: string | null
+          completed_sessions?: number | null
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          start_date?: string | null
+          status?: string | null
+          total_sessions?: number | null
+          workout_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_workouts_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercises: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          equipment: string | null
+          exercise_group: Database["public"]["Enums"]["exercise_group"]
+          id: string
+          intensity: Database["public"]["Enums"]["intensity_level"]
+          media_type: string | null
+          media_url: string | null
+          name: string
+          print_name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          equipment?: string | null
+          exercise_group: Database["public"]["Enums"]["exercise_group"]
+          id?: string
+          intensity: Database["public"]["Enums"]["intensity_level"]
+          media_type?: string | null
+          media_url?: string | null
+          name: string
+          print_name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          equipment?: string | null
+          exercise_group?: Database["public"]["Enums"]["exercise_group"]
+          id?: string
+          intensity?: Database["public"]["Enums"]["intensity_level"]
+          media_type?: string | null
+          media_url?: string | null
+          name?: string
+          print_name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      physical_assessments: {
+        Row: {
+          arm_circumference: number | null
+          assessed_by: string | null
+          assessment_date: string | null
+          bmi: number | null
+          body_fat_percentage: number | null
+          chest_circumference: number | null
+          client_id: string | null
+          created_at: string | null
+          height: number | null
+          hip_circumference: number | null
+          id: string
+          muscle_mass_percentage: number | null
+          notes: string | null
+          thigh_circumference: number | null
+          waist_circumference: number | null
+          weight: number | null
+        }
+        Insert: {
+          arm_circumference?: number | null
+          assessed_by?: string | null
+          assessment_date?: string | null
+          bmi?: number | null
+          body_fat_percentage?: number | null
+          chest_circumference?: number | null
+          client_id?: string | null
+          created_at?: string | null
+          height?: number | null
+          hip_circumference?: number | null
+          id?: string
+          muscle_mass_percentage?: number | null
+          notes?: string | null
+          thigh_circumference?: number | null
+          waist_circumference?: number | null
+          weight?: number | null
+        }
+        Update: {
+          arm_circumference?: number | null
+          assessed_by?: string | null
+          assessment_date?: string | null
+          bmi?: number | null
+          body_fat_percentage?: number | null
+          chest_circumference?: number | null
+          client_id?: string | null
+          created_at?: string | null
+          height?: number | null
+          hip_circumference?: number | null
+          id?: string
+          muscle_mass_percentage?: number | null
+          notes?: string | null
+          thigh_circumference?: number | null
+          waist_circumference?: number | null
+          weight?: number | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          birth_date: string | null
+          created_at: string | null
+          full_name: string
+          gender: string | null
+          id: string
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          birth_date?: string | null
+          created_at?: string | null
+          full_name: string
+          gender?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          birth_date?: string | null
+          created_at?: string | null
+          full_name?: string
+          gender?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      session_exercises: {
+        Row: {
+          exercise_id: string | null
+          id: string
+          notes: string | null
+          order_index: number
+          reps: string | null
+          rest_time: number | null
+          session_id: string | null
+          sets: number | null
+        }
+        Insert: {
+          exercise_id?: string | null
+          id?: string
+          notes?: string | null
+          order_index: number
+          reps?: string | null
+          rest_time?: number | null
+          session_id?: string | null
+          sets?: number | null
+        }
+        Update: {
+          exercise_id?: string | null
+          id?: string
+          notes?: string | null
+          order_index?: number
+          reps?: string | null
+          rest_time?: number | null
+          session_id?: string | null
+          sets?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_exercises_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sessions: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string
+          id: string
+          session_type: Database["public"]["Enums"]["session_type"]
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description: string
+          id?: string
+          session_type: Database["public"]["Enums"]["session_type"]
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string
+          id?: string
+          session_type?: Database["public"]["Enums"]["session_type"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      workout_sessions: {
+        Row: {
+          id: string
+          order_index: number
+          session_id: string | null
+          workout_id: string | null
+        }
+        Insert: {
+          id?: string
+          order_index: number
+          session_id?: string | null
+          workout_id?: string | null
+        }
+        Update: {
+          id?: string
+          order_index?: number
+          session_id?: string | null
+          workout_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_sessions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_sessions_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workouts: {
+        Row: {
+          age_range: string | null
+          created_at: string | null
+          created_by: string | null
+          gender: string | null
+          id: string
+          level: Database["public"]["Enums"]["training_level"] | null
+          name: string
+          responsible_id: string | null
+          training_type: Database["public"]["Enums"]["training_type"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          age_range?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          gender?: string | null
+          id?: string
+          level?: Database["public"]["Enums"]["training_level"] | null
+          name: string
+          responsible_id?: string | null
+          training_type?: Database["public"]["Enums"]["training_type"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          age_range?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          gender?: string | null
+          id?: string
+          level?: Database["public"]["Enums"]["training_level"] | null
+          name?: string
+          responsible_id?: string | null
+          training_type?: Database["public"]["Enums"]["training_type"] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "personal" | "client"
+      client_status: "Ativo" | "Inativo" | "Suspenso"
+      exercise_group:
+        | "Abdômen"
+        | "Peito"
+        | "Costas"
+        | "Pernas"
+        | "Ombros"
+        | "Bíceps"
+        | "Tríceps"
+        | "Glúteos"
+        | "Panturrilha"
+        | "Outro"
+      intensity_level: "Fácil" | "Intermediário" | "Difícil"
+      session_type: "Mobilidade" | "Alongamento" | "Musculação"
+      training_level: "Iniciante" | "Avançado"
+      training_type:
+        | "Hipertrofia"
+        | "Emagrecimento"
+        | "Musculação"
+        | "Funcional"
+        | "Outro"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +565,31 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "personal", "client"],
+      client_status: ["Ativo", "Inativo", "Suspenso"],
+      exercise_group: [
+        "Abdômen",
+        "Peito",
+        "Costas",
+        "Pernas",
+        "Ombros",
+        "Bíceps",
+        "Tríceps",
+        "Glúteos",
+        "Panturrilha",
+        "Outro",
+      ],
+      intensity_level: ["Fácil", "Intermediário", "Difícil"],
+      session_type: ["Mobilidade", "Alongamento", "Musculação"],
+      training_level: ["Iniciante", "Avançado"],
+      training_type: [
+        "Hipertrofia",
+        "Emagrecimento",
+        "Musculação",
+        "Funcional",
+        "Outro",
+      ],
+    },
   },
 } as const
