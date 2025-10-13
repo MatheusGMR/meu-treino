@@ -25,12 +25,16 @@ export default function Exercises() {
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">Exercícios</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-3xl md:text-4xl font-bold">
+              <span className="bg-gradient-primary bg-clip-text text-transparent">
+                Exercícios
+              </span>
+            </h1>
+            <p className="text-muted-foreground text-lg">
               Gerencie seu banco de exercícios
             </p>
           </div>
-          <Button onClick={() => setIsDialogOpen(true)}>
+          <Button variant="hero" onClick={() => setIsDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Novo Exercício
           </Button>

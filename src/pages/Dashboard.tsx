@@ -18,8 +18,12 @@ const Dashboard = () => {
     <AppLayout>
       <div className="p-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Dashboard</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-4xl md:text-5xl font-bold mb-2">
+            <span className="bg-gradient-primary bg-clip-text text-transparent">
+              Dashboard
+            </span>
+          </h1>
+          <p className="text-muted-foreground text-lg">
             Bem-vindo de volta, {user?.user_metadata?.full_name || "Usuário"}!
           </p>
         </div>
@@ -27,7 +31,7 @@ const Dashboard = () => {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {isPersonal && (
             <>
-              <Card>
+              <Card className="hover:shadow-glow transition-all duration-300 hover:scale-105">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium">Clientes Ativos</CardTitle>
                   <Users className="h-4 w-4 text-muted-foreground" />
@@ -37,7 +41,7 @@ const Dashboard = () => {
                   <p className="text-xs text-muted-foreground">Nenhum cliente cadastrado ainda</p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="hover:shadow-glow transition-all duration-300 hover:scale-105">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium">Treinos Criados</CardTitle>
                   <Dumbbell className="h-4 w-4 text-muted-foreground" />
@@ -47,7 +51,7 @@ const Dashboard = () => {
                   <p className="text-xs text-muted-foreground">Comece criando exercícios e sessões</p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="hover:shadow-glow transition-all duration-300 hover:scale-105">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium">Sessões</CardTitle>
                   <Activity className="h-4 w-4 text-muted-foreground" />
@@ -57,7 +61,7 @@ const Dashboard = () => {
                   <p className="text-xs text-muted-foreground">Sessões disponíveis</p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="hover:shadow-glow transition-all duration-300 hover:scale-105">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium">Exercícios</CardTitle>
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -72,7 +76,7 @@ const Dashboard = () => {
 
           {isClient && (
             <>
-              <Card>
+              <Card className="hover:shadow-glow transition-all duration-300 hover:scale-105">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium">Treino Ativo</CardTitle>
                   <Dumbbell className="h-4 w-4 text-muted-foreground" />
@@ -82,7 +86,7 @@ const Dashboard = () => {
                   <p className="text-xs text-muted-foreground">Nenhum treino atribuído</p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="hover:shadow-glow transition-all duration-300 hover:scale-105">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium">Sessões Completadas</CardTitle>
                   <Activity className="h-4 w-4 text-muted-foreground" />
@@ -97,7 +101,7 @@ const Dashboard = () => {
 
           {isAdmin && (
             <>
-              <Card>
+              <Card className="hover:shadow-glow transition-all duration-300 hover:scale-105">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium">Total Usuários</CardTitle>
                   <Users className="h-4 w-4 text-muted-foreground" />

@@ -23,12 +23,16 @@ export default function Sessions() {
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">Sessões</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-3xl md:text-4xl font-bold">
+              <span className="bg-gradient-primary bg-clip-text text-transparent">
+                Sessões
+              </span>
+            </h1>
+            <p className="text-muted-foreground text-lg">
               Gerencie suas sessões de treino
             </p>
           </div>
-          <Button onClick={() => setIsDialogOpen(true)}>
+          <Button variant="hero" onClick={() => setIsDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Nova Sessão
           </Button>

@@ -17,8 +17,12 @@ const Clients = () => {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Clientes (Alunos)</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl md:text-4xl font-bold">
+            <span className="bg-gradient-primary bg-clip-text text-transparent">
+              Clientes (Alunos)
+            </span>
+          </h1>
+          <p className="text-muted-foreground text-lg">
             Gerencie seus clientes e acompanhe seu progresso
           </p>
         </div>

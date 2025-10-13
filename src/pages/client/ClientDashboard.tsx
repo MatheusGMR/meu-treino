@@ -2,17 +2,21 @@ import { MonthlyMetricsCards } from "@/components/client/MonthlyMetricsCards";
 import { TodayWorkoutCard } from "@/components/client/TodayWorkoutCard";
 import { RecentHistoryTimeline } from "@/components/client/RecentHistoryTimeline";
 import { useAuth } from "@/hooks/useAuth";
+import { BackgroundWrapper } from "@/components/BackgroundWrapper";
 
 const ClientDashboard = () => {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 space-y-8">
-        <div>
-          <h1 className="text-4xl font-bold mb-2 text-foreground">
-            Olá, {user?.user_metadata?.full_name || "Aluno"}! 👋
-          </h1>
+    <BackgroundWrapper overlayOpacity="medium">
+      <div className="min-h-screen">
+        <div className="container mx-auto px-4 py-8 space-y-8">
+          <div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-2">
+              <span className="bg-gradient-primary bg-clip-text text-transparent">
+                Olá, {user?.user_metadata?.full_name || "Aluno"}! 👋
+              </span>
+            </h1>
           <p className="text-muted-foreground">Seu progresso este mês</p>
         </div>
 
@@ -20,9 +24,10 @@ const ClientDashboard = () => {
 
         <TodayWorkoutCard />
 
-        <RecentHistoryTimeline />
+          <RecentHistoryTimeline />
+        </div>
       </div>
-    </div>
+    </BackgroundWrapper>
   );
 };
 

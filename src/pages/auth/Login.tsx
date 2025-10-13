@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dumbbell } from "lucide-react";
 import { toast } from "sonner";
+import { BackgroundWrapper } from "@/components/BackgroundWrapper";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -32,8 +33,9 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
+    <BackgroundWrapper overlayOpacity="heavy">
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="w-full max-w-md hover:shadow-glow transition-all duration-300">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="w-16 h-16 rounded-xl bg-gradient-primary flex items-center justify-center">
@@ -69,7 +71,7 @@ const Login = () => {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" variant="hero" className="w-full" disabled={loading}>
               {loading ? "Entrando..." : "Entrar"}
             </Button>
             <p className="text-sm text-muted-foreground text-center">
@@ -81,7 +83,8 @@ const Login = () => {
           </CardFooter>
         </form>
       </Card>
-    </div>
+      </div>
+    </BackgroundWrapper>
   );
 };
 

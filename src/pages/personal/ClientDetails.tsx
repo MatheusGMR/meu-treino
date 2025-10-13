@@ -54,8 +54,12 @@ const ClientDetails = () => {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold">{data.profile.full_name}</h1>
-          <p className="text-muted-foreground">Detalhes do cliente</p>
+          <h1 className="text-3xl md:text-4xl font-bold">
+            <span className="bg-gradient-primary bg-clip-text text-transparent">
+              {data.profile.full_name}
+            </span>
+          </h1>
+          <p className="text-muted-foreground text-lg">Detalhes do cliente</p>
         </div>
         {data.assignment && (
           <div className="flex items-center gap-2">
