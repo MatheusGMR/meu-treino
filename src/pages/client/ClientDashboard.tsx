@@ -23,7 +23,7 @@ const ClientDashboard = () => {
   }
 
   return (
-    <BackgroundWrapper overlayOpacity="dark">
+    <BackgroundWrapper>
       <div className="min-h-screen dark">
         <ClientHeader />
         

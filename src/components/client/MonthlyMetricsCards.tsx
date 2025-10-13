@@ -42,7 +42,7 @@ export const MonthlyMetricsCards = () => {
       {cards.map((card) => {
         const Icon = card.icon;
         return (
-          <Card key={card.label} className="p-6 hover:shadow-lg transition-shadow border-border bg-card/95 backdrop-blur-sm">
+          <Card key={card.label} className="p-6 hover:shadow-lg transition-shadow border-primary/20 bg-card/95 backdrop-blur-sm">
             <div className="flex items-center gap-4">
               <div className={`p-3 rounded-lg bg-muted/50`}>
                 <Icon className={`w-6 h-6 ${card.color}`} />

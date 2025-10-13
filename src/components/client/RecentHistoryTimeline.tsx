@@ -51,7 +51,7 @@ export const RecentHistoryTimeline = () => {
   }
 
   return (
-    <Card className="p-6 border-border">
+    <Card className="p-6 border-primary/20">
       <h3 className="text-lg font-semibold mb-4 text-foreground">Histórico Recente</h3>
       <div className="space-y-3">
         {history.map((item: any) => (

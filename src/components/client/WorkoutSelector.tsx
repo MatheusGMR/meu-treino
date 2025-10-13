@@ -109,7 +109,7 @@ export const WorkoutSelector = () => {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-foreground">💪 Seus Treinos Disponíveis</h2>
+      <h2 className="text-2xl font-bold text-foreground">Seus Treinos Disponíveis</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[1, 2].map((i) => (
             <Skeleton key={i} className="h-48" />
@@ -134,7 +134,7 @@ export const WorkoutSelector = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-foreground">💪 Seus Treinos Disponíveis</h2>
+        <h2 className="text-2xl font-bold text-foreground">Seus Treinos Disponíveis</h2>
         <Badge variant="secondary" className="text-sm">
           {workouts.length} {workouts.length === 1 ? 'treino' : 'treinos'}
         </Badge>

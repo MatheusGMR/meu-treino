@@ -39,7 +39,7 @@ export const TodayWorkoutCard = () => {
       
       <div className="relative p-8 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-3xl font-bold text-foreground">🔥 Treino do Dia</h2>
+          <h2 className="text-3xl font-bold text-foreground">Treino do Dia</h2>
           {isCompleted && (
             <CheckCircle2 className="w-8 h-8 text-green-500" />
           )}

@@ -30,7 +30,7 @@ export const ClientHeader = () => {
             <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center">
               <Dumbbell className="w-6 h-6 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold hidden sm:block">Junior Mello</span>
+            <span className="text-xl font-bold text-foreground hidden sm:block">Junior Mello</span>
           </Link>
 
           {/* Desktop Menu */}
@@ -49,10 +49,9 @@ export const ClientHeader = () => {
               </Link>
             ))}
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={() => signOut()}
-              className="text-muted-foreground hover:text-destructive"
             >
               <LogOut className="w-4 h-4 mr-2" />
               Sair
@@ -72,7 +71,7 @@ export const ClientHeader = () => {
                   <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
                     <Dumbbell className="w-5 h-5 text-primary-foreground" />
                   </div>
-                  <span>Junior Mello</span>
+                  <span className="text-foreground font-semibold">Junior Mello</span>
                 </SheetTitle>
               </SheetHeader>
               
