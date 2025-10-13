@@ -3,6 +3,7 @@ import { Hero } from "@/components/Hero";
 import { Features } from "@/components/Features";
 import { RoleCard } from "@/components/RoleCard";
 import { Crown, Dumbbell, Users } from "lucide-react";
+import logoJmIcon from "@/assets/logo-jm-icon.png";
 
 const Index = () => {
   return (
@@ -105,9 +106,11 @@ const Index = () => {
         <div className="container px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-                <Dumbbell className="w-5 h-5 text-primary-foreground" />
-              </div>
+              <img 
+                src={logoJmIcon} 
+                alt="JM" 
+                className="w-10 h-10 object-contain"
+              />
               <span className="font-bold text-foreground">Junior Mello Treinamentos</span>
             </div>
             <p className="text-sm text-muted-foreground">

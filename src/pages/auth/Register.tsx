@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dumbbell, Crown, Users } from "lucide-react";
+import logoJmIcon from "@/assets/logo-jm-icon.png";
 import { toast } from "sonner";
 import { BackgroundWrapper } from "@/components/BackgroundWrapper";
 
@@ -41,8 +42,12 @@ const Register = () => {
         <Card className="w-full max-w-lg hover:shadow-glow transition-all duration-300">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 rounded-xl bg-gradient-primary flex items-center justify-center">
-              <Dumbbell className="w-8 h-8 text-primary-foreground" />
+            <div className="w-20 h-20 rounded-xl bg-background/10 backdrop-blur-sm flex items-center justify-center p-3">
+              <img 
+                src={logoJmIcon} 
+                alt="Junior Mello" 
+                className="w-full h-full object-contain"
+              />
             </div>
           </div>
           <CardTitle className="text-2xl">Criar Conta</CardTitle>
