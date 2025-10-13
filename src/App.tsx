@@ -10,6 +10,9 @@ import Index from "./pages/Index";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Dashboard from "./pages/Dashboard";
+import Exercises from "./pages/personal/Exercises";
+import Sessions from "./pages/personal/Sessions";
+import Workouts from "./pages/personal/Workouts";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +33,36 @@ const App = () => (
               element={
                 <AuthGuard>
                   <Dashboard />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/personal/exercises"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["personal", "admin"]}>
+                    <Exercises />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/personal/sessions"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["personal", "admin"]}>
+                    <Sessions />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/personal/workouts"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["personal", "admin"]}>
+                    <Workouts />
+                  </RoleGuard>
                 </AuthGuard>
               }
             />

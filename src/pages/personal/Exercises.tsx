@@ -1,0 +1,68 @@
+import { useState } from "react";
+import { AppLayout } from "@/layouts/AppLayout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus, Search } from "lucide-react";
+import { ExercisesTable } from "@/components/exercises/ExercisesTable";
+import { ExerciseDialog } from "@/components/exercises/ExerciseDialog";
+import { ExerciseFilters } from "@/components/exercises/ExerciseFilters";
+import { useExercises } from "@/hooks/useExercises";
+
+export default function Exercises() {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
+  const [selectedIntensities, setSelectedIntensities] = useState<string[]>([]);
+
+  const { data: exercises, isLoading } = useExercises({
+    groups: selectedGroups,
+    intensities: selectedIntensities,
+    search,
+  });
+
+  return (
+    <AppLayout>
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Exercícios</h1>
+            <p className="text-muted-foreground">
+              Gerencie seu banco de exercícios
+            </p>
+          </div>
+          <Button onClick={() => setIsDialogOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Exercício
+          </Button>
+        </div>
+
+        <div className="flex gap-4 items-start">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar exercícios..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
+          <ExerciseFilters
+            selectedGroups={selectedGroups}
+            selectedIntensities={selectedIntensities}
+            onGroupsChange={setSelectedGroups}
+            onIntensitiesChange={setSelectedIntensities}
+          />
+        </div>
+
+        <ExercisesTable exercises={exercises || []} isLoading={isLoading} />
+
+        <ExerciseDialog
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+        />
+      </div>
+    </AppLayout>
+  );
+}
