@@ -3,6 +3,7 @@ import { ClientsGrid } from "@/components/clients/ClientsGrid";
 import { ClientFilters } from "@/components/clients/ClientFilters";
 import { AddClientDialog } from "@/components/clients/AddClientDialog";
 import { useClients, type ClientStatus } from "@/hooks/useClients";
+import { AppLayout } from "@/layouts/AppLayout";
 
 const Clients = () => {
   const [search, setSearch] = useState("");
@@ -14,30 +15,32 @@ const Clients = () => {
   });
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-bold">
-            <span className="bg-gradient-primary bg-clip-text text-transparent">
-              Clientes (Alunos)
-            </span>
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Gerencie seus clientes e acompanhe seu progresso
-          </p>
+    <AppLayout>
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold">
+              <span className="bg-gradient-primary bg-clip-text text-transparent">
+                Clientes (Alunos)
+              </span>
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              Gerencie seus clientes e acompanhe seu progresso
+            </p>
+          </div>
+          <AddClientDialog />
         </div>
-        <AddClientDialog />
+
+        <ClientFilters
+          search={search}
+          onSearchChange={setSearch}
+          status={status}
+          onStatusChange={setStatus}
+        />
+
+        <ClientsGrid clients={clients} isLoading={isLoading} />
       </div>
-
-      <ClientFilters
-        search={search}
-        onSearchChange={setSearch}
-        status={status}
-        onStatusChange={setStatus}
-      />
-
-      <ClientsGrid clients={clients} isLoading={isLoading} />
-    </div>
+    </AppLayout>
   );
 };
 
