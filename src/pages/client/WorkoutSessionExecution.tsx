@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +18,12 @@ const WorkoutSessionExecution = () => {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [showRestTimer, setShowRestTimer] = useState(false);
   const completeSessionMutation = useCompleteSession();
+
+  useEffect(() => {
+    // Força dark mode
+    document.documentElement.classList.add('dark');
+    return () => document.documentElement.classList.remove('dark');
+  }, []);
 
   const { data: session, isLoading } = useQuery({
     queryKey: ["session-execution", sessionId],
@@ -98,7 +104,7 @@ const WorkoutSessionExecution = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/95 dark">
       <div className="border-b sticky top-0 bg-background/95 backdrop-blur z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
@@ -171,7 +177,10 @@ const WorkoutSessionExecution = () => {
             Anterior
           </Button>
 
-          <Button onClick={handleNext}>
+          <Button 
+            onClick={handleNext}
+            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg shadow-primary/20"
+          >
             {currentExerciseIndex === totalExercises - 1 ? "Finalizar" : "Próximo"}
             {currentExerciseIndex < totalExercises - 1 && (
               <ChevronRight className="w-4 h-4 ml-2" />

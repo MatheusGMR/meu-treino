@@ -47,7 +47,7 @@ const WorkoutCard = ({ workout }: { workout: any }) => {
   };
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden border-border/50">
+    <Card className="group hover:shadow-xl hover:shadow-primary/20 hover:border-primary/50 transition-all duration-300 overflow-hidden border-border/50 bg-gradient-to-br from-card via-card to-card/95">
       <div className="p-6 space-y-4">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
@@ -66,7 +66,7 @@ const WorkoutCard = ({ workout }: { workout: any }) => {
           {getScheduleBadge()}
         </div>
 
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        <div className="flex items-center gap-4 text-sm text-foreground/70">
           <div className="flex items-center gap-1">
             <Dumbbell className="w-4 h-4" />
             <span>{totalExercises} exercícios</span>
@@ -79,12 +79,12 @@ const WorkoutCard = ({ workout }: { workout: any }) => {
 
         {nextSession && (
           <div className="pt-2 border-t border-border/50">
-            <p className="text-sm text-muted-foreground mb-3">
+            <p className="text-sm text-foreground/70 mb-3">
               Próxima: <span className="font-medium text-foreground">{nextSession.sessions?.description}</span>
             </p>
             <Button 
               onClick={handleStart}
-              className="w-full group-hover:scale-105 transition-transform"
+              className="w-full group-hover:scale-105 transition-transform bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
               size="sm"
             >
               <PlayCircle className="w-4 h-4 mr-2" />
@@ -94,7 +94,7 @@ const WorkoutCard = ({ workout }: { workout: any }) => {
         )}
 
         {!nextSession && (
-          <div className="text-center py-2 text-sm text-muted-foreground">
+          <div className="text-center py-2 text-sm text-foreground/70">
             Nenhuma sessão agendada
           </div>
         )}
@@ -134,7 +134,7 @@ export const WorkoutSelector = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-foreground">Seus Treinos Disponíveis</h2>
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Seus Treinos Disponíveis</h2>
         <Badge variant="secondary" className="text-sm">
           {workouts.length} {workouts.length === 1 ? 'treino' : 'treinos'}
         </Badge>

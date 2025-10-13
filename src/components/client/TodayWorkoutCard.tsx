@@ -28,8 +28,8 @@ export const TodayWorkoutCard = () => {
   const isCompleted = todayWorkout.completed;
 
   return (
-    <Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300 group border-primary/20">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10" />
+    <Card className="relative overflow-hidden hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 group border-primary/50 bg-gradient-to-br from-card via-card to-card/95">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/15 to-transparent" />
       <div 
         className="absolute inset-0 bg-cover bg-center opacity-10 group-hover:opacity-20 transition-opacity"
         style={{ 
@@ -39,7 +39,7 @@ export const TodayWorkoutCard = () => {
       
       <div className="relative p-8 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-3xl font-bold text-foreground">Treino do Dia</h2>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Treino do Dia</h2>
           {isCompleted && (
             <CheckCircle2 className="w-8 h-8 text-green-500" />
           )}
@@ -47,7 +47,7 @@ export const TodayWorkoutCard = () => {
         
         <div className="space-y-2">
           <h3 className="text-xl font-semibold text-foreground">{session?.description}</h3>
-          <p className="text-muted-foreground">
+          <p className="text-foreground/70">
             {session?.session_type} • {exerciseCount} exercícios
           </p>
         </div>
@@ -55,7 +55,7 @@ export const TodayWorkoutCard = () => {
         {!isCompleted && (
           <Button 
             size="lg" 
-            className="w-full group-hover:scale-105 transition-transform"
+            className="w-full group-hover:scale-105 transition-transform bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-lg shadow-primary/30"
             onClick={() => navigate(`/client/workout/session/${todayWorkout.session_id}`)}
           >
             <Play className="w-5 h-5 mr-2" />

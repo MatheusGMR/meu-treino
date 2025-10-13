@@ -24,7 +24,7 @@ export const ClientHeader = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border/50">
+    <header className="sticky top-0 z-40 bg-gradient-to-r from-background/98 via-background/95 to-background/98 backdrop-blur-lg border-b border-primary/20 shadow-lg shadow-primary/5">
       <div className="container mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -60,6 +60,7 @@ export const ClientHeader = () => {
               variant="outline"
               size="sm"
               onClick={() => signOut()}
+              className="border-primary/30 hover:bg-primary/10 hover:text-primary hover:border-primary transition-all"
             >
               <LogOut className="w-4 h-4 mr-2" />
               Sair
@@ -93,7 +94,7 @@ export const ClientHeader = () => {
                       to={item.path}
                       className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                         isActive(item.path)
-                          ? "bg-primary text-primary-foreground"
+                          ? "bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-md shadow-primary/30"
                           : "hover:bg-muted"
                       }`}
                     >

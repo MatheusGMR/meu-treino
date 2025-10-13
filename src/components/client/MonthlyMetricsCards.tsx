@@ -42,13 +42,13 @@ export const MonthlyMetricsCards = () => {
       {cards.map((card) => {
         const Icon = card.icon;
         return (
-          <Card key={card.label} className="p-6 hover:shadow-lg transition-shadow border-primary/20 bg-card/95 backdrop-blur-sm">
+          <Card key={card.label} className="p-6 hover:shadow-lg hover:shadow-primary/10 transition-all hover:border-primary/50 border-border/50 bg-gradient-to-br from-card to-card/90 backdrop-blur-sm">
             <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-lg bg-muted/50`}>
+              <div className={`p-3 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10`}>
                 <Icon className={`w-6 h-6 ${card.color}`} />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">{card.label}</p>
+                <p className="text-sm text-foreground/60">{card.label}</p>
                 <p className="text-2xl font-bold text-foreground">{card.value}</p>
               </div>
             </div>

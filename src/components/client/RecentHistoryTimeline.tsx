@@ -51,11 +51,11 @@ export const RecentHistoryTimeline = () => {
   }
 
   return (
-    <Card className="p-6 border-primary/20">
-      <h3 className="text-lg font-semibold mb-4 text-foreground">Histórico Recente</h3>
+    <Card className="p-6 border-primary/30 bg-gradient-to-br from-card to-card/90 hover:border-primary/50 transition-all">
+      <h3 className="text-lg font-semibold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Histórico Recente</h3>
       <div className="space-y-3">
         {history.map((item: any) => (
-          <div key={item.id} className="flex items-start gap-3 border-l-2 border-primary pl-4">
+          <div key={item.id} className="flex items-start gap-3 border-l-2 border-primary/70 pl-4 hover:border-primary transition-colors">
             <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="font-medium text-foreground">{item.sessions?.description}</p>

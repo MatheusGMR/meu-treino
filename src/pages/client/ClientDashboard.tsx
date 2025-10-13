@@ -11,11 +11,17 @@ const ClientDashboard = () => {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
+    // Força dark mode
+    document.documentElement.classList.add('dark');
+    
     const timer = setTimeout(() => {
       setShowSplash(false);
     }, 3000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      document.documentElement.classList.remove('dark');
+    };
   }, []);
 
   if (showSplash) {
