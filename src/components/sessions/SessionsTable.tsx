@@ -72,7 +72,7 @@ export const SessionsTable = ({ sessions, isLoading }: SessionsTableProps) => {
 
   return (
     <>
-      <div className="border rounded-lg">
+      <div className="border rounded-lg bg-card/100 backdrop-blur-sm overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>

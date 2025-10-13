@@ -63,7 +63,7 @@ export const WorkoutsTable = ({ workouts, isLoading }: WorkoutsTableProps) => {
 
   return (
     <>
-      <div className="border rounded-lg">
+      <div className="border rounded-lg bg-card/100 backdrop-blur-sm overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
