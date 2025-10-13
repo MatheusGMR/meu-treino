@@ -3,7 +3,7 @@ import { MonthlyMetricsCards } from "@/components/client/MonthlyMetricsCards";
 import { TodayWorkoutCard } from "@/components/client/TodayWorkoutCard";
 import { RecentHistoryTimeline } from "@/components/client/RecentHistoryTimeline";
 import { WorkoutSelector } from "@/components/client/WorkoutSelector";
-import { BackgroundWrapper } from "@/components/BackgroundWrapper";
+import { SolidBackgroundWrapper } from "@/components/SolidBackgroundWrapper";
 import { WelcomeSplash } from "@/components/client/WelcomeSplash";
 import { ClientHeader } from "@/components/client/ClientHeader";
 
@@ -23,7 +23,7 @@ const ClientDashboard = () => {
   }
 
   return (
-    <BackgroundWrapper>
+    <SolidBackgroundWrapper>
       <div className="min-h-screen dark">
         <ClientHeader />
         
@@ -37,7 +37,7 @@ const ClientDashboard = () => {
         <RecentHistoryTimeline />
         </div>
       </div>
-    </BackgroundWrapper>
+    </SolidBackgroundWrapper>
   );
 };
 

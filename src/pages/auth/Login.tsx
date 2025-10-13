@@ -33,7 +33,7 @@ const Login = () => {
   };
 
   return (
-    <BackgroundWrapper>
+    <BackgroundWrapper overlayOpacity="medium">
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="w-full max-w-md hover:shadow-glow transition-all duration-300">
         <CardHeader className="text-center">

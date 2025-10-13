@@ -11,21 +11,21 @@ export const Navbar = () => {
             <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center">
               <Dumbbell className="w-6 h-6 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold">Junior Mello</span>
+            <span className="text-xl font-bold text-foreground">Junior Mello</span>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            <a href="#home" className="text-sm font-medium hover:text-primary transition-colors">
+            <a href="#home" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Início
             </a>
-            <a href="#features" className="text-sm font-medium hover:text-primary transition-colors">
+            <a href="#features" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Recursos
             </a>
-            <a href="#roles" className="text-sm font-medium hover:text-primary transition-colors">
+            <a href="#roles" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Para Você
             </a>
-            <a href="#contact" className="text-sm font-medium hover:text-primary transition-colors">
+            <a href="#contact" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Contato
             </a>
           </div>

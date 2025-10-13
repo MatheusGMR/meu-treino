@@ -8,7 +8,7 @@ interface AppLayoutProps {
 
 export const AppLayout = ({ children }: AppLayoutProps) => {
   return (
-    <BackgroundWrapper>
+    <BackgroundWrapper overlayOpacity="light">
       <SidebarProvider>
         <div className="min-h-screen flex w-full">
           <aside className="hidden md:block w-64 flex-shrink-0 relative z-20">

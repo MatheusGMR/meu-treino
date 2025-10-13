@@ -108,7 +108,7 @@ const Index = () => {
               <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
                 <Dumbbell className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="font-bold">Junior Mello Treinamentos</span>
+              <span className="font-bold text-foreground">Junior Mello Treinamentos</span>
             </div>
             <p className="text-sm text-muted-foreground">
               © 2025 Todos os direitos reservados.
