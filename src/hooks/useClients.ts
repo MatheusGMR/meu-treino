@@ -155,76 +155,29 @@ export const useClientDetails = (clientId: string) => {
 };
 
 export const useAddClient = () => {
-  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (data: AddClient) => {
-      if (!user) throw new Error("User not authenticated");
-
-      // 1. Criar usuário no auth com auto-confirmação mas SEM auto-login
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            full_name: data.full_name,
-            role: "client",
-          },
-        },
-      });
-
-      if (authError) {
-        if (authError.message.includes("User already registered")) {
-          throw new Error("Este email já está cadastrado no sistema");
-        }
-        throw authError;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("Usuário não autenticado");
       }
-      if (!authData.user) throw new Error("Falha ao criar usuário");
 
-      const clientId = authData.user.id;
-      
-      // Fazer logout do cliente recém-criado para manter sessão do personal
-      await supabase.auth.signOut();
-
-      // 2. Atualizar perfil
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({
-          birth_date: data.birth_date || null,
-          gender: data.gender || null,
-          phone: data.phone || null,
-          emergency_contact: data.emergency_contact || null,
-          emergency_phone: data.emergency_phone || null,
-          medical_conditions: data.medical_conditions || null,
-          goals: data.goals || null,
-        })
-        .eq("id", clientId);
-
-      if (profileError) throw profileError;
-
-      // 3. Criar assignment
-      const { error: assignmentError } = await supabase
-        .from("client_assignments")
-        .insert({
-          personal_id: user.id,
-          client_id: clientId,
-          status: "Ativo",
-          start_date: data.start_date,
-        });
-
-      if (assignmentError) throw assignmentError;
-
-      // 4. Atribuir role de client
-      const { error: roleError } = await supabase.from("user_roles").insert({
-        user_id: clientId,
-        role: "client",
+      // Chamar edge function para criar cliente
+      const { data: result, error } = await supabase.functions.invoke('create-client', {
+        body: data,
       });
 
-      if (roleError) throw roleError;
+      if (error) {
+        throw error;
+      }
 
-      return { clientId };
+      if (!result.success) {
+        throw new Error(result.error || 'Erro ao criar cliente');
+      }
+
+      return { clientId: result.client_id };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
