@@ -15,6 +15,9 @@ import Sessions from "./pages/personal/Sessions";
 import Workouts from "./pages/personal/Workouts";
 import Clients from "./pages/personal/Clients";
 import ClientDetails from "./pages/personal/ClientDetails";
+import ClientDashboard from "./pages/client/ClientDashboard";
+import WorkoutSessionExecution from "./pages/client/WorkoutSessionExecution";
+import ClientHistory from "./pages/client/ClientHistory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -84,6 +87,37 @@ const App = () => (
                 <AuthGuard>
                   <RoleGuard allowedRoles={["personal", "admin"]}>
                     <ClientDetails />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            {/* Client routes */}
+            <Route
+              path="/client/dashboard"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["client"]}>
+                    <ClientDashboard />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/client/workout/session/:sessionId"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["client"]}>
+                    <WorkoutSessionExecution />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/client/history"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["client"]}>
+                    <ClientHistory />
                   </RoleGuard>
                 </AuthGuard>
               }

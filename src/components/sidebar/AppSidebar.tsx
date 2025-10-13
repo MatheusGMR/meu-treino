@@ -122,28 +122,28 @@ export const AppSidebar = () => {
 
         {isClient && (
           <>
-            <Link to="/client/workouts">
+            <Link to="/client/dashboard">
               <Button
                 variant="ghost"
                 className={cn(
                   "w-full justify-start gap-3",
-                  isActive("/client/workouts") && "bg-sidebar-accent text-sidebar-accent-foreground"
+                  isActive("/client/dashboard") && "bg-sidebar-accent text-sidebar-accent-foreground"
                 )}
               >
-                <Dumbbell className="w-5 h-5" />
-                Meus Treinos
+                <Home className="w-5 h-5" />
+                Meu Dashboard
               </Button>
             </Link>
-            <Link to="/client/progress">
+            <Link to="/client/history">
               <Button
                 variant="ghost"
                 className={cn(
                   "w-full justify-start gap-3",
-                  isActive("/client/progress") && "bg-sidebar-accent text-sidebar-accent-foreground"
+                  isActive("/client/history") && "bg-sidebar-accent text-sidebar-accent-foreground"
                 )}
               >
                 <BarChart className="w-5 h-5" />
-                Progresso
+                Histórico
               </Button>
             </Link>
           </>
