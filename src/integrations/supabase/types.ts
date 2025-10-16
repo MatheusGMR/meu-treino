@@ -109,6 +109,143 @@ export type Database = {
           },
         ]
       }
+      client_payment_configs: {
+        Row: {
+          active: boolean | null
+          client_id: string
+          created_at: string | null
+          id: string
+          monthly_price: number
+          personal_id: string
+          stripe_price_id: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          client_id: string
+          created_at?: string | null
+          id?: string
+          monthly_price: number
+          personal_id: string
+          stripe_price_id?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          client_id?: string
+          created_at?: string | null
+          id?: string
+          monthly_price?: number
+          personal_id?: string
+          stripe_price_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_payment_configs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "admin_clients_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_payment_configs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_payment_configs_personal_id_fkey"
+            columns: ["personal_id"]
+            isOneToOne: false
+            referencedRelation: "admin_clients_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_payment_configs_personal_id_fkey"
+            columns: ["personal_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_subscriptions: {
+        Row: {
+          client_id: string
+          config_id: string
+          created_at: string | null
+          current_period_end: string
+          current_period_start: string
+          id: string
+          personal_id: string
+          status: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          client_id: string
+          config_id: string
+          created_at?: string | null
+          current_period_end: string
+          current_period_start: string
+          id?: string
+          personal_id: string
+          status: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          config_id?: string
+          created_at?: string | null
+          current_period_end?: string
+          current_period_start?: string
+          id?: string
+          personal_id?: string
+          status?: string
+          stripe_customer_id?: string
+          stripe_subscription_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_subscriptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "admin_clients_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_subscriptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_subscriptions_config_id_fkey"
+            columns: ["config_id"]
+            isOneToOne: false
+            referencedRelation: "client_payment_configs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_subscriptions_personal_id_fkey"
+            columns: ["personal_id"]
+            isOneToOne: false
+            referencedRelation: "admin_clients_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_subscriptions_personal_id_fkey"
+            columns: ["personal_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_workouts: {
         Row: {
           assigned_at: string | null
@@ -183,6 +320,45 @@ export type Database = {
             columns: ["workout_id"]
             isOneToOne: false
             referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commission_settings: {
+        Row: {
+          active: boolean | null
+          commission_percentage: number | null
+          created_at: string | null
+          id: string
+          personal_id: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          commission_percentage?: number | null
+          created_at?: string | null
+          id?: string
+          personal_id?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          commission_percentage?: number | null
+          created_at?: string | null
+          id?: string
+          personal_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_settings_personal_id_fkey"
+            columns: ["personal_id"]
+            isOneToOne: true
+            referencedRelation: "admin_clients_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_settings_personal_id_fkey"
+            columns: ["personal_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -296,6 +472,130 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      payment_history: {
+        Row: {
+          admin_commission: number | null
+          amount: number
+          created_at: string | null
+          description: string | null
+          id: string
+          net_amount: number
+          paid_at: string | null
+          status: string
+          stripe_invoice_id: string | null
+          stripe_payment_intent_id: string | null
+          user_id: string
+          user_type: string
+        }
+        Insert: {
+          admin_commission?: number | null
+          amount: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          net_amount: number
+          paid_at?: string | null
+          status: string
+          stripe_invoice_id?: string | null
+          stripe_payment_intent_id?: string | null
+          user_id: string
+          user_type: string
+        }
+        Update: {
+          admin_commission?: number | null
+          amount?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          net_amount?: number
+          paid_at?: string | null
+          status?: string
+          stripe_invoice_id?: string | null
+          stripe_payment_intent_id?: string | null
+          user_id?: string
+          user_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_clients_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      personal_subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string | null
+          current_period_end: string
+          current_period_start: string
+          id: string
+          personal_id: string
+          plan_id: string
+          status: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end: string
+          current_period_start: string
+          id?: string
+          personal_id: string
+          plan_id: string
+          status: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string | null
+          current_period_end?: string
+          current_period_start?: string
+          id?: string
+          personal_id?: string
+          plan_id?: string
+          status?: string
+          stripe_customer_id?: string
+          stripe_subscription_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personal_subscriptions_personal_id_fkey"
+            columns: ["personal_id"]
+            isOneToOne: false
+            referencedRelation: "admin_clients_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personal_subscriptions_personal_id_fkey"
+            columns: ["personal_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personal_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       physical_assessments: {
         Row: {
@@ -584,6 +884,42 @@ export type Database = {
           id?: string
           session_type?: Database["public"]["Enums"]["session_type"]
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          description: string | null
+          id: string
+          interval: string
+          name: string
+          price: number
+          stripe_price_id: string | null
+          trial_days: number | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          interval: string
+          name: string
+          price: number
+          stripe_price_id?: string | null
+          trial_days?: number | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          interval?: string
+          name?: string
+          price?: number
+          stripe_price_id?: string | null
+          trial_days?: number | null
         }
         Relationships: []
       }
