@@ -6,15 +6,18 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { RoleGuard } from "@/components/auth/RoleGuard";
+import { SubscriptionGuard } from "@/components/auth/SubscriptionGuard";
 import Index from "./pages/Index";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Dashboard from "./pages/Dashboard";
+import ChoosePlan from "./pages/ChoosePlan";
 import Exercises from "./pages/personal/Exercises";
 import Sessions from "./pages/personal/Sessions";
 import Workouts from "./pages/personal/Workouts";
 import Clients from "./pages/personal/Clients";
 import ClientDetails from "./pages/personal/ClientDetails";
+import Subscription from "./pages/personal/Subscription";
 import ClientDashboard from "./pages/client/ClientDashboard";
 import WorkoutSessionExecution from "./pages/client/WorkoutSessionExecution";
 import ClientHistory from "./pages/client/ClientHistory";
@@ -39,6 +42,14 @@ const App = () => (
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/register" element={<Register />} />
             <Route
+              path="/escolher-plano"
+              element={
+                <AuthGuard>
+                  <ChoosePlan />
+                </AuthGuard>
+              }
+            />
+            <Route
               path="/dashboard"
               element={
                 <AuthGuard>
@@ -47,11 +58,23 @@ const App = () => (
               }
             />
             <Route
+              path="/personal/assinatura"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["personal", "admin"]}>
+                    <Subscription />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
               path="/personal/exercises"
               element={
                 <AuthGuard>
                   <RoleGuard allowedRoles={["personal", "admin"]}>
-                    <Exercises />
+                    <SubscriptionGuard>
+                      <Exercises />
+                    </SubscriptionGuard>
                   </RoleGuard>
                 </AuthGuard>
               }
@@ -61,7 +84,9 @@ const App = () => (
               element={
                 <AuthGuard>
                   <RoleGuard allowedRoles={["personal", "admin"]}>
-                    <Sessions />
+                    <SubscriptionGuard>
+                      <Sessions />
+                    </SubscriptionGuard>
                   </RoleGuard>
                 </AuthGuard>
               }
@@ -71,7 +96,9 @@ const App = () => (
               element={
                 <AuthGuard>
                   <RoleGuard allowedRoles={["personal", "admin"]}>
-                    <Workouts />
+                    <SubscriptionGuard>
+                      <Workouts />
+                    </SubscriptionGuard>
                   </RoleGuard>
                 </AuthGuard>
               }
@@ -81,7 +108,9 @@ const App = () => (
               element={
                 <AuthGuard>
                   <RoleGuard allowedRoles={["personal", "admin"]}>
-                    <Clients />
+                    <SubscriptionGuard>
+                      <Clients />
+                    </SubscriptionGuard>
                   </RoleGuard>
                 </AuthGuard>
               }
@@ -91,7 +120,9 @@ const App = () => (
               element={
                 <AuthGuard>
                   <RoleGuard allowedRoles={["personal", "admin"]}>
-                    <ClientDetails />
+                    <SubscriptionGuard>
+                      <ClientDetails />
+                    </SubscriptionGuard>
                   </RoleGuard>
                 </AuthGuard>
               }
