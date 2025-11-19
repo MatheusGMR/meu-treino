@@ -7,6 +7,7 @@ import { useClientDetails, useUpdateClientAssignment } from "@/hooks/useClients"
 import { ClientInfoForm } from "@/components/clients/ClientInfoForm";
 import { AssessmentsTab } from "@/components/clients/AssessmentsTab";
 import { WorkoutsTab } from "@/components/clients/WorkoutsTab";
+import { AnamnesisTab } from "@/components/clients/AnamnesisTab";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ClientStatus } from "@/hooks/useClients";
 import { AppLayout } from "@/layouts/AppLayout";
@@ -85,14 +86,19 @@ const ClientDetails = () => {
         </div>
 
         <Tabs defaultValue="info" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="info">Informações</TabsTrigger>
+            <TabsTrigger value="anamnesis">Anamnese</TabsTrigger>
             <TabsTrigger value="assessments">Avaliações</TabsTrigger>
             <TabsTrigger value="workouts">Treinos</TabsTrigger>
           </TabsList>
 
           <TabsContent value="info">
             <ClientInfoForm clientId={clientId!} profile={data.profile} />
+          </TabsContent>
+
+          <TabsContent value="anamnesis">
+            <AnamnesisTab clientId={clientId!} />
           </TabsContent>
 
           <TabsContent value="assessments">
