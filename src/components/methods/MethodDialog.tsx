@@ -1,0 +1,300 @@
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { methodSchema, type MethodFormData } from "@/lib/schemas/methodSchema";
+import { useCreateMethod, useUpdateMethod } from "@/hooks/useMethods";
+import type { Database } from "@/integrations/supabase/types";
+
+type Method = Database["public"]["Tables"]["methods"]["Row"];
+
+interface MethodDialogProps {
+  method?: Method;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+const LOAD_LEVELS = ["Alta", "Média", "Baixa"] as const;
+
+export const MethodDialog = ({
+  method,
+  open,
+  onOpenChange,
+}: MethodDialogProps) => {
+  const createMutation = useCreateMethod();
+  const updateMutation = useUpdateMethod();
+
+  const form = useForm<MethodFormData>({
+    resolver: zodResolver(methodSchema),
+    defaultValues: {
+      name: "",
+      reps_min: 8,
+      reps_max: 12,
+      rest_seconds: 60,
+      load_level: "Média",
+      cadence_contraction: 2,
+      cadence_pause: 1,
+      cadence_stretch: 2,
+    },
+  });
+
+  useEffect(() => {
+    if (method) {
+      form.reset({
+        name: method.name || "",
+        reps_min: method.reps_min,
+        reps_max: method.reps_max,
+        rest_seconds: method.rest_seconds,
+        load_level: method.load_level as any,
+        cadence_contraction: method.cadence_contraction,
+        cadence_pause: method.cadence_pause,
+        cadence_stretch: method.cadence_stretch,
+      });
+    } else if (!open) {
+      form.reset({
+        name: "",
+        reps_min: 8,
+        reps_max: 12,
+        rest_seconds: 60,
+        load_level: "Média",
+        cadence_contraction: 2,
+        cadence_pause: 1,
+        cadence_stretch: 2,
+      });
+    }
+  }, [method, open, form]);
+
+  const onSubmit = (data: MethodFormData) => {
+    if (method) {
+      updateMutation.mutate(
+        { id: method.id, data },
+        {
+          onSuccess: () => {
+            onOpenChange(false);
+            form.reset();
+          },
+        }
+      );
+    } else {
+      createMutation.mutate(data, {
+        onSuccess: () => {
+          onOpenChange(false);
+          form.reset();
+        },
+      });
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>
+            {method ? "Editar Método" : "Novo Método"}
+          </DialogTitle>
+        </DialogHeader>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex: Drop Set" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="reps_min"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Repetições Mínimas *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="1"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="reps_max"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Repetições Máximas *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="1"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="rest_seconds"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descanso (segundos) *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="load_level"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nível de Carga *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {LOAD_LEVELS.map((level) => (
+                          <SelectItem key={level} value={level}>
+                            {level}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="cadence_contraction"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cadência: Contração *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="cadence_pause"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cadência: Pausa *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="cadence_stretch"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cadência: Alongamento *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="flex gap-2 justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={createMutation.isPending || updateMutation.isPending}
+              >
+                {method ? "Atualizar" : "Criar"}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+};
