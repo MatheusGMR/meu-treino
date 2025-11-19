@@ -23,6 +23,22 @@ export const SubscriptionGuard = ({ children }: { children: React.ReactNode }) =
         .eq("personal_id", user.id)
         .single();
 
+      // Se não tem assinatura, verifica se há planos no sistema
+      if (!data?.status) {
+        const { data: plans } = await supabase
+          .from("subscription_plans")
+          .select("id")
+          .eq("active", true)
+          .limit(1);
+        
+        // Se não há planos = modo desenvolvimento, permite acesso
+        if (!plans || plans.length === 0) {
+          setSubscriptionStatus("active"); // Simula assinatura ativa
+          setLoading(false);
+          return;
+        }
+      }
+
       setSubscriptionStatus(data?.status || null);
       setLoading(false);
     };
