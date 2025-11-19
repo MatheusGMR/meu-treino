@@ -138,8 +138,9 @@ export const ExercisePickerWithAnalysis = ({
         </div>
       </div>
 
-      <ScrollArea className="h-64">
-        <div className="space-y-2">
+      <div className="max-h-64 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="space-y-2 pr-4">
           {filteredExercises?.map((exercise) => {
             const contraindicated = hasContraindication(exercise);
             const hasWarning = exercise.contraindication && !contraindicated;
@@ -186,8 +187,9 @@ export const ExercisePickerWithAnalysis = ({
               Nenhum exercício encontrado
             </p>
           )}
-        </div>
-      </ScrollArea>
+          </div>
+        </ScrollArea>
+      </div>
     </Card>
   );
 };

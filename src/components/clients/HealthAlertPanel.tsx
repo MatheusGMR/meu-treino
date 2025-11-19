@@ -31,26 +31,26 @@ interface HealthAlertPanelProps {
 const RISK_LEVEL_CONFIG = {
   safe: {
     icon: CheckCircle,
-    color: "text-success",
-    bgColor: "bg-success/10 border-success/20",
+    color: "text-green-600",
+    bgColor: "bg-green-50 border-green-200",
     title: "Compatível",
   },
   caution: {
     icon: Info,
-    color: "text-warning",
-    bgColor: "bg-warning/10 border-warning/20",
+    color: "text-yellow-600",
+    bgColor: "bg-yellow-50 border-yellow-200",
     title: "Atenção",
   },
   "high-risk": {
     icon: AlertTriangle,
-    color: "text-destructive",
-    bgColor: "bg-destructive/10 border-destructive/20",
+    color: "text-orange-600",
+    bgColor: "bg-orange-50 border-orange-200",
     title: "Alto Risco",
   },
   critical: {
     icon: ShieldAlert,
-    color: "text-destructive",
-    bgColor: "bg-destructive/10 border-destructive/20",
+    color: "text-red-600",
+    bgColor: "bg-red-50 border-red-200",
     title: "Crítico",
   },
 };
