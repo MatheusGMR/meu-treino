@@ -13,6 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "@/hooks/use-toast";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import logoJmFull from "@/assets/logo-jm-full.png";
+import { BodyTypeSelector } from "@/components/client/BodyTypeSelector";
 
 const ClientAnamnesis = () => {
   const navigate = useNavigate();
@@ -54,8 +55,8 @@ const ClientAnamnesis = () => {
     // Step 5: Objetivos e Estilo de Vida
     primary_goal: "",
     secondary_goals: [] as string[],
-    current_body_type: "",
-    desired_body_type: "",
+    current_body_type: null as number | null,
+    desired_body_type: null as number | null,
     sleep_quality: "",
     nutrition_quality: "",
     water_intake: "",
@@ -111,8 +112,8 @@ const ClientAnamnesis = () => {
           medical_restrictions_details: formData.medical_restrictions_details || null,
           primary_goal: formData.primary_goal || null,
           secondary_goals: formData.secondary_goals.length > 0 ? formData.secondary_goals : null,
-          current_body_type: parseInt(formData.current_body_type) || null,
-          desired_body_type: parseInt(formData.desired_body_type) || null,
+          current_body_type: formData.current_body_type,
+          desired_body_type: formData.desired_body_type,
           sleep_quality: formData.sleep_quality || null,
           nutrition_quality: formData.nutrition_quality || null,
           water_intake: formData.water_intake || null,
@@ -486,28 +487,26 @@ const ClientAnamnesis = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="current_body">Tipo corporal atual (1-9)</Label>
-              <Input
-                id="current_body"
-                type="number"
-                min="1"
-                max="9"
+              <Label>Tipo corporal atual</Label>
+              <p className="text-sm text-muted-foreground mb-2">
+                Selecione a imagem que melhor representa seu corpo atualmente
+              </p>
+              <BodyTypeSelector
+                gender={formData.gender}
                 value={formData.current_body_type}
-                onChange={(e) => updateField("current_body_type", e.target.value)}
-                placeholder="1 = muito magro, 9 = obeso"
+                onChange={(value) => updateField("current_body_type", value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="desired_body">Tipo corporal desejado (1-9)</Label>
-              <Input
-                id="desired_body"
-                type="number"
-                min="1"
-                max="9"
+              <Label>Tipo corporal desejado</Label>
+              <p className="text-sm text-muted-foreground mb-2">
+                Selecione a imagem que representa seu objetivo corporal
+              </p>
+              <BodyTypeSelector
+                gender={formData.gender}
                 value={formData.desired_body_type}
-                onChange={(e) => updateField("desired_body_type", e.target.value)}
-                placeholder="1 = muito magro, 9 = obeso"
+                onChange={(value) => updateField("desired_body_type", value)}
               />
             </div>
 
