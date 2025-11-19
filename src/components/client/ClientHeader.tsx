@@ -1,7 +1,9 @@
-import { Menu, Home, History, LogOut } from "lucide-react";
+import { Menu, Home, History, LogOut, AlertCircle } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useAnamnesisStatus } from "@/hooks/useAnamnesisStatus";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import logoJmFull from "@/assets/logo-jm-full.png";
 import logoJmIcon from "@/assets/logo-jm-icon.png";
 import {
@@ -15,6 +17,7 @@ import {
 export const ClientHeader = () => {
   const { signOut } = useAuth();
   const location = useLocation();
+  const { anamnesisCompleted } = useAnamnesisStatus();
 
   const menuItems = [
     { label: "Dashboard", path: "/client/dashboard", icon: Home },
@@ -28,7 +31,7 @@ export const ClientHeader = () => {
       <div className="container mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/client/dashboard" className="flex items-center">
+          <Link to="/client/dashboard" className="flex items-center gap-3">
             <img 
               src={logoJmFull} 
               alt="Junior Mello Treinamentos" 
@@ -39,6 +42,13 @@ export const ClientHeader = () => {
               alt="JM" 
               className="h-10 w-10 sm:hidden rounded-lg"
             />
+            {anamnesisCompleted === false && (
+              <Badge variant="destructive" className="flex items-center gap-1 animate-pulse">
+                <AlertCircle className="h-3 w-3" />
+                <span className="hidden sm:inline">Anamnese Pendente</span>
+                <span className="sm:hidden">!</span>
+              </Badge>
+            )}
           </Link>
 
           {/* Desktop Menu */}
