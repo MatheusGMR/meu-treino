@@ -15,6 +15,8 @@ import ChoosePlan from "./pages/ChoosePlan";
 import Exercises from "./pages/personal/Exercises";
 import Sessions from "./pages/personal/Sessions";
 import Workouts from "./pages/personal/Workouts";
+import Volumes from "./pages/personal/Volumes";
+import Methods from "./pages/personal/Methods";
 import Clients from "./pages/personal/Clients";
 import ClientDetails from "./pages/personal/ClientDetails";
 import Subscription from "./pages/personal/Subscription";
@@ -98,6 +100,30 @@ const App = () => (
                   <RoleGuard allowedRoles={["personal", "admin"]}>
                     <SubscriptionGuard>
                       <Workouts />
+                    </SubscriptionGuard>
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/personal/volumes"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["personal", "admin"]}>
+                    <SubscriptionGuard>
+                      <Volumes />
+                    </SubscriptionGuard>
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/personal/methods"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["personal", "admin"]}>
+                    <SubscriptionGuard>
+                      <Methods />
                     </SubscriptionGuard>
                   </RoleGuard>
                 </AuthGuard>

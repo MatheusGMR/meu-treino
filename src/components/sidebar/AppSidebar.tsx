@@ -1,4 +1,4 @@
-import { Home, Dumbbell, Users, Settings, LogOut, ChevronRight, Activity, ClipboardList, Crown, BarChart } from "lucide-react";
+import { Home, Dumbbell, Users, Settings, LogOut, ChevronRight, Activity, ClipboardList, Crown, BarChart, Hash, Zap } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
@@ -55,7 +55,7 @@ export const AppSidebar = () => {
                   variant="ghost"
                   className={cn(
                     "w-full justify-between",
-                    isParentActive(["/personal/workouts", "/personal/sessions", "/personal/exercises"]) && "bg-sidebar-accent text-sidebar-accent-foreground"
+                    isParentActive(["/personal/workouts", "/personal/sessions", "/personal/exercises", "/personal/volumes", "/personal/methods"]) && "bg-sidebar-accent text-sidebar-accent-foreground"
                   )}
                 >
                   <div className="flex items-center gap-3">
@@ -103,6 +103,32 @@ export const AppSidebar = () => {
                   >
                     <Dumbbell className="w-4 h-4" />
                     Exercícios
+                  </Button>
+                </Link>
+                <Link to="/personal/volumes">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      "w-full justify-start gap-3",
+                      isActive("/personal/volumes") && "bg-sidebar-accent text-sidebar-accent-foreground"
+                    )}
+                  >
+                    <Hash className="w-4 h-4" />
+                    Volumes
+                  </Button>
+                </Link>
+                <Link to="/personal/methods">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      "w-full justify-start gap-3",
+                      isActive("/personal/methods") && "bg-sidebar-accent text-sidebar-accent-foreground"
+                    )}
+                  >
+                    <Zap className="w-4 h-4" />
+                    Métodos
                   </Button>
                 </Link>
               </CollapsibleContent>
