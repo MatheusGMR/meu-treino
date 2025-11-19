@@ -31,7 +31,22 @@ serve(async (req) => {
     }
 
     const genderLabel = gender === "Masculino" ? "male" : "female";
-    const prompt = `Simple minimalist illustration of ${genderLabel} body type ${bodyType}, frontal view, fitness reference chart style, clean white background, anatomically accurate proportions, showing progression from very lean (1) to obese (9). Professional health assessment style, neutral pose, 16:9 aspect ratio.`;
+    
+    // Criar descrições específicas para cada tipo corporal sem mencionar progressão
+    const bodyTypeDescriptions: Record<number, string> = {
+      1: "very lean athletic build",
+      2: "lean athletic build", 
+      3: "slim athletic build",
+      4: "athletic balanced build",
+      5: "muscular athletic build",
+      6: "strong muscular build",
+      7: "heavier build",
+      8: "larger build",
+      9: "heavy build"
+    };
+
+    const description = bodyTypeDescriptions[bodyType] || "athletic build";
+    const prompt = `Simple minimalist illustration of a ${genderLabel} person with ${description}, frontal view, fitness reference chart style, clean white background, anatomically accurate proportions. Professional health assessment style, neutral standing pose.`;
 
     console.log(`Generating image for ${gender} body type ${bodyType}`);
 
