@@ -2,19 +2,12 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ChevronDown, ChevronUp, Trash2, GripVertical } from "lucide-react";
-import { useExercises } from "@/hooks/useExercises";
-import { useVolumes } from "@/hooks/useVolumes";
-import { useMethods } from "@/hooks/useMethods";
+import { ChevronDown, ChevronUp, X, Plus, GripVertical, Trash2 } from "lucide-react";
+import { InlineExerciseAdder } from "./InlineExerciseAdder";
+import { InlineExerciseRow } from "./InlineExerciseRow";
 import type { SessionExerciseData } from "@/lib/schemas/sessionSchema";
 
 interface TempSession {
@@ -38,18 +31,12 @@ export const SessionEditorInline = ({
   onRemove,
 }: SessionEditorInlineProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { data: exercises } = useExercises();
-  const { data: volumes } = useVolumes();
-  const { data: methods } = useMethods();
+  const [isAddingExercise, setIsAddingExercise] = useState(false);
 
-  const handleUpdateExercise = (
-    index: number,
-    field: keyof SessionExerciseData,
-    value: any
-  ) => {
-    const updatedExercises = [...session.exercises];
-    updatedExercises[index] = { ...updatedExercises[index], [field]: value };
+  const handleAddExercise = (newExercise: SessionExerciseData) => {
+    const updatedExercises = [...session.exercises, newExercise];
     onUpdate({ ...session, exercises: updatedExercises });
+    setIsAddingExercise(false);
   };
 
   const handleRemoveExercise = (index: number) => {
@@ -111,61 +98,65 @@ export const SessionEditorInline = ({
                 />
               </div>
 
-              <div className="space-y-2">
-                <div className="text-sm font-medium">Exercícios:</div>
-                {session.exercises.map((exercise, idx) => {
-                  const exerciseInfo = exercises?.find(
-                    (e) => e.id === exercise.exercise_id
-                  );
-                  const volumeInfo = volumes?.find(
-                    (v) => v.id === exercise.volume_id
-                  );
-                  const methodInfo = methods?.find(
-                    (m) => m.id === exercise.method_id
-                  );
+              <div className="space-y-3">
+                <Label className="text-xs font-medium">Exercícios</Label>
+                
+                {/* Table Header */}
+                <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-2 pb-1 border-b">
+                  <div className="col-span-1"></div>
+                  <div className="col-span-2">Tipo</div>
+                  <div className="col-span-2">Grupo</div>
+                  <div className="col-span-2">Exercício</div>
+                  <div className="col-span-2">Volume</div>
+                  <div className="col-span-2">Método</div>
+                  <div className="col-span-1"></div>
+                </div>
 
-                  return (
-                    <div
-                      key={idx}
-                      className="flex items-center gap-2 p-2 rounded bg-muted/30"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {exerciseInfo?.name}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {volumeInfo?.name} • {methodInfo?.name || "Método padrão"}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Select
-                          value={exercise.volume_id}
-                          onValueChange={(value) =>
-                            handleUpdateExercise(idx, "volume_id", value)
-                          }
-                        >
-                          <SelectTrigger className="w-24 h-8 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {volumes?.map((vol) => (
-                              <SelectItem key={vol.id} value={vol.id}>
-                                {vol.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveExercise(idx)}
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
+                {/* Exercise Rows */}
+                <div className="space-y-1">
+                  {session.exercises.length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic py-4 text-center">
+                      Nenhum exercício adicionado ainda
+                    </p>
+                  ) : (
+                    session.exercises.map((exercise, idx) => (
+                      exercise.exercise_id && exercise.volume_id && exercise.method_id && (
+                        <InlineExerciseRow
+                          key={idx}
+                          exercise={{
+                            exercise_id: exercise.exercise_id,
+                            volume_id: exercise.volume_id,
+                            method_id: exercise.method_id,
+                            order_index: exercise.order_index || idx
+                          }}
+                          onRemove={() => handleRemoveExercise(idx)}
+                        />
+                      )
+                    ))
+                  )}
+
+                  {/* Adding New Exercise */}
+                  {isAddingExercise && (
+                    <InlineExerciseAdder
+                      onSave={handleAddExercise}
+                      onCancel={() => setIsAddingExercise(false)}
+                      orderIndex={session.exercises.length}
+                    />
+                  )}
+                </div>
+
+                {/* Add Exercise Button */}
+                {!isAddingExercise && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsAddingExercise(true)}
+                    className="w-full mt-2"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Adicionar Exercício
+                  </Button>
+                )}
               </div>
             </div>
           )}

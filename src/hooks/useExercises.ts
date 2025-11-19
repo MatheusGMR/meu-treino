@@ -5,10 +5,13 @@ import { toast } from "@/hooks/use-toast";
 import type { ExerciseFormData } from "@/lib/schemas/exerciseSchema";
 import { uploadExerciseMedia, deleteExerciseMedia } from "@/lib/supabase/storage";
 
-export const useExercises = (filters?: {
+interface ExerciseFilters {
   groups?: string[];
   search?: string;
-}) => {
+  type?: string;
+}
+
+export const useExercises = (filters?: ExerciseFilters) => {
   return useQuery({
     queryKey: ["exercises", filters],
     queryFn: async () => {
@@ -16,6 +19,10 @@ export const useExercises = (filters?: {
         .from("exercises")
         .select("*")
         .order("created_at", { ascending: false });
+
+      if (filters?.type) {
+        query = query.eq("exercise_type", filters.type as any);
+      }
 
       if (filters?.groups && filters.groups.length > 0) {
         query = query.in("exercise_group", filters.groups as any);
@@ -27,7 +34,7 @@ export const useExercises = (filters?: {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data;
+      return data as any[];
     },
   });
 };
@@ -46,11 +53,12 @@ export const useCreateExercise = () => {
         .from("exercises")
         .insert({
           name: data.name,
-          exercise_group: data.exercise_group,
+          exercise_type: data.exercise_type as any,
+          exercise_group: data.exercise_group as any,
           video_url: data.video_url,
           contraindication: data.contraindication,
           created_by: user?.id,
-        })
+        } as any)
         .select()
         .single();
 
@@ -88,7 +96,13 @@ export const useUpdateExercise = () => {
     }) => {
       const { data: exercise, error } = await supabase
         .from("exercises")
-        .update(data)
+        .update({
+          name: data.name,
+          exercise_type: data.exercise_type as any,
+          exercise_group: data.exercise_group as any,
+          video_url: data.video_url,
+          contraindication: data.contraindication,
+        } as any)
         .eq("id", id)
         .select()
         .single();
