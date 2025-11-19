@@ -34,7 +34,9 @@ const WorkoutSessionExecution = () => {
           *,
           session_exercises (
             *,
-            exercises (*)
+            exercises (*),
+            volumes (*),
+            methods (*)
           )
         `)
         .eq("id", sessionId)
@@ -131,22 +133,21 @@ const WorkoutSessionExecution = () => {
         </h2>
 
         <ExerciseVideoPlayer
-          mediaUrl={currentExercise.exercises?.media_url}
-          mediaType={currentExercise.exercises?.media_type}
+          mediaUrl={currentExercise.exercises?.video_url}
           exerciseName={currentExercise.exercises?.name || ""}
         />
 
         {!showRestTimer ? (
           <>
             <SeriesTracker
-              sets={currentExercise.sets || 3}
-              reps={currentExercise.reps || "12"}
+              sets={currentExercise.volumes?.num_series || 3}
+              reps={`${currentExercise.methods?.reps_min}-${currentExercise.methods?.reps_max}` || "12"}
               clientWorkoutId={todaySchedule?.client_workouts?.id || ""}
               sessionId={sessionId || ""}
               exerciseId={currentExercise.exercise_id}
             />
 
-            <ExerciseNotes notes={currentExercise.notes} />
+            <ExerciseNotes notes={currentExercise.exercises?.contraindication} />
 
             <div className="flex gap-4">
               <Button
@@ -154,15 +155,15 @@ const WorkoutSessionExecution = () => {
                 size="lg"
                 className="flex-1"
                 onClick={() => setShowRestTimer(true)}
-                disabled={!currentExercise.rest_time}
+                disabled={!currentExercise.methods?.rest_seconds}
               >
-                Iniciar Descanso ({currentExercise.rest_time || 0}s)
+                Iniciar Descanso ({currentExercise.methods?.rest_seconds || 0}s)
               </Button>
             </div>
           </>
         ) : (
           <RestTimer
-            restTime={currentExercise.rest_time || 60}
+            restTime={currentExercise.methods?.rest_seconds || 60}
             onComplete={() => setShowRestTimer(false)}
           />
         )}

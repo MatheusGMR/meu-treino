@@ -38,7 +38,7 @@ export const SessionSelector = ({ value, onChange }: SessionSelectorProps) => {
         <SelectContent>
           {unselectedSessions?.map((session) => (
             <SelectItem key={session.id} value={session.id}>
-              {session.description} ({session.session_type})
+              {session.name}
             </SelectItem>
           ))}
         </SelectContent>
@@ -58,8 +58,8 @@ export const SessionSelector = ({ value, onChange }: SessionSelectorProps) => {
             <div className="flex items-center gap-3">
               <GripVertical className="w-5 h-5 text-muted-foreground cursor-move" />
               <div className="flex-1">
-                <p className="font-medium">{sessionInfo?.description}</p>
-                <p className="text-sm text-muted-foreground">{sessionInfo?.session_type}</p>
+                <p className="font-medium">{sessionInfo?.name}</p>
+                <p className="text-sm text-muted-foreground">{sessionInfo?.description}</p>
               </div>
               <Button type="button" variant="ghost" size="icon" onClick={() => removeSession(index)}>
                 <Trash2 className="w-4 h-4" />

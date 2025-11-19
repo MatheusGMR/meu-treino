@@ -11,10 +11,8 @@ import { useSessions } from "@/hooks/useSessions";
 export default function Sessions() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
 
   const { data: sessions, isLoading } = useSessions({
-    types: selectedTypes,
     search,
   });
 
@@ -50,10 +48,6 @@ export default function Sessions() {
               />
             </div>
           </div>
-          <SessionFilters
-            selectedTypes={selectedTypes}
-            onTypesChange={setSelectedTypes}
-          />
         </div>
 
         <SessionsTable sessions={sessions || []} isLoading={isLoading} />

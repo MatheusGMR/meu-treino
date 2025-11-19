@@ -18,8 +18,8 @@ export const useTodayWorkout = () => {
           *,
           sessions (
             id,
+            name,
             description,
-            session_type,
             session_exercises (
               *,
               exercises (*)

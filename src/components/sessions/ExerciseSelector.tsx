@@ -1,7 +1,5 @@
 import { GripVertical, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -10,30 +8,35 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-import { useExercisesByType } from "@/hooks/useSessions";
+import { useExercises } from "@/hooks/useExercises";
+import { useVolumes } from "@/hooks/useVolumes";
+import { useMethods } from "@/hooks/useMethods";
 import type { SessionExerciseData } from "@/lib/schemas/sessionSchema";
 
 interface ExerciseSelectorProps {
-  sessionType: string;
   value: SessionExerciseData[];
   onChange: (exercises: SessionExerciseData[]) => void;
 }
 
 export const ExerciseSelector = ({
-  sessionType,
   value,
   onChange,
 }: ExerciseSelectorProps) => {
-  const { data: availableExercises } = useExercisesByType(sessionType);
+  const { data: availableExercises } = useExercises();
+  const { data: volumes } = useVolumes();
+  const { data: methods } = useMethods();
 
   const addExercise = (exerciseId: string) => {
+    const defaultVolume = volumes?.[0]?.id;
+    const defaultMethod = methods?.[0]?.id;
+
+    if (!defaultVolume || !defaultMethod) return;
+
     const newExercise: SessionExerciseData = {
       exercise_id: exerciseId,
+      volume_id: defaultVolume,
+      method_id: defaultMethod,
       order_index: value.length,
-      sets: 3,
-      reps: "12",
-      rest_time: 60,
-      notes: "",
     };
     onChange([...value, newExercise]);
   };
@@ -112,67 +115,52 @@ export const ExerciseSelector = ({
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-sm text-muted-foreground">
-                      Séries
+                      Volume
                     </label>
-                    <Input
-                      type="number"
-                      value={exercise.sets || ""}
-                      onChange={(e) =>
-                        updateExercise(
-                          index,
-                          "sets",
-                          parseInt(e.target.value) || undefined
-                        )
+                    <Select
+                      value={exercise.volume_id}
+                      onValueChange={(val) =>
+                        updateExercise(index, "volume_id", val)
                       }
-                      placeholder="3"
-                      min={1}
-                    />
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {volumes?.map((volume) => (
+                          <SelectItem key={volume.id} value={volume.id}>
+                            {volume.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div>
-                    <label className="text-sm text-muted-foreground">
-                      Repetições
-                    </label>
-                    <Input
-                      value={exercise.reps || ""}
-                      onChange={(e) =>
-                        updateExercise(index, "reps", e.target.value)
-                      }
-                      placeholder="12"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-muted-foreground">
-                      Descanso (s)
-                    </label>
-                    <Input
-                      type="number"
-                      value={exercise.rest_time || ""}
-                      onChange={(e) =>
-                        updateExercise(
-                          index,
-                          "rest_time",
-                          parseInt(e.target.value) || undefined
-                        )
-                      }
-                      placeholder="60"
-                      min={0}
-                    />
-                  </div>
-                </div>
 
-                <div>
-                  <label className="text-sm text-muted-foreground">Notas</label>
-                  <Textarea
-                    value={exercise.notes || ""}
-                    onChange={(e) =>
-                      updateExercise(index, "notes", e.target.value)
-                    }
-                    placeholder="Notas específicas..."
-                    rows={2}
-                  />
+                  <div>
+                    <label className="text-sm text-muted-foreground">
+                      Método
+                    </label>
+                    <Select
+                      value={exercise.method_id}
+                      onValueChange={(val) =>
+                        updateExercise(index, "method_id", val)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {methods?.map((method) => (
+                          <SelectItem key={method.id} value={method.id}>
+                            {method.name || `${method.reps_min}-${method.reps_max} reps`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
             </div>

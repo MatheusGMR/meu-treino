@@ -96,8 +96,8 @@ export const useCreateSession = () => {
       const { data: session, error: sessionError } = await supabase
         .from("sessions")
         .insert({
+          name: data.name,
           description: data.description,
-          session_type: data.session_type,
           created_by: user?.id,
         })
         .select()
@@ -113,10 +113,8 @@ export const useCreateSession = () => {
             exercise_id: ex.exercise_id,
             session_id: session.id,
             order_index: ex.order_index,
-            sets: ex.sets,
-            reps: ex.reps,
-            rest_time: ex.rest_time,
-            notes: ex.notes,
+            volume_id: ex.volume_id,
+            method_id: ex.method_id,
           }))
         );
 
@@ -150,8 +148,8 @@ export const useUpdateSession = () => {
       const { error: sessionError } = await supabase
         .from("sessions")
         .update({
+          name: data.name,
           description: data.description,
-          session_type: data.session_type,
         })
         .eq("id", id);
 
@@ -173,10 +171,8 @@ export const useUpdateSession = () => {
             exercise_id: ex.exercise_id,
             session_id: id,
             order_index: ex.order_index,
-            sets: ex.sets,
-            reps: ex.reps,
-            rest_time: ex.rest_time,
-            notes: ex.notes,
+            volume_id: ex.volume_id,
+            method_id: ex.method_id,
           }))
         );
 

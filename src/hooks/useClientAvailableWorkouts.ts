@@ -24,8 +24,8 @@ export const useClientActiveWorkouts = () => {
               order_index,
               sessions (
                 id,
+                name,
                 description,
-                session_type,
                 session_exercises (
                   id
                 )
@@ -60,8 +60,8 @@ export const useNextScheduledSession = (clientWorkoutId: string) => {
           *,
           sessions (
             id,
-            description,
-            session_type
+            name,
+            description
           )
         `)
         .eq("client_workout_id", clientWorkoutId)

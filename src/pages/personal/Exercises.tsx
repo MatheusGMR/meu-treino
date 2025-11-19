@@ -5,18 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Plus, Search } from "lucide-react";
 import { ExercisesTable } from "@/components/exercises/ExercisesTable";
 import { ExerciseDialog } from "@/components/exercises/ExerciseDialog";
-import { ExerciseFilters } from "@/components/exercises/ExerciseFilters";
 import { useExercises } from "@/hooks/useExercises";
 
 export default function Exercises() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
-  const [selectedIntensities, setSelectedIntensities] = useState<string[]>([]);
 
   const { data: exercises, isLoading } = useExercises({
     groups: selectedGroups,
-    intensities: selectedIntensities,
     search,
   });
 
@@ -52,12 +49,6 @@ export default function Exercises() {
               />
             </div>
           </div>
-          <ExerciseFilters
-            selectedGroups={selectedGroups}
-            selectedIntensities={selectedIntensities}
-            onGroupsChange={setSelectedGroups}
-            onIntensitiesChange={setSelectedIntensities}
-          />
         </div>
 
         <ExercisesTable exercises={exercises || []} isLoading={isLoading} />
