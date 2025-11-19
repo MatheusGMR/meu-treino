@@ -461,6 +461,33 @@ export type Database = {
         }
         Relationships: []
       }
+      medical_condition_exercise_restrictions: {
+        Row: {
+          condition_keyword: string
+          created_at: string | null
+          id: string
+          recommendation: string | null
+          restricted_exercise_groups: string[]
+          severity_level: string
+        }
+        Insert: {
+          condition_keyword: string
+          created_at?: string | null
+          id?: string
+          recommendation?: string | null
+          restricted_exercise_groups: string[]
+          severity_level: string
+        }
+        Update: {
+          condition_keyword?: string
+          created_at?: string | null
+          id?: string
+          recommendation?: string | null
+          restricted_exercise_groups?: string[]
+          severity_level?: string
+        }
+        Relationships: []
+      }
       methods: {
         Row: {
           cadence_contraction: number
@@ -1014,6 +1041,55 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      workout_assignment_validations: {
+        Row: {
+          assigned_by: string | null
+          client_workout_id: string | null
+          created_at: string | null
+          id: string
+          override_reason: string | null
+          validation_result: Json
+        }
+        Insert: {
+          assigned_by?: string | null
+          client_workout_id?: string | null
+          created_at?: string | null
+          id?: string
+          override_reason?: string | null
+          validation_result: Json
+        }
+        Update: {
+          assigned_by?: string | null
+          client_workout_id?: string | null
+          created_at?: string | null
+          id?: string
+          override_reason?: string | null
+          validation_result?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_assignment_validations_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "admin_clients_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_assignment_validations_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_assignment_validations_client_workout_id_fkey"
+            columns: ["client_workout_id"]
+            isOneToOne: false
+            referencedRelation: "client_workouts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workout_sessions: {
         Row: {

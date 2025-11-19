@@ -31,6 +31,8 @@ import {
   useWorkoutWithSessions,
 } from "@/hooks/useWorkouts";
 import { SessionSelector } from "./SessionSelector";
+import { MuscleGroupVisualizer } from "@/components/workouts/MuscleGroupVisualizer";
+import { useWorkoutMuscleAnalysis } from "@/hooks/useWorkoutMuscleAnalysis";
 
 interface WorkoutDialogProps {
   workout?: any;
@@ -50,6 +52,7 @@ export const WorkoutDialog = ({
   const createMutation = useCreateWorkout();
   const updateMutation = useUpdateWorkout();
   const { data: workoutData } = useWorkoutWithSessions(workout?.id || "");
+  const muscleAnalysis = useWorkoutMuscleAnalysis(workout?.id);
 
   const form = useForm<WorkoutFormData>({
     resolver: zodResolver(workoutSchema),
@@ -193,6 +196,18 @@ export const WorkoutDialog = ({
                 </FormItem>
               )}
             />
+
+            {workout && muscleAnalysis.data && (
+              <div className="pt-4 border-t">
+                <h3 className="text-sm font-semibold mb-3">Análise de Distribuição Muscular</h3>
+                <MuscleGroupVisualizer
+                  muscleGroups={muscleAnalysis.data.muscleGroups}
+                  totalExercises={muscleAnalysis.data.totalExercises}
+                  warnings={muscleAnalysis.data.warnings}
+                  isBalanced={muscleAnalysis.data.isBalanced}
+                />
+              </div>
+            )}
 
             <div className="flex justify-end gap-2 pt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

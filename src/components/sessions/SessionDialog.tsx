@@ -25,6 +25,8 @@ import {
   useUpdateSession,
   useSessionWithExercises,
 } from "@/hooks/useSessions";
+import { MuscleGroupVisualizer } from "@/components/workouts/MuscleGroupVisualizer";
+import { useSessionMuscleAnalysis } from "@/hooks/useWorkoutMuscleAnalysis";
 
 interface SessionDialogProps {
   session?: any;
@@ -40,6 +42,7 @@ export const SessionDialog = ({
   const createMutation = useCreateSession();
   const updateMutation = useUpdateSession();
   const { data: sessionData } = useSessionWithExercises(session?.id || "");
+  const muscleAnalysis = useSessionMuscleAnalysis(session?.id);
 
   const form = useForm<SessionFormData>({
     resolver: zodResolver(sessionSchema),
@@ -153,6 +156,18 @@ export const SessionDialog = ({
                 </FormItem>
               )}
             />
+
+            {session && muscleAnalysis.data && (
+              <div className="pt-4 border-t">
+                <h3 className="text-sm font-semibold mb-3">Análise de Distribuição Muscular</h3>
+                <MuscleGroupVisualizer
+                  muscleGroups={muscleAnalysis.data.muscleGroups}
+                  totalExercises={muscleAnalysis.data.totalExercises}
+                  warnings={muscleAnalysis.data.warnings}
+                  isBalanced={muscleAnalysis.data.isBalanced}
+                />
+              </div>
+            )}
 
             <div className="flex gap-2 justify-end">
               <Button
