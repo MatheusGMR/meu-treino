@@ -7,7 +7,6 @@ import { uploadExerciseMedia, deleteExerciseMedia } from "@/lib/supabase/storage
 
 export const useExercises = (filters?: {
   groups?: string[];
-  intensities?: string[];
   search?: string;
 }) => {
   return useQuery({
@@ -20,10 +19,6 @@ export const useExercises = (filters?: {
 
       if (filters?.groups && filters.groups.length > 0) {
         query = query.in("exercise_group", filters.groups as any);
-      }
-
-      if (filters?.intensities && filters.intensities.length > 0) {
-        query = query.in("intensity", filters.intensities as any);
       }
 
       if (filters?.search) {

@@ -41,21 +41,8 @@ export const ExercisesTable = ({ exercises, isLoading }: ExercisesTableProps) =>
 
   const handleDelete = () => {
     if (!deleteId) return;
-    const exercise = exercises.find((e) => e.id === deleteId);
-    deleteMutation.mutate({
-      id: deleteId,
-      mediaUrl: exercise?.media_url || undefined,
-    });
+    deleteMutation.mutate(deleteId);
     setDeleteId(null);
-  };
-
-  const getIntensityColor = (intensity: string) => {
-    const colors = {
-      Fácil: "bg-green-500/10 text-green-500",
-      Intermediário: "bg-yellow-500/10 text-yellow-500",
-      Difícil: "bg-red-500/10 text-red-500",
-    };
-    return colors[intensity as keyof typeof colors] || "";
   };
 
   if (isLoading) {
@@ -87,8 +74,7 @@ export const ExercisesTable = ({ exercises, isLoading }: ExercisesTableProps) =>
             <TableRow>
               <TableHead>Nome</TableHead>
               <TableHead>Grupo Muscular</TableHead>
-              <TableHead>Intensidade</TableHead>
-              <TableHead>Equipamento</TableHead>
+              <TableHead>Vídeo</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -99,13 +85,8 @@ export const ExercisesTable = ({ exercises, isLoading }: ExercisesTableProps) =>
                 <TableCell>
                   <Badge variant="outline">{exercise.exercise_group}</Badge>
                 </TableCell>
-                <TableCell>
-                  <Badge className={getIntensityColor(exercise.intensity)}>
-                    {exercise.intensity}
-                  </Badge>
-                </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {exercise.equipment || "-"}
+                  {exercise.video_url ? "Sim" : "-"}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">

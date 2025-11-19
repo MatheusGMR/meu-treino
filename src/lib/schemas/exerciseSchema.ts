@@ -14,14 +14,8 @@ export const exerciseSchema = z.object({
     "Panturrilha",
     "Outro"
   ], { required_error: "Selecione um grupo muscular" }),
-  intensity: z.enum(["Fácil", "Intermediário", "Difícil"], {
-    required_error: "Selecione a intensidade",
-  }),
-  print_name: z.string().max(100).optional(),
-  equipment: z.string().max(200).optional(),
-  description: z.string().max(1000).optional(),
-  media_type: z.enum(["image", "video"]).optional(),
-  media_url: z.string().url().optional().or(z.literal("")),
+  video_url: z.string().url("URL inválida").optional().or(z.literal("")),
+  contraindication: z.string().max(500).optional(),
 });
 
 export type ExerciseFormData = z.infer<typeof exerciseSchema>;
