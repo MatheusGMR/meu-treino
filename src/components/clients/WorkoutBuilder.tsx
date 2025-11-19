@@ -31,6 +31,7 @@ import { ExercisePickerWithAnalysis } from "./ExercisePickerWithAnalysis";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { motion } from "framer-motion";
 
 interface WorkoutBuilderProps {
   clientId: string;
@@ -104,16 +105,23 @@ export const WorkoutBuilder = ({
                     <div className="max-h-[400px] rounded-md border overflow-hidden">
                       <ScrollArea className="h-full p-4">
                         <div className="space-y-2">
-                          {workouts?.map((workout) => (
-                          <Card
+                          {workouts?.map((workout, index) => (
+                          <motion.div
                             key={workout.id}
-                            className={cn(
-                              "p-4 cursor-pointer transition-all hover:shadow-md",
-                              builder.selectedWorkoutId === workout.id &&
-                                "border-primary shadow-md"
-                            )}
-                            onClick={() => builder.setSelectedWorkoutId(workout.id)}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.3, delay: index * 0.05 }}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
                           >
+                            <Card
+                              className={cn(
+                                "p-4 cursor-pointer transition-all hover:shadow-md",
+                                builder.selectedWorkoutId === workout.id &&
+                                  "border-primary shadow-md"
+                              )}
+                              onClick={() => builder.setSelectedWorkoutId(workout.id)}
+                            >
                             <div className="flex items-start justify-between">
                               <div>
                                 <h4 className="font-semibold">{workout.name}</h4>
@@ -131,7 +139,8 @@ export const WorkoutBuilder = ({
                                 </div>
                               </div>
                             </div>
-                          </Card>
+                            </Card>
+                          </motion.div>
                         ))}
                         </div>
                       </ScrollArea>
@@ -295,17 +304,43 @@ export const WorkoutBuilder = ({
                   onAcknowledgeChange={builder.setAcknowledgeRisks}
                 />
 
-                <Card className="p-4 space-y-2">
-                  <h4 className="font-semibold text-sm">Resumo</h4>
-                  <div className="space-y-1 text-xs text-muted-foreground">
-                    <p>
-                      Sessões:{" "}
-                      {builder.mode === "existing" ? "—" : builder.tempWorkout.sessions.length}
-                    </p>
-                    <p>Exercícios: {builder.muscleAnalysis.totalExercises}</p>
-                    <p>Tempo estimado: {builder.estimatedTime}</p>
-                  </div>
-                </Card>
+                <motion.div
+                  key={`${builder.muscleAnalysis.totalExercises}-${builder.estimatedTime}`}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: 0.2 }}
+                >
+                  <Card className="p-4 space-y-2">
+                    <h4 className="font-semibold text-sm">Resumo</h4>
+                    <div className="space-y-1 text-xs text-muted-foreground">
+                      <motion.p
+                        key={builder.mode === "existing" ? "existing" : builder.tempWorkout.sessions.length}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        Sessões:{" "}
+                        {builder.mode === "existing" ? "—" : builder.tempWorkout.sessions.length}
+                      </motion.p>
+                      <motion.p
+                        key={builder.muscleAnalysis.totalExercises}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        Exercícios: {builder.muscleAnalysis.totalExercises}
+                      </motion.p>
+                      <motion.p
+                        key={builder.estimatedTime}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        Tempo estimado: {builder.estimatedTime}
+                      </motion.p>
+                    </div>
+                  </Card>
+                </motion.div>
               </div>
             </div>
           </div>
