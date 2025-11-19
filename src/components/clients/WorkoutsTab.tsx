@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { AssignWorkoutDialog } from "./AssignWorkoutDialog";
+import { WorkoutBuilder } from "./WorkoutBuilder";
 import { ClientWorkoutCard } from "./ClientWorkoutCard";
 import { useClientWorkouts } from "@/hooks/useClientWorkouts";
 import { Plus, Dumbbell } from "lucide-react";
@@ -31,7 +31,7 @@ export const WorkoutsTab = ({ clientId }: WorkoutsTabProps) => {
           <Plus className="h-4 w-4 mr-2" />
           Atribuir Treino
         </Button>
-        <AssignWorkoutDialog
+        <WorkoutBuilder
           clientId={clientId}
           open={dialogOpen}
           onOpenChange={setDialogOpen}
@@ -56,7 +56,7 @@ export const WorkoutsTab = ({ clientId }: WorkoutsTabProps) => {
         ))}
       </div>
 
-      <AssignWorkoutDialog
+      <WorkoutBuilder
         clientId={clientId}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
