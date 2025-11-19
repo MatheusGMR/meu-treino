@@ -66,7 +66,10 @@ export const ClientWorkoutCard = ({ workout }: ClientWorkoutCardProps) => {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={() => unassignWorkout.mutate(workout.id)}>
+                <AlertDialogAction onClick={() => unassignWorkout.mutate({
+                  workoutAssignmentId: workout.id,
+                  clientId: workout.client_id
+                })}>
                   Remover
                 </AlertDialogAction>
               </AlertDialogFooter>

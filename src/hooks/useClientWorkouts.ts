@@ -39,12 +39,16 @@ export const useAssignWorkout = () => {
       startDate,
       endDate,
       notes,
+      validationResult,
+      overrideReason,
     }: {
       clientId: string;
       workoutId: string;
       startDate: string;
       endDate?: string;
       notes?: string;
+      validationResult?: any;
+      overrideReason?: string | null;
     }) => {
       if (!user) throw new Error("User not authenticated");
 
@@ -58,6 +62,16 @@ export const useAssignWorkout = () => {
 
       const totalSessions = workoutData?.length || 0;
 
+      // Criar nota com warnings se houver
+      let finalNotes = notes || "";
+      if (validationResult && (validationResult.warnings.length > 0 || validationResult.criticalIssues.length > 0)) {
+        const warningsText = [
+          ...validationResult.criticalIssues.map((w: any) => `⚠️ CRÍTICO: ${w.condition}`),
+          ...validationResult.warnings.map((w: any) => `⚠️ ${w.condition}`)
+        ].join("; ");
+        finalNotes = finalNotes ? `${finalNotes}\n\n[Avisos de Saúde]: ${warningsText}` : `[Avisos de Saúde]: ${warningsText}`;
+      }
+
       const { data: insertedWorkout, error } = await supabase
         .from("client_workouts")
         .insert({
@@ -66,7 +80,7 @@ export const useAssignWorkout = () => {
           assigned_by: user.id,
           start_date: startDate,
           end_date: endDate || null,
-          notes: notes || null,
+          notes: finalNotes || null,
           status: "Ativo",
           total_sessions: totalSessions,
           completed_sessions: 0,
@@ -75,6 +89,18 @@ export const useAssignWorkout = () => {
         .single();
 
       if (error) throw error;
+
+      // Registrar log de validação
+      if (validationResult) {
+        await supabase
+          .from("workout_assignment_validations")
+          .insert({
+            client_workout_id: insertedWorkout.id,
+            validation_result: validationResult,
+            override_reason: overrideReason,
+            assigned_by: user.id,
+          });
+      }
 
       // Chamar Edge Function para agendar sessões automaticamente
       const { error: scheduleError } = await supabase.functions.invoke(
@@ -90,6 +116,8 @@ export const useAssignWorkout = () => {
         console.error('Erro ao agendar sessões:', scheduleError);
         // Não bloqueia a atribuição, mas loga erro
       }
+
+      return insertedWorkout;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["client-workouts", variables.clientId] });
@@ -154,7 +182,13 @@ export const useUnassignWorkout = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (workoutAssignmentId: string) => {
+    mutationFn: async ({
+      workoutAssignmentId,
+      clientId,
+    }: {
+      workoutAssignmentId: string;
+      clientId: string;
+    }) => {
       const { error } = await supabase
         .from("client_workouts")
         .delete()
@@ -162,10 +196,14 @@ export const useUnassignWorkout = () => {
 
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["client-workouts"] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["client-workouts", variables.clientId] });
+      queryClient.invalidateQueries({ queryKey: ["client-details", variables.clientId] });
+      queryClient.invalidateQueries({ queryKey: ["today-workout", variables.clientId] });
+      queryClient.invalidateQueries({ queryKey: ["client-active-workouts", variables.clientId] });
       toast({
         title: "Treino removido!",
+        description: "O treino foi removido do cliente com sucesso.",
       });
     },
     onError: (error: any) => {
