@@ -649,6 +649,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           exercise_group: Database["public"]["Enums"]["exercise_group"]
+          exercise_type: Database["public"]["Enums"]["exercise_type_enum"]
           id: string
           name: string
           updated_at: string | null
@@ -659,6 +660,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           exercise_group: Database["public"]["Enums"]["exercise_group"]
+          exercise_type?: Database["public"]["Enums"]["exercise_type_enum"]
           id?: string
           name: string
           updated_at?: string | null
@@ -669,6 +671,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           exercise_group?: Database["public"]["Enums"]["exercise_group"]
+          exercise_type?: Database["public"]["Enums"]["exercise_type_enum"]
           id?: string
           name?: string
           updated_at?: string | null
@@ -1453,6 +1456,7 @@ export type Database = {
         | "Glúteos"
         | "Panturrilha"
         | "Outro"
+      exercise_type_enum: "Musculação" | "Mobilidade" | "Cardio" | "Alongamento"
       intensity_level: "Fácil" | "Intermediário" | "Difícil"
       session_type: "Mobilidade" | "Alongamento" | "Musculação"
       training_level: "Iniciante" | "Avançado"
@@ -1603,6 +1607,7 @@ export const Constants = {
         "Panturrilha",
         "Outro",
       ],
+      exercise_type_enum: ["Musculação", "Mobilidade", "Cardio", "Alongamento"],
       intensity_level: ["Fácil", "Intermediário", "Difícil"],
       session_type: ["Mobilidade", "Alongamento", "Musculação"],
       training_level: ["Iniciante", "Avançado"],
