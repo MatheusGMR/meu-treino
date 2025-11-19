@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -16,13 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ExerciseSelector } from "./ExerciseSelector";
 import { sessionSchema, type SessionFormData } from "@/lib/schemas/sessionSchema";
@@ -38,8 +32,6 @@ interface SessionDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const SESSION_TYPES = ["Mobilidade", "Alongamento", "Musculação"];
-
 export const SessionDialog = ({
   session,
   open,
@@ -52,8 +44,8 @@ export const SessionDialog = ({
   const form = useForm<SessionFormData>({
     resolver: zodResolver(sessionSchema),
     defaultValues: {
+      name: "",
       description: "",
-      session_type: "Musculação",
       exercises: [],
     },
   });
@@ -63,22 +55,20 @@ export const SessionDialog = ({
       const exercises =
         sessionData.session_exercises?.map((se: any, index: number) => ({
           exercise_id: se.exercise_id,
+          volume_id: se.volume_id,
+          method_id: se.method_id,
           order_index: index,
-          sets: se.sets || undefined,
-          reps: se.reps || undefined,
-          rest_time: se.rest_time || undefined,
-          notes: se.notes || undefined,
         })) || [];
 
       form.reset({
+        name: sessionData.name,
         description: sessionData.description,
-        session_type: sessionData.session_type as any,
         exercises,
       });
     } else if (!session) {
       form.reset({
+        name: "",
         description: "",
-        session_type: "Musculação",
         exercises: [],
       });
     }
@@ -118,10 +108,10 @@ export const SessionDialog = ({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="description"
+              name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Descrição *</FormLabel>
+                  <FormLabel>Nome *</FormLabel>
                   <FormControl>
                     <Input placeholder="Ex: Peito A, Pernas B..." {...field} />
                   </FormControl>
@@ -132,27 +122,16 @@ export const SessionDialog = ({
 
             <FormField
               control={form.control}
-              name="session_type"
+              name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tipo de Sessão *</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {SESSION_TYPES.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Descrição</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Descrição opcional..."
+                      {...field}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -166,7 +145,6 @@ export const SessionDialog = ({
                   <FormLabel>Exercícios *</FormLabel>
                   <FormControl>
                     <ExerciseSelector
-                      sessionType={form.watch("session_type")}
                       value={field.value}
                       onChange={field.onChange}
                     />
@@ -176,7 +154,7 @@ export const SessionDialog = ({
               )}
             />
 
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex gap-2 justify-end">
               <Button
                 type="button"
                 variant="outline"

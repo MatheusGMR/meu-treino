@@ -29,14 +29,9 @@ export const useCreateVolume = () => {
 
   return useMutation({
     mutationFn: async (data: VolumeFormData) => {
-      const { data: session } = await supabase.auth.getSession();
-      
       const { data: volume, error } = await supabase
         .from("volumes")
-        .insert({
-          ...data,
-          created_by: session.session?.user?.id,
-        })
+        .insert([data as any])
         .select()
         .single();
 

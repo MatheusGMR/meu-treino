@@ -39,28 +39,16 @@ export const useCreateExercise = () => {
   return useMutation({
     mutationFn: async ({
       data,
-      file,
     }: {
       data: ExerciseFormData;
-      file?: File;
     }) => {
-      let media_url = data.media_url;
-
-      if (file && user) {
-        media_url = await uploadExerciseMedia(file, user.id);
-      }
-
       const { data: exercise, error } = await supabase
         .from("exercises")
         .insert({
           name: data.name,
           exercise_group: data.exercise_group,
-          intensity: data.intensity,
-          print_name: data.print_name,
-          equipment: data.equipment,
-          description: data.description,
-          media_type: data.media_type,
-          media_url,
+          video_url: data.video_url,
+          contraindication: data.contraindication,
           created_by: user?.id,
         })
         .select()
@@ -94,27 +82,13 @@ export const useUpdateExercise = () => {
     mutationFn: async ({
       id,
       data,
-      file,
-      oldMediaUrl,
     }: {
       id: string;
       data: ExerciseFormData;
-      file?: File;
-      oldMediaUrl?: string;
     }) => {
-      let media_url = data.media_url;
-
-      if (file && user) {
-        // Delete old media if exists
-        if (oldMediaUrl) {
-          await deleteExerciseMedia(oldMediaUrl).catch(console.error);
-        }
-        media_url = await uploadExerciseMedia(file, user.id);
-      }
-
       const { data: exercise, error } = await supabase
         .from("exercises")
-        .update({ ...data, media_url })
+        .update(data)
         .eq("id", id)
         .select()
         .single();
@@ -143,14 +117,8 @@ export const useDeleteExercise = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, mediaUrl }: { id: string; mediaUrl?: string }) => {
-      // Delete media first if exists
-      if (mediaUrl) {
-        await deleteExerciseMedia(mediaUrl).catch(console.error);
-      }
-
+    mutationFn: async (id: string) => {
       const { error } = await supabase.from("exercises").delete().eq("id", id);
-
       if (error) throw error;
     },
     onSuccess: () => {

@@ -29,14 +29,9 @@ export const useCreateMethod = () => {
 
   return useMutation({
     mutationFn: async (data: MethodFormData) => {
-      const { data: session } = await supabase.auth.getSession();
-      
       const { data: method, error } = await supabase
         .from("methods")
-        .insert({
-          ...data,
-          created_by: session.session?.user?.id,
-        })
+        .insert([data as any])
         .select()
         .single();
 
