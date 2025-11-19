@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { MonthlyMetricsCards } from "@/components/client/MonthlyMetricsCards";
 import { TodayWorkoutCard } from "@/components/client/TodayWorkoutCard";
 import { RecentHistoryTimeline } from "@/components/client/RecentHistoryTimeline";
@@ -8,7 +11,10 @@ import { WelcomeSplash } from "@/components/client/WelcomeSplash";
 import { ClientHeader } from "@/components/client/ClientHeader";
 
 const ClientDashboard = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [showSplash, setShowSplash] = useState(true);
+  const [checkingAnamnesis, setCheckingAnamnesis] = useState(true);
 
   useEffect(() => {
     // Força dark mode
@@ -23,6 +29,44 @@ const ClientDashboard = () => {
       document.documentElement.classList.remove('dark');
     };
   }, []);
+
+  useEffect(() => {
+    const checkAnamnesis = async () => {
+      if (!user?.id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("anamnesis_completed")
+          .eq("id", user.id)
+          .single();
+
+        if (error) throw error;
+
+        // Redirect to anamnesis if not completed
+        if (!data?.anamnesis_completed) {
+          navigate("/client/anamnesis", { replace: true });
+        }
+      } catch (error) {
+        console.error("Error checking anamnesis:", error);
+      } finally {
+        setCheckingAnamnesis(false);
+      }
+    };
+
+    checkAnamnesis();
+  }, [user?.id, navigate]);
+
+  if (checkingAnamnesis) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-primary-glow to-accent">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-background border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-background">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (showSplash) {
     return <WelcomeSplash />;

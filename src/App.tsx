@@ -21,6 +21,7 @@ import Clients from "./pages/personal/Clients";
 import ClientDetails from "./pages/personal/ClientDetails";
 import Subscription from "./pages/personal/Subscription";
 import ClientDashboard from "./pages/client/ClientDashboard";
+import ClientAnamnesis from "./pages/client/ClientAnamnesis";
 import WorkoutSessionExecution from "./pages/client/WorkoutSessionExecution";
 import ClientHistory from "./pages/client/ClientHistory";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -154,6 +155,16 @@ const App = () => (
               }
             />
             {/* Client routes */}
+            <Route
+              path="/client/anamnesis"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["client"]}>
+                    <ClientAnamnesis />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
             <Route
               path="/client/dashboard"
               element={
