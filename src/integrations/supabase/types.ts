@@ -430,45 +430,78 @@ export type Database = {
       }
       exercises: {
         Row: {
+          contraindication: string | null
           created_at: string | null
           created_by: string | null
-          description: string | null
-          equipment: string | null
           exercise_group: Database["public"]["Enums"]["exercise_group"]
           id: string
-          intensity: Database["public"]["Enums"]["intensity_level"]
-          media_type: string | null
-          media_url: string | null
           name: string
-          print_name: string | null
+          updated_at: string | null
+          video_url: string | null
+        }
+        Insert: {
+          contraindication?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          exercise_group: Database["public"]["Enums"]["exercise_group"]
+          id?: string
+          name: string
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          contraindication?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          exercise_group?: Database["public"]["Enums"]["exercise_group"]
+          id?: string
+          name?: string
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      methods: {
+        Row: {
+          cadence_contraction: number
+          cadence_pause: number
+          cadence_stretch: number
+          created_at: string | null
+          created_by: string | null
+          id: string
+          load_level: string
+          name: string | null
+          reps_max: number
+          reps_min: number
+          rest_seconds: number
           updated_at: string | null
         }
         Insert: {
+          cadence_contraction: number
+          cadence_pause: number
+          cadence_stretch: number
           created_at?: string | null
           created_by?: string | null
-          description?: string | null
-          equipment?: string | null
-          exercise_group: Database["public"]["Enums"]["exercise_group"]
           id?: string
-          intensity: Database["public"]["Enums"]["intensity_level"]
-          media_type?: string | null
-          media_url?: string | null
-          name: string
-          print_name?: string | null
+          load_level: string
+          name?: string | null
+          reps_max: number
+          reps_min: number
+          rest_seconds: number
           updated_at?: string | null
         }
         Update: {
+          cadence_contraction?: number
+          cadence_pause?: number
+          cadence_stretch?: number
           created_at?: string | null
           created_by?: string | null
-          description?: string | null
-          equipment?: string | null
-          exercise_group?: Database["public"]["Enums"]["exercise_group"]
           id?: string
-          intensity?: Database["public"]["Enums"]["intensity_level"]
-          media_type?: string | null
-          media_url?: string | null
-          name?: string
-          print_name?: string | null
+          load_level?: string
+          name?: string | null
+          reps_max?: number
+          reps_min?: number
+          rest_seconds?: number
           updated_at?: string | null
         }
         Relationships: []
@@ -816,32 +849,26 @@ export type Database = {
         Row: {
           exercise_id: string | null
           id: string
-          notes: string | null
+          method_id: string
           order_index: number
-          reps: string | null
-          rest_time: number | null
           session_id: string | null
-          sets: number | null
+          volume_id: string
         }
         Insert: {
           exercise_id?: string | null
           id?: string
-          notes?: string | null
+          method_id: string
           order_index: number
-          reps?: string | null
-          rest_time?: number | null
           session_id?: string | null
-          sets?: number | null
+          volume_id: string
         }
         Update: {
           exercise_id?: string | null
           id?: string
-          notes?: string | null
+          method_id?: string
           order_index?: number
-          reps?: string | null
-          rest_time?: number | null
           session_id?: string | null
-          sets?: number | null
+          volume_id?: string
         }
         Relationships: [
           {
@@ -852,10 +879,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "session_exercises_method_id_fkey"
+            columns: ["method_id"]
+            isOneToOne: false
+            referencedRelation: "methods"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "session_exercises_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_exercises_volume_id_fkey"
+            columns: ["volume_id"]
+            isOneToOne: false
+            referencedRelation: "volumes"
             referencedColumns: ["id"]
           },
         ]
@@ -866,7 +907,7 @@ export type Database = {
           created_by: string | null
           description: string
           id: string
-          session_type: Database["public"]["Enums"]["session_type"]
+          name: string
           updated_at: string | null
         }
         Insert: {
@@ -874,7 +915,7 @@ export type Database = {
           created_by?: string | null
           description: string
           id?: string
-          session_type: Database["public"]["Enums"]["session_type"]
+          name: string
           updated_at?: string | null
         }
         Update: {
@@ -882,7 +923,7 @@ export type Database = {
           created_by?: string | null
           description?: string
           id?: string
-          session_type?: Database["public"]["Enums"]["session_type"]
+          name?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -941,6 +982,36 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      volumes: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          name: string
+          num_exercises: number
+          num_series: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name: string
+          num_exercises: number
+          num_series: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name?: string
+          num_exercises?: number
+          num_series?: number
+          updated_at?: string | null
         }
         Relationships: []
       }

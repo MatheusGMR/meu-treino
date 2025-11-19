@@ -80,7 +80,7 @@ const WorkoutCard = ({ workout }: { workout: any }) => {
         {nextSession && (
           <div className="pt-2 border-t border-border/50">
             <p className="text-sm text-foreground/70 mb-3">
-              Próxima: <span className="font-medium text-foreground">{nextSession.sessions?.description}</span>
+              Próxima: <span className="font-medium text-foreground">{nextSession.sessions?.name}</span>
             </p>
             <Button 
               onClick={handleStart}

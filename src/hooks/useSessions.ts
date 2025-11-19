@@ -5,7 +5,6 @@ import { toast } from "@/hooks/use-toast";
 import type { SessionFormData } from "@/lib/schemas/sessionSchema";
 
 export const useSessions = (filters?: {
-  types?: string[];
   search?: string;
 }) => {
   return useQuery({
@@ -16,12 +15,8 @@ export const useSessions = (filters?: {
         .select("*, session_exercises(count)")
         .order("created_at", { ascending: false });
 
-      if (filters?.types && filters.types.length > 0) {
-        query = query.in("session_type", filters.types as any);
-      }
-
       if (filters?.search) {
-        query = query.ilike("description", `%${filters.search}%`);
+        query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
       }
 
       const { data, error } = await query;

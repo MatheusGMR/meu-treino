@@ -46,9 +46,9 @@ export const TodayWorkoutCard = () => {
         </div>
         
         <div className="space-y-2">
-          <h3 className="text-xl font-semibold text-foreground">{session?.description}</h3>
+          <h3 className="text-xl font-semibold text-foreground">{session?.name}</h3>
           <p className="text-foreground/70">
-            {session?.session_type} • {exerciseCount} exercícios
+            {exerciseCount} exercícios
           </p>
         </div>
 
