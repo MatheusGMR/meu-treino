@@ -3,6 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { bodyTypeFallbackImages } from "./BodyTypeFallbackImages";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const BODY_TYPE_LABELS: Record<number, string> = {
   1: "Muito Magro",
@@ -26,6 +29,7 @@ export function BodyTypeSelector({ gender, value, onChange }: BodyTypeSelectorPr
   const [images, setImages] = useState<Record<number, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [usingFallback, setUsingFallback] = useState(false);
 
   useEffect(() => {
     if (!gender) {
@@ -37,13 +41,26 @@ export function BodyTypeSelector({ gender, value, onChange }: BodyTypeSelectorPr
     const cached = sessionStorage.getItem(cacheKey);
 
     if (cached) {
-      setImages(JSON.parse(cached));
+      const parsedCache = JSON.parse(cached);
+      setImages(parsedCache);
+      setUsingFallback(parsedCache.isFallback || false);
       setLoading(false);
       return;
     }
 
     generateImages();
   }, [gender]);
+
+  const useFallbackImages = () => {
+    console.log("Using fallback SVG images for body types");
+    setImages(bodyTypeFallbackImages);
+    setUsingFallback(true);
+    setLoading(false);
+    
+    // Cache fallback images
+    const cacheKey = `bodyType_${gender}`;
+    sessionStorage.setItem(cacheKey, JSON.stringify({ ...bodyTypeFallbackImages, isFallback: true }));
+  };
 
   const generateImages = async () => {
     if (!gender) return;
@@ -72,18 +89,21 @@ export function BodyTypeSelector({ gender, value, onChange }: BodyTypeSelectorPr
 
       await Promise.all(promises);
 
-      // Cache the results
+      // Cache the AI-generated results
       const cacheKey = `bodyType_${gender}`;
-      sessionStorage.setItem(cacheKey, JSON.stringify(generatedImages));
+      sessionStorage.setItem(cacheKey, JSON.stringify({ ...generatedImages, isFallback: false }));
       
       setImages(generatedImages);
+      setUsingFallback(false);
     } catch (err) {
-      console.error('Error generating body type images:', err);
-      setError('Erro ao gerar imagens. Tente novamente.');
+      console.error('Error generating body type images, using fallback:', err);
+      
+      // Use fallback images instead of showing error
+      useFallbackImages();
+      
       toast({
-        title: "Erro",
-        description: "Não foi possível gerar as imagens dos tipos corporais. Tente novamente.",
-        variant: "destructive"
+        title: "Usando visualização simplificada",
+        description: "As imagens detalhadas não puderam ser carregadas, mas você ainda pode selecionar seu tipo corporal.",
       });
     } finally {
       setLoading(false);
@@ -116,10 +136,19 @@ export function BodyTypeSelector({ gender, value, onChange }: BodyTypeSelectorPr
       <div className="text-center py-8 space-y-4">
         <p className="text-destructive">{error}</p>
         <button
-          onClick={generateImages}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+          onClick={() => {
+            setError(null);
+            useFallbackImages();
+          }}
+          className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80"
         >
-          Tentar Novamente
+          Usar Visualização Simplificada
+        </button>
+        <button
+          onClick={generateImages}
+          className="ml-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+        >
+          Tentar Novamente com IA
         </button>
       </div>
     );
@@ -127,6 +156,15 @@ export function BodyTypeSelector({ gender, value, onChange }: BodyTypeSelectorPr
 
   return (
     <div className="space-y-4">
+      {usingFallback && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Usando visualização simplificada dos tipos corporais. As imagens funcionam perfeitamente para completar a anamnese.
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {Array.from({ length: 9 }, (_, i) => i + 1).map((bodyType) => (
           <button
