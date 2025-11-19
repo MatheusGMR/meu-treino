@@ -53,8 +53,8 @@ export const WorkoutBuilder = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-7xl max-h-[90vh] p-0 gap-0">
-        <DialogHeader className="p-6 pb-4">
+      <DialogContent className="max-w-[95vw] w-full h-[90vh] p-0 gap-0 flex flex-col">
+        <DialogHeader className="p-6 pb-4 border-b flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Dumbbell className="w-5 h-5" />
             Construtor de Treino
@@ -64,10 +64,30 @@ export const WorkoutBuilder = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
-          <div className="grid grid-cols-[1fr_360px] h-full">
-            {/* Construtor (70%) */}
-            <div className="border-r overflow-y-auto p-6">
+        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+          <div className="flex flex-col lg:flex-row w-full h-full">
+            {/* Construtor */}
+            <div className="flex-1 overflow-y-auto p-4 lg:p-6 lg:border-r">
+              {/* Análise Mobile - Collapsible */}
+              <div className="lg:hidden mb-4 space-y-3">
+                <h3 className="font-semibold text-sm">Análise em Tempo Real</h3>
+                <div className="grid gap-3">
+                  <MuscleImpactMeter
+                    muscleGroups={builder.muscleAnalysis.muscleGroups}
+                    totalExercises={builder.muscleAnalysis.totalExercises}
+                    warnings={builder.muscleAnalysis.warnings}
+                    isBalanced={builder.muscleAnalysis.isBalanced}
+                  />
+                  <HealthAlertPanel
+                    riskLevel={builder.compatibility.riskLevel}
+                    warnings={builder.compatibility.warnings}
+                    criticalIssues={builder.compatibility.criticalIssues}
+                    recommendations={builder.compatibility.recommendations}
+                    acknowledgeRisks={builder.acknowledgeRisks}
+                    onAcknowledgeChange={builder.setAcknowledgeRisks}
+                  />
+                </div>
+              </div>
               <Tabs
                 value={builder.mode}
                 onValueChange={(v) => builder.setMode(v as "existing" | "new")}
@@ -81,9 +101,10 @@ export const WorkoutBuilder = ({
                 <TabsContent value="existing" className="space-y-4">
                   <div className="space-y-3">
                     <Label>Selecionar Treino</Label>
-                    <ScrollArea className="h-96 rounded-md border p-4">
-                      <div className="space-y-2">
-                        {workouts?.map((workout) => (
+                    <div className="max-h-[400px] rounded-md border overflow-hidden">
+                      <ScrollArea className="h-full p-4">
+                        <div className="space-y-2">
+                          {workouts?.map((workout) => (
                           <Card
                             key={workout.id}
                             className={cn(
@@ -112,12 +133,13 @@ export const WorkoutBuilder = ({
                             </div>
                           </Card>
                         ))}
-                      </div>
-                    </ScrollArea>
+                        </div>
+                      </ScrollArea>
+                    </div>
                   </div>
 
                   {/* Datas e Notas */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Data de Início</Label>
                       <Popover>
@@ -215,9 +237,10 @@ export const WorkoutBuilder = ({
                       </Button>
                     </div>
 
-                    <ScrollArea className="h-64">
-                      <div className="space-y-2">
-                        {builder.tempWorkout.sessions.map((session, idx) => (
+                    <div className="max-h-[300px] overflow-hidden">
+                      <ScrollArea className="h-full">
+                        <div className="space-y-2 pr-4">
+                          {builder.tempWorkout.sessions.map((session, idx) => (
                           <SessionEditorInline
                             key={idx}
                             session={session}
@@ -232,9 +255,10 @@ export const WorkoutBuilder = ({
                             </p>
                           </Card>
                         )}
+                          </div>
+                        </ScrollArea>
                       </div>
-                    </ScrollArea>
-                  </div>
+                    </div>
 
                   <ExercisePickerWithAnalysis
                     onAddExercise={(exercise) => {
@@ -250,8 +274,8 @@ export const WorkoutBuilder = ({
               </Tabs>
             </div>
 
-            {/* Painel de Análise (30%) */}
-            <div className="bg-muted/30 overflow-y-auto p-6 space-y-4">
+            {/* Painel de Análise */}
+            <div className="hidden lg:block lg:w-80 xl:w-96 bg-muted/30 overflow-y-auto p-6 space-y-4 border-t lg:border-t-0 flex-shrink-0">
               <div className="space-y-4">
                 <h3 className="font-semibold text-lg">Análise em Tempo Real</h3>
 
@@ -287,7 +311,7 @@ export const WorkoutBuilder = ({
           </div>
         </div>
 
-        <DialogFooter className="p-6 pt-4 border-t">
+        <DialogFooter className="p-6 pt-4 border-t flex-shrink-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
