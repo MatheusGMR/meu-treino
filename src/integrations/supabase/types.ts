@@ -14,6 +14,221 @@ export type Database = {
   }
   public: {
     Tables: {
+      anamnesis: {
+        Row: {
+          activity_level: string | null
+          age: number | null
+          calculated_profile: string | null
+          client_id: string
+          completed_at: string | null
+          created_at: string | null
+          current_body_type: number | null
+          daily_sitting_hours: number | null
+          desired_body_type: number | null
+          dimension_scores: Json | null
+          discipline_level: string | null
+          gender: string | null
+          handles_challenges: string | null
+          has_children: boolean | null
+          has_injury_or_surgery: boolean | null
+          has_joint_pain: boolean | null
+          id: string
+          injury_details: string | null
+          injury_type: string | null
+          medical_restrictions: string[] | null
+          medical_restrictions_details: string | null
+          nutrition_quality: string | null
+          pain_details: string | null
+          pain_locations: string[] | null
+          previous_weight_training: boolean | null
+          primary_goal: string | null
+          profession: string | null
+          profile_confidence_score: number | null
+          secondary_goals: string[] | null
+          sleep_quality: string | null
+          time_without_training: string | null
+          training_location: string | null
+          updated_at: string | null
+          wants_personalized_plan: boolean | null
+          water_intake: string | null
+          work_shift: string | null
+          work_type: string | null
+          workout_preference: string | null
+        }
+        Insert: {
+          activity_level?: string | null
+          age?: number | null
+          calculated_profile?: string | null
+          client_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          current_body_type?: number | null
+          daily_sitting_hours?: number | null
+          desired_body_type?: number | null
+          dimension_scores?: Json | null
+          discipline_level?: string | null
+          gender?: string | null
+          handles_challenges?: string | null
+          has_children?: boolean | null
+          has_injury_or_surgery?: boolean | null
+          has_joint_pain?: boolean | null
+          id?: string
+          injury_details?: string | null
+          injury_type?: string | null
+          medical_restrictions?: string[] | null
+          medical_restrictions_details?: string | null
+          nutrition_quality?: string | null
+          pain_details?: string | null
+          pain_locations?: string[] | null
+          previous_weight_training?: boolean | null
+          primary_goal?: string | null
+          profession?: string | null
+          profile_confidence_score?: number | null
+          secondary_goals?: string[] | null
+          sleep_quality?: string | null
+          time_without_training?: string | null
+          training_location?: string | null
+          updated_at?: string | null
+          wants_personalized_plan?: boolean | null
+          water_intake?: string | null
+          work_shift?: string | null
+          work_type?: string | null
+          workout_preference?: string | null
+        }
+        Update: {
+          activity_level?: string | null
+          age?: number | null
+          calculated_profile?: string | null
+          client_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          current_body_type?: number | null
+          daily_sitting_hours?: number | null
+          desired_body_type?: number | null
+          dimension_scores?: Json | null
+          discipline_level?: string | null
+          gender?: string | null
+          handles_challenges?: string | null
+          has_children?: boolean | null
+          has_injury_or_surgery?: boolean | null
+          has_joint_pain?: boolean | null
+          id?: string
+          injury_details?: string | null
+          injury_type?: string | null
+          medical_restrictions?: string[] | null
+          medical_restrictions_details?: string | null
+          nutrition_quality?: string | null
+          pain_details?: string | null
+          pain_locations?: string[] | null
+          previous_weight_training?: boolean | null
+          primary_goal?: string | null
+          profession?: string | null
+          profile_confidence_score?: number | null
+          secondary_goals?: string[] | null
+          sleep_quality?: string | null
+          time_without_training?: string | null
+          training_location?: string | null
+          updated_at?: string | null
+          wants_personalized_plan?: boolean | null
+          water_intake?: string | null
+          work_shift?: string | null
+          work_type?: string | null
+          workout_preference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anamnesis_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "admin_clients_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anamnesis_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      anamnesis_profiles: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          name: string
+          profile_number: number
+          recommended_frequency: string | null
+          recommended_intensity: string | null
+          recommended_training_type: string[] | null
+          risk_factors: string[] | null
+          strategy: string
+          typical_combination: Json
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          name: string
+          profile_number: number
+          recommended_frequency?: string | null
+          recommended_intensity?: string | null
+          recommended_training_type?: string[] | null
+          risk_factors?: string[] | null
+          strategy: string
+          typical_combination: Json
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          name?: string
+          profile_number?: number
+          recommended_frequency?: string | null
+          recommended_intensity?: string | null
+          recommended_training_type?: string[] | null
+          risk_factors?: string[] | null
+          strategy?: string
+          typical_combination?: Json
+        }
+        Relationships: []
+      }
+      anamnesis_recommendations: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          priority: string
+          profile_id: string | null
+          recommendation: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: string
+          priority: string
+          profile_id?: string | null
+          recommendation: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          priority?: string
+          profile_id?: string | null
+          recommendation?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anamnesis_recommendations_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "anamnesis_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assignment_history: {
         Row: {
           change_reason: string | null
@@ -745,6 +960,9 @@ export type Database = {
       }
       profiles: {
         Row: {
+          anamnesis_completed: boolean | null
+          anamnesis_last_update: string | null
+          anamnesis_profile: string | null
           avatar_url: string | null
           birth_date: string | null
           created_at: string | null
@@ -760,6 +978,9 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          anamnesis_completed?: boolean | null
+          anamnesis_last_update?: string | null
+          anamnesis_profile?: string | null
           avatar_url?: string | null
           birth_date?: string | null
           created_at?: string | null
@@ -775,6 +996,9 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          anamnesis_completed?: boolean | null
+          anamnesis_last_update?: string | null
+          anamnesis_profile?: string | null
           avatar_url?: string | null
           birth_date?: string | null
           created_at?: string | null
