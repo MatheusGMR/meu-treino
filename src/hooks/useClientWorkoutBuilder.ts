@@ -2,6 +2,8 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useWorkoutMuscleAnalysis, useSessionMuscleAnalysis } from "./useWorkoutMuscleAnalysis";
 import { useHealthCompatibilityCheck } from "./useHealthCompatibilityCheck";
 import { useAssignWorkout } from "./useClientWorkouts";
+import { useClientDetails } from "./useClients";
+import { useClientAnamnesis } from "./useAnamnesis";
 import type { SessionExerciseData } from "@/lib/schemas/sessionSchema";
 
 interface TempSession {
@@ -34,6 +36,10 @@ export const useClientWorkoutBuilder = (clientId: string) => {
   const [acknowledgeRisks, setAcknowledgeRisks] = useState(false);
 
   const assignWorkoutMutation = useAssignWorkout();
+  
+  // Buscar dados do cliente
+  const { data: clientDetails } = useClientDetails(clientId);
+  const { data: anamnesisData } = useClientAnamnesis(clientId);
 
   // Análise muscular em tempo real
   const workoutAnalysis = useWorkoutMuscleAnalysis(
@@ -228,5 +234,8 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     canSubmit,
     submit,
     isSubmitting: assignWorkoutMutation.isPending,
+    // Dados do cliente
+    clientProfile: clientDetails?.profile,
+    clientAnamnesis: anamnesisData?.anamnesis,
   };
 };

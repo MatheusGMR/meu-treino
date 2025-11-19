@@ -26,6 +26,7 @@ import { useClientWorkoutBuilder } from "@/hooks/useClientWorkoutBuilder";
 import { useWorkouts } from "@/hooks/useWorkouts";
 import { MuscleImpactMeter } from "./MuscleImpactMeter";
 import { HealthAlertPanel } from "./HealthAlertPanel";
+import { ClientHealthSummary } from "./ClientHealthSummary";
 import { SessionEditorInline } from "./SessionEditorInline";
 import { ExercisePickerWithAnalysis } from "./ExercisePickerWithAnalysis";
 import { Card } from "@/components/ui/card";
@@ -86,6 +87,13 @@ export const WorkoutBuilder = ({
                     recommendations={builder.compatibility.recommendations}
                     acknowledgeRisks={builder.acknowledgeRisks}
                     onAcknowledgeChange={builder.setAcknowledgeRisks}
+                  />
+                  <ClientHealthSummary
+                    medicalConditions={builder.clientProfile?.medical_conditions}
+                    goals={builder.clientProfile?.goals}
+                    primaryGoal={builder.clientAnamnesis?.primary_goal}
+                    secondaryGoals={builder.clientAnamnesis?.secondary_goals}
+                    activityLevel={builder.clientAnamnesis?.activity_level}
                   />
                 </div>
               </div>
@@ -302,6 +310,14 @@ export const WorkoutBuilder = ({
                   recommendations={builder.compatibility.recommendations}
                   acknowledgeRisks={builder.acknowledgeRisks}
                   onAcknowledgeChange={builder.setAcknowledgeRisks}
+                />
+
+                <ClientHealthSummary
+                  medicalConditions={builder.clientProfile?.medical_conditions}
+                  goals={builder.clientProfile?.goals}
+                  primaryGoal={builder.clientAnamnesis?.primary_goal}
+                  secondaryGoals={builder.clientAnamnesis?.secondary_goals}
+                  activityLevel={builder.clientAnamnesis?.activity_level}
                 />
 
                 <motion.div
