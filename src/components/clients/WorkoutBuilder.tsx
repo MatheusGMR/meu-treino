@@ -53,6 +53,15 @@ export const WorkoutBuilder = ({
     onOpenChange(false);
   };
 
+  const handleAddNewSession = () => {
+    builder.addNewSession({
+      name: `Sessão ${builder.tempWorkout.sessions.length + 1}`,
+      description: "",
+      exercises: [],
+      isNew: true,
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[95vw] w-full h-[90vh] p-0 gap-0 flex flex-col">
@@ -248,7 +257,7 @@ export const WorkoutBuilder = ({
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <Label>Sessões</Label>
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={handleAddNewSession}>
                         <Plus className="w-4 h-4 mr-1" />
                         Adicionar Sessão
                       </Button>
