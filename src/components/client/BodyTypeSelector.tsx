@@ -8,15 +8,11 @@ import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const BODY_TYPE_LABELS: Record<number, string> = {
-  1: "Muito Magro",
-  2: "Magro",
-  3: "Atlético Magro",
-  4: "Atlético",
-  5: "Atlético Forte",
-  6: "Forte com Volume",
-  7: "Sobrepeso",
-  8: "Obeso Moderado",
-  9: "Obeso"
+  1: "Magro",
+  2: "Atlético",
+  3: "Forte",
+  4: "Sobrepeso",
+  5: "Obeso"
 };
 
 interface BodyTypeSelectorProps {
@@ -37,18 +33,7 @@ export function BodyTypeSelector({ gender, value, onChange }: BodyTypeSelectorPr
       return;
     }
 
-    const cacheKey = `bodyType_${gender}`;
-    const cached = sessionStorage.getItem(cacheKey);
-
-    if (cached) {
-      const parsedCache = JSON.parse(cached);
-      setImages(parsedCache);
-      setUsingFallback(parsedCache.isFallback || false);
-      setLoading(false);
-      return;
-    }
-
-    generateImages();
+    loadStaticImages();
   }, [gender]);
 
   const useFallbackImages = () => {
@@ -56,54 +41,34 @@ export function BodyTypeSelector({ gender, value, onChange }: BodyTypeSelectorPr
     setImages(bodyTypeFallbackImages);
     setUsingFallback(true);
     setLoading(false);
-    
-    // Cache fallback images
-    const cacheKey = `bodyType_${gender}`;
-    sessionStorage.setItem(cacheKey, JSON.stringify({ ...bodyTypeFallbackImages, isFallback: true }));
   };
 
-  const generateImages = async () => {
-    if (!gender) return;
-
+  const loadStaticImages = async () => {
     setLoading(true);
     setError(null);
-    const generatedImages: Record<number, string> = {};
+    const loadedImages: Record<number, string> = {};
 
     try {
-      // Generate images for all 9 body types in parallel
-      const promises = Array.from({ length: 9 }, (_, i) => i + 1).map(async (bodyType) => {
-        try {
-          const { data, error: funcError } = await supabase.functions.invoke('generate-body-type-images', {
-            body: { gender, bodyType }
-          });
-
-          if (funcError) throw funcError;
-          if (!data?.imageUrl) throw new Error('No image URL returned');
-
-          generatedImages[bodyType] = data.imageUrl;
-        } catch (err) {
-          console.error(`Error generating image for body type ${bodyType}:`, err);
-          throw err;
-        }
-      });
-
-      await Promise.all(promises);
-
-      // Cache the AI-generated results
-      const cacheKey = `bodyType_${gender}`;
-      sessionStorage.setItem(cacheKey, JSON.stringify({ ...generatedImages, isFallback: false }));
+      const genderFolder = gender === "Masculino" ? "male" : "female";
       
-      setImages(generatedImages);
+      // Load all 5 images from storage
+      for (let i = 1; i <= 5; i++) {
+        const { data } = supabase.storage
+          .from('body-type-images')
+          .getPublicUrl(`${genderFolder}/type-${i}.png`);
+        
+        loadedImages[i] = data.publicUrl;
+      }
+
+      setImages(loadedImages);
       setUsingFallback(false);
     } catch (err) {
-      console.error('Error generating body type images, using fallback:', err);
-      
-      // Use fallback images instead of showing error
+      console.error('Error loading body type images from storage:', err);
       useFallbackImages();
       
       toast({
         title: "Usando visualização simplificada",
-        description: "As imagens detalhadas não puderam ser carregadas, mas você ainda pode selecionar seu tipo corporal.",
+        description: "As imagens de referência não puderam ser carregadas.",
       });
     } finally {
       setLoading(false);
@@ -120,8 +85,8 @@ export function BodyTypeSelector({ gender, value, onChange }: BodyTypeSelectorPr
 
   if (loading) {
     return (
-      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {Array.from({ length: 9 }).map((_, i) => (
+      <div className="grid grid-cols-5 gap-4">
+        {Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="space-y-2">
             <Skeleton className="aspect-[3/4] w-full rounded-lg" />
             <Skeleton className="h-4 w-full" />
@@ -136,19 +101,10 @@ export function BodyTypeSelector({ gender, value, onChange }: BodyTypeSelectorPr
       <div className="text-center py-8 space-y-4">
         <p className="text-destructive">{error}</p>
         <button
-          onClick={() => {
-            setError(null);
-            useFallbackImages();
-          }}
-          className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80"
+          onClick={useFallbackImages}
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
         >
           Usar Visualização Simplificada
-        </button>
-        <button
-          onClick={generateImages}
-          className="ml-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-        >
-          Tentar Novamente com IA
         </button>
       </div>
     );
@@ -165,8 +121,8 @@ export function BodyTypeSelector({ gender, value, onChange }: BodyTypeSelectorPr
         </Alert>
       )}
       
-      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {Array.from({ length: 9 }, (_, i) => i + 1).map((bodyType) => (
+      <div className="grid grid-cols-5 gap-4">
+        {Array.from({ length: 5 }, (_, i) => i + 1).map((bodyType) => (
           <button
             key={bodyType}
             type="button"
