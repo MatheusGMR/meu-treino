@@ -10,7 +10,8 @@ export const useMethods = (search?: string) => {
       let query = supabase
         .from("methods")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("objective", { ascending: true, nullsFirst: false })
+        .order("name", { ascending: true });
 
       if (search) {
         query = query.or(`name.ilike.%${search}%,load_level.ilike.%${search}%`);
