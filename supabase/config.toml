@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.generate-body-type-images]
 verify_jwt = true
+
+[functions.generate-and-upload-body-types]
+verify_jwt = true
