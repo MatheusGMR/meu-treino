@@ -88,7 +88,15 @@ export const ExercisesTable = ({ exercises, isLoading }: ExercisesTableProps) =>
                 </TableCell>
                 <TableCell>
                   {exercise.level ? (
-                    <Badge variant="secondary">{exercise.level}</Badge>
+                    <Badge 
+                      variant={
+                        exercise.level === "Iniciante" ? "default" :
+                        exercise.level === "Intermediário" ? "secondary" :
+                        "destructive"
+                      }
+                    >
+                      {exercise.level}
+                    </Badge>
                   ) : (
                     <span className="text-muted-foreground">-</span>
                   )}
