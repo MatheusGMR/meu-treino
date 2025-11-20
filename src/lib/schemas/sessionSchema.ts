@@ -10,6 +10,9 @@ export const sessionExerciseSchema = z.object({
 export const sessionSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório").max(200),
   description: z.string().max(500).optional(),
+  session_type: z.enum(["Mobilidade", "Alongamento", "Musculação"], {
+    required_error: "Tipo de sessão é obrigatório",
+  }),
   exercises: z
     .array(sessionExerciseSchema)
     .min(1, "Adicione pelo menos um exercício à sessão"),

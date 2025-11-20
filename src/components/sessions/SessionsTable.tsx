@@ -77,7 +77,14 @@ export const SessionsTable = ({ sessions, isLoading }: SessionsTableProps) => {
           <TableHeader>
             <TableRow>
               <TableHead>Descrição</TableHead>
-              <TableHead>Tipo</TableHead>
+              <TableHead>
+                <div className="flex items-center gap-2">
+                  Tipo
+                  <span className="text-xs text-muted-foreground font-normal">
+                    (Mobilidade, Alongamento ou Musculação)
+                  </span>
+                </div>
+              </TableHead>
               <TableHead>Exercícios</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>

@@ -15,6 +15,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -49,6 +56,7 @@ export const SessionDialog = ({
     defaultValues: {
       name: "",
       description: "",
+      session_type: "Musculação",
       exercises: [],
     },
   });
@@ -66,12 +74,14 @@ export const SessionDialog = ({
       form.reset({
         name: sessionData.name,
         description: sessionData.description,
+        session_type: sessionData.session_type || "Musculação",
         exercises,
       });
     } else if (!session) {
       form.reset({
         name: "",
         description: "",
+        session_type: "Musculação",
         exercises: [],
       });
     }
@@ -118,6 +128,33 @@ export const SessionDialog = ({
                   <FormControl>
                     <Input placeholder="Ex: Peito A, Pernas B..." {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="session_type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tipo de Sessão *</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o tipo" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Mobilidade">Mobilidade</SelectItem>
+                      <SelectItem value="Alongamento">Alongamento</SelectItem>
+                      <SelectItem value="Musculação">Musculação</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
