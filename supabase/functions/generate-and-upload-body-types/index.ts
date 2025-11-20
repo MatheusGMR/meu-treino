@@ -13,11 +13,11 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!LOVABLE_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    if (!OPENAI_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error('Missing required environment variables');
     }
 
@@ -44,30 +44,40 @@ serve(async (req) => {
 
           console.log(`Generating ${gender} type ${bodyType}...`);
 
-          const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          const response = await fetch("https://api.openai.com/v1/images/generations", {
             method: "POST",
             headers: {
-              Authorization: `Bearer ${LOVABLE_API_KEY}`,
+              Authorization: `Bearer ${OPENAI_API_KEY}`,
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              model: "google/gemini-2.5-flash-image",
-              messages: [{ role: "user", content: prompt }],
-              modalities: ["image", "text"]
+              model: "gpt-image-1",
+              prompt: prompt,
+              n: 1,
+              size: "1024x1024",
+              response_format: "b64_json"
             })
           });
 
           if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`AI generation failed: ${response.status} - ${errorText}`);
+            if (response.status === 401) {
+              throw new Error(`Invalid OpenAI API key: ${response.status}`);
+            }
+            if (response.status === 429) {
+              throw new Error(`OpenAI rate limit exceeded: ${response.status}`);
+            }
+            throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
           }
 
           const data = await response.json();
-          const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+          const base64Image = data.data?.[0]?.b64_json;
 
-          if (!imageUrl || !imageUrl.startsWith('data:image')) {
-            throw new Error('Invalid image URL returned');
+          if (!base64Image) {
+            throw new Error('No image data returned from OpenAI');
           }
+
+          const imageUrl = `data:image/png;base64,${base64Image}`;
 
           // Convert base64 to binary
           const base64Data = imageUrl.split(',')[1];
