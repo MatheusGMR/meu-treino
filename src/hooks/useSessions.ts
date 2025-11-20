@@ -98,6 +98,7 @@ export const useCreateSession = () => {
         .insert({
           name: data.name,
           description: data.description,
+          session_type: data.session_type,
           created_by: user?.id,
         })
         .select()
@@ -150,6 +151,7 @@ export const useUpdateSession = () => {
         .update({
           name: data.name,
           description: data.description,
+          session_type: data.session_type,
         })
         .eq("id", id);
 
