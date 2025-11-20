@@ -47,7 +47,7 @@ export const AppSidebar = () => {
           </Button>
         </Link>
 
-        {isPersonal && (
+        {(isPersonal || isAdmin) && (
           <>
             <Collapsible open={treinosOpen} onOpenChange={setTreinosOpen}>
               <CollapsibleTrigger asChild>
