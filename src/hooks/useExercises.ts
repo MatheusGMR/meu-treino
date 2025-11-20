@@ -29,7 +29,8 @@ export const useExercises = (filters?: ExerciseFilters) => {
       }
 
       if (filters?.search) {
-        query = query.ilike("name", `%${filters.search}%`);
+        const searchTerm = `%${filters.search}%`;
+        query = query.or(`name.ilike.${searchTerm},exercise_group.ilike.${searchTerm},primary_muscle.ilike.${searchTerm},level.ilike.${searchTerm},exercise_type.ilike.${searchTerm}`);
       }
 
       const { data, error } = await query;

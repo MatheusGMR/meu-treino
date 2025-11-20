@@ -74,6 +74,7 @@ export const ExercisesTable = ({ exercises, isLoading }: ExercisesTableProps) =>
             <TableRow>
               <TableHead>Nome</TableHead>
               <TableHead>Grupo Muscular</TableHead>
+              <TableHead>Nível</TableHead>
               <TableHead>Vídeo</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -84,6 +85,13 @@ export const ExercisesTable = ({ exercises, isLoading }: ExercisesTableProps) =>
                 <TableCell className="font-medium">{exercise.name}</TableCell>
                 <TableCell>
                   <Badge variant="outline">{exercise.exercise_group}</Badge>
+                </TableCell>
+                <TableCell>
+                  {exercise.level ? (
+                    <Badge variant="secondary">{exercise.level}</Badge>
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {exercise.video_url ? "Sim" : "-"}
