@@ -263,39 +263,24 @@ export const WorkoutBuilder = ({
                       </Button>
                     </div>
 
-                    <div className="max-h-[300px] overflow-hidden">
-                      <ScrollArea className="h-full">
-                        <div className="space-y-2 pr-4">
-                          {builder.tempWorkout.sessions.map((session, idx) => (
-                          <SessionEditorInline
-                            key={idx}
-                            session={session}
-                            onUpdate={(updated) => builder.updateSession(idx, updated)}
-                            onRemove={() => builder.removeSession(idx)}
-                          />
-                        ))}
-                        {builder.tempWorkout.sessions.length === 0 && (
-                          <Card className="p-8">
-                            <p className="text-sm text-muted-foreground text-center">
-                              Nenhuma sessão adicionada ainda
-                            </p>
-                          </Card>
-                        )}
-                          </div>
-                        </ScrollArea>
-                      </div>
+                    <div className="space-y-2">
+                      {builder.tempWorkout.sessions.map((session, idx) => (
+                        <SessionEditorInline
+                          key={idx}
+                          session={session}
+                          onUpdate={(updated) => builder.updateSession(idx, updated)}
+                          onRemove={() => builder.removeSession(idx)}
+                        />
+                      ))}
+                      {builder.tempWorkout.sessions.length === 0 && (
+                        <Card className="p-8">
+                          <p className="text-sm text-muted-foreground text-center">
+                            Nenhuma sessão adicionada ainda
+                          </p>
+                        </Card>
+                      )}
                     </div>
-
-                  <ExercisePickerWithAnalysis
-                    onAddExercise={(exercise) => {
-                      // TODO: Adicionar exercício à sessão atual ou criar nova sessão
-                      console.log("Add exercise:", exercise);
-                    }}
-                    selectedExerciseIds={[]}
-                    contraindications={builder.compatibility.warnings.map(
-                      (w) => w.condition
-                    )}
-                  />
+                  </div>
                 </TabsContent>
               </Tabs>
             </div>
