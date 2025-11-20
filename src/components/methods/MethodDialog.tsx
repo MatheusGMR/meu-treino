@@ -16,6 +16,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { FormDescription } from "@/components/ui/form";
 import {
   Select,
   SelectContent,
@@ -52,36 +54,54 @@ export const MethodDialog = ({
       name: "",
       reps_min: 8,
       reps_max: 12,
+      reps_description: "",
       rest_seconds: 60,
       load_level: "Média",
       cadence_contraction: 2,
       cadence_pause: 1,
       cadence_stretch: 2,
+      objective: undefined,
+      risk_level: "Baixo risco",
+      video_url: "",
+      energy_cost: "Médio",
+      recommended_combination: "",
     },
   });
 
   useEffect(() => {
-    if (method) {
+    if (method && open) {
       form.reset({
         name: method.name || "",
         reps_min: method.reps_min,
         reps_max: method.reps_max,
+        reps_description: method.reps_description || "",
         rest_seconds: method.rest_seconds,
-        load_level: method.load_level as any,
+        load_level: method.load_level as "Alta" | "Média" | "Baixa",
         cadence_contraction: method.cadence_contraction,
         cadence_pause: method.cadence_pause,
         cadence_stretch: method.cadence_stretch,
+        objective: method.objective || undefined,
+        risk_level: method.risk_level as any,
+        video_url: method.video_url || "",
+        energy_cost: method.energy_cost as any,
+        recommended_combination: method.recommended_combination || "",
       });
-    } else if (!open) {
+    } else if (!method && !open) {
       form.reset({
         name: "",
         reps_min: 8,
         reps_max: 12,
+        reps_description: "",
         rest_seconds: 60,
         load_level: "Média",
         cadence_contraction: 2,
         cadence_pause: 1,
         cadence_stretch: 2,
+        objective: undefined,
+        risk_level: "Baixo risco",
+        video_url: "",
+        energy_cost: "Médio",
+        recommended_combination: "",
       });
     }
   }, [method, open, form]);
@@ -171,6 +191,155 @@ export const MethodDialog = ({
                 )}
               />
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="objective"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Objetivo (opcional)</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o objetivo" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Hipertrofia">Hipertrofia</SelectItem>
+                        <SelectItem value="Força">Força</SelectItem>
+                        <SelectItem value="Resistência">Resistência</SelectItem>
+                        <SelectItem value="Potência">Potência</SelectItem>
+                        <SelectItem value="Hipertrofia + Força">Hipertrofia + Força</SelectItem>
+                        <SelectItem value="Força + Hipertrofia">Força + Hipertrofia</SelectItem>
+                        <SelectItem value="Equilíbrio / Hipertrofia">Equilíbrio / Hipertrofia</SelectItem>
+                        <SelectItem value="Hipertrofia pesada">Hipertrofia pesada</SelectItem>
+                        <SelectItem value="Força + Potência">Força + Potência</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="risk_level"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nível de Risco</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o risco" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Baixo risco">Baixo risco</SelectItem>
+                        <SelectItem value="Médio risco">Médio risco</SelectItem>
+                        <SelectItem value="Alto risco">Alto risco</SelectItem>
+                        <SelectItem value="Alto risco de fadiga">Alto risco de fadiga</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="energy_cost"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Custo Energético</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o custo" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Alto">Alto</SelectItem>
+                      <SelectItem value="Médio">Médio</SelectItem>
+                      <SelectItem value="Baixo">Baixo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="video_url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>URL do Vídeo (opcional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="https://www.youtube.com/watch?v=..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Link do YouTube para referência visual
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="recommended_combination"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Combinação Recomendada (opcional)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Ex: Pode ser combinado com Drop-set"
+                      className="resize-none"
+                      rows={3}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Orientações sobre combinações com outros métodos
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="reps_description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descrição de Repetições (opcional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ex: Falha + Reduções, 10×10"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Para métodos especiais com formato não convencional
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="grid grid-cols-2 gap-4">
               <FormField

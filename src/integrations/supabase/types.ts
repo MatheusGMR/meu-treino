@@ -713,13 +713,19 @@ export type Database = {
           cadence_stretch: number
           created_at: string | null
           created_by: string | null
+          energy_cost: Database["public"]["Enums"]["method_energy_cost"]
           id: string
           load_level: string
           name: string | null
+          objective: Database["public"]["Enums"]["method_objective"] | null
+          recommended_combination: string | null
+          reps_description: string | null
           reps_max: number
           reps_min: number
           rest_seconds: number
+          risk_level: Database["public"]["Enums"]["method_risk_level"]
           updated_at: string | null
+          video_url: string | null
         }
         Insert: {
           cadence_contraction: number
@@ -727,13 +733,19 @@ export type Database = {
           cadence_stretch: number
           created_at?: string | null
           created_by?: string | null
+          energy_cost?: Database["public"]["Enums"]["method_energy_cost"]
           id?: string
           load_level: string
           name?: string | null
+          objective?: Database["public"]["Enums"]["method_objective"] | null
+          recommended_combination?: string | null
+          reps_description?: string | null
           reps_max: number
           reps_min: number
           rest_seconds: number
+          risk_level?: Database["public"]["Enums"]["method_risk_level"]
           updated_at?: string | null
+          video_url?: string | null
         }
         Update: {
           cadence_contraction?: number
@@ -741,13 +753,19 @@ export type Database = {
           cadence_stretch?: number
           created_at?: string | null
           created_by?: string | null
+          energy_cost?: Database["public"]["Enums"]["method_energy_cost"]
           id?: string
           load_level?: string
           name?: string | null
+          objective?: Database["public"]["Enums"]["method_objective"] | null
+          recommended_combination?: string | null
+          reps_description?: string | null
           reps_max?: number
           reps_min?: number
           rest_seconds?: number
+          risk_level?: Database["public"]["Enums"]["method_risk_level"]
           updated_at?: string | null
+          video_url?: string | null
         }
         Relationships: []
       }
@@ -1461,6 +1479,22 @@ export type Database = {
         | "Outro"
       exercise_type_enum: "Musculação" | "Mobilidade" | "Cardio" | "Alongamento"
       intensity_level: "Fácil" | "Intermediário" | "Difícil"
+      method_energy_cost: "Alto" | "Médio" | "Baixo"
+      method_objective:
+        | "Hipertrofia"
+        | "Força"
+        | "Resistência"
+        | "Potência"
+        | "Hipertrofia + Força"
+        | "Força + Hipertrofia"
+        | "Equilíbrio / Hipertrofia"
+        | "Hipertrofia pesada"
+        | "Força + Potência"
+      method_risk_level:
+        | "Baixo risco"
+        | "Médio risco"
+        | "Alto risco"
+        | "Alto risco de fadiga"
       session_type: "Mobilidade" | "Alongamento" | "Musculação"
       training_level: "Iniciante" | "Avançado"
       training_type:
@@ -1612,6 +1646,24 @@ export const Constants = {
       ],
       exercise_type_enum: ["Musculação", "Mobilidade", "Cardio", "Alongamento"],
       intensity_level: ["Fácil", "Intermediário", "Difícil"],
+      method_energy_cost: ["Alto", "Médio", "Baixo"],
+      method_objective: [
+        "Hipertrofia",
+        "Força",
+        "Resistência",
+        "Potência",
+        "Hipertrofia + Força",
+        "Força + Hipertrofia",
+        "Equilíbrio / Hipertrofia",
+        "Hipertrofia pesada",
+        "Força + Potência",
+      ],
+      method_risk_level: [
+        "Baixo risco",
+        "Médio risco",
+        "Alto risco",
+        "Alto risco de fadiga",
+      ],
       session_type: ["Mobilidade", "Alongamento", "Musculação"],
       training_level: ["Iniciante", "Avançado"],
       training_type: [
