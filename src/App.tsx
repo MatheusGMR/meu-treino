@@ -29,6 +29,7 @@ import Professionals from "./pages/admin/Professionals";
 import AllClients from "./pages/admin/AllClients";
 import Assignments from "./pages/admin/Assignments";
 import Users from "./pages/admin/Users";
+import UploadBodyTypeImages from "./pages/admin/UploadBodyTypeImages";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -242,6 +243,16 @@ const App = () => (
                 <AuthGuard>
                   <RoleGuard allowedRoles={["admin"]}>
                     <Users />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/admin/upload-body-type-images"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["admin"]}>
+                    <UploadBodyTypeImages />
                   </RoleGuard>
                 </AuthGuard>
               }
