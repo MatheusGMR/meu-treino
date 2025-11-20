@@ -18,6 +18,9 @@ export const exerciseSchema = z.object({
     "Tríceps",
     "Glúteos",
     "Panturrilha",
+    "Quadríceps",
+    "Posterior",
+    "Lombar",
     "Outro",
     "Superior",
     "Inferior",
@@ -30,6 +33,14 @@ export const exerciseSchema = z.object({
   ], { required_error: "Selecione um grupo" }),
   video_url: z.string().url("URL inválida").optional().or(z.literal("")),
   contraindication: z.string().max(500).optional(),
+  level: z.enum(["Iniciante", "Intermediário", "Avançado"]).optional(),
+  equipment: z.array(z.string()).optional(),
+  primary_muscle: z.string().max(100).optional(),
+  secondary_muscle: z.string().max(100).optional(),
+  impact_level: z.enum(["Baixo", "Médio", "Alto"]).optional(),
+  biomechanical_class: z.string().max(100).optional(),
+  dominant_movement: z.string().max(100).optional(),
+  thumbnail_url: z.string().url("URL inválida").optional().or(z.literal("")),
 });
 
 export type ExerciseFormData = z.infer<typeof exerciseSchema>;
