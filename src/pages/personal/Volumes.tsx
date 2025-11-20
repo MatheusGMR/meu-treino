@@ -15,9 +15,9 @@ import { VolumeDialog } from "@/components/volumes/VolumeDialog";
 
 const Volumes = () => {
   const [search, setSearch] = useState("");
-  const [goalFilter, setGoalFilter] = useState<string>("");
+  const [goalFilter, setGoalFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const { data: volumes, isLoading } = useVolumes(search, goalFilter);
+  const { data: volumes, isLoading } = useVolumes(search, goalFilter === "all" ? "" : goalFilter);
 
   // Extract unique goals for filter
   const uniqueGoals = useMemo(() => {
@@ -56,7 +56,7 @@ const Volumes = () => {
             <SelectValue placeholder="Filtrar por objetivo" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os objetivos</SelectItem>
+            <SelectItem value="all">Todos os objetivos</SelectItem>
             {uniqueGoals.map((goal) => (
               <SelectItem key={goal} value={goal}>
                 {goal}
