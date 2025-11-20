@@ -12,6 +12,7 @@ import {
 import { useVolumes } from "@/hooks/useVolumes";
 import { VolumesTable } from "@/components/volumes/VolumesTable";
 import { VolumeDialog } from "@/components/volumes/VolumeDialog";
+import { AppLayout } from "@/layouts/AppLayout";
 
 const Volumes = () => {
   const [search, setSearch] = useState("");
@@ -29,47 +30,49 @@ const Volumes = () => {
   }, [volumes]);
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Volumes</h1>
-          <p className="text-muted-foreground">
-            Gerencie os volumes de treinamento
-          </p>
+    <AppLayout>
+      <div className="container mx-auto py-8 space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Volumes</h1>
+            <p className="text-muted-foreground">
+              Gerencie os volumes de treinamento
+            </p>
+          </div>
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Volume
+          </Button>
         </div>
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Volume
-        </Button>
+
+        <div className="flex gap-4">
+          <Input
+            placeholder="Buscar por nome..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="max-w-sm"
+          />
+          
+          <Select value={goalFilter} onValueChange={setGoalFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filtrar por objetivo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os objetivos</SelectItem>
+              {uniqueGoals.map((goal) => (
+                <SelectItem key={goal} value={goal}>
+                  {goal}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <VolumesTable volumes={volumes || []} isLoading={isLoading} />
+
+        <VolumeDialog open={dialogOpen} onOpenChange={setDialogOpen} />
       </div>
-
-      <div className="flex gap-4">
-        <Input
-          placeholder="Buscar por nome..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="max-w-sm"
-        />
-        
-        <Select value={goalFilter} onValueChange={setGoalFilter}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Filtrar por objetivo" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos os objetivos</SelectItem>
-            {uniqueGoals.map((goal) => (
-              <SelectItem key={goal} value={goal}>
-                {goal}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <VolumesTable volumes={volumes || []} isLoading={isLoading} />
-
-      <VolumeDialog open={dialogOpen} onOpenChange={setDialogOpen} />
-    </div>
+    </AppLayout>
   );
 };
 
