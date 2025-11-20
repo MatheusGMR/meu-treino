@@ -7,7 +7,7 @@ export const SidebarWithBackground = () => {
       <div 
         className="absolute inset-0 -z-10"
         style={{ 
-          background: 'linear-gradient(135deg, hsl(25 95% 53% / 0.15), hsl(25 95% 53% / 0.08))'
+          background: 'linear-gradient(135deg, hsl(25 95% 53% / 0.08), hsl(25 95% 53% / 0.04))'
         }}
       />
 
