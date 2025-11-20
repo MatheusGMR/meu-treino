@@ -57,6 +57,14 @@ export const useCreateExercise = () => {
           exercise_group: data.exercise_group as any,
           video_url: data.video_url,
           contraindication: data.contraindication,
+          level: data.level,
+          equipment: data.equipment,
+          primary_muscle: data.primary_muscle,
+          secondary_muscle: data.secondary_muscle,
+          impact_level: data.impact_level,
+          biomechanical_class: data.biomechanical_class,
+          dominant_movement: data.dominant_movement,
+          thumbnail_url: data.thumbnail_url,
           created_by: user?.id,
         } as any)
         .select()
@@ -102,6 +110,14 @@ export const useUpdateExercise = () => {
           exercise_group: data.exercise_group as any,
           video_url: data.video_url,
           contraindication: data.contraindication,
+          level: data.level,
+          equipment: data.equipment,
+          primary_muscle: data.primary_muscle,
+          secondary_muscle: data.secondary_muscle,
+          impact_level: data.impact_level,
+          biomechanical_class: data.biomechanical_class,
+          dominant_movement: data.dominant_movement,
+          thumbnail_url: data.thumbnail_url,
         } as any)
         .eq("id", id)
         .select()
