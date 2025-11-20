@@ -1264,29 +1264,59 @@ export type Database = {
         Row: {
           created_at: string | null
           created_by: string | null
+          exercise_max: number | null
+          exercise_min: number | null
+          goal: string | null
           id: string
+          max_weekly_sets: number | null
+          min_weekly_sets: number | null
+          movement_pattern: string | null
           name: string
           num_exercises: number
           num_series: number
+          optimal_weekly_sets: number | null
+          series_max: number | null
+          series_min: number | null
           updated_at: string | null
+          weekly_volume_description: string | null
         }
         Insert: {
           created_at?: string | null
           created_by?: string | null
+          exercise_max?: number | null
+          exercise_min?: number | null
+          goal?: string | null
           id?: string
+          max_weekly_sets?: number | null
+          min_weekly_sets?: number | null
+          movement_pattern?: string | null
           name: string
           num_exercises: number
           num_series: number
+          optimal_weekly_sets?: number | null
+          series_max?: number | null
+          series_min?: number | null
           updated_at?: string | null
+          weekly_volume_description?: string | null
         }
         Update: {
           created_at?: string | null
           created_by?: string | null
+          exercise_max?: number | null
+          exercise_min?: number | null
+          goal?: string | null
           id?: string
+          max_weekly_sets?: number | null
+          min_weekly_sets?: number | null
+          movement_pattern?: string | null
           name?: string
           num_exercises?: number
           num_series?: number
+          optimal_weekly_sets?: number | null
+          series_max?: number | null
+          series_min?: number | null
           updated_at?: string | null
+          weekly_volume_description?: string | null
         }
         Relationships: []
       }

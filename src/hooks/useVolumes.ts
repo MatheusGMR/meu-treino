@@ -3,17 +3,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { VolumeFormData } from "@/lib/schemas/volumeSchema";
 
-export const useVolumes = (search?: string) => {
+export const useVolumes = (search?: string, goalFilter?: string) => {
   return useQuery({
-    queryKey: ["volumes", search],
+    queryKey: ["volumes", search, goalFilter],
     queryFn: async () => {
       let query = supabase
         .from("volumes")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("goal", { ascending: true, nullsFirst: false })
+        .order("name", { ascending: true });
 
       if (search) {
         query = query.ilike("name", `%${search}%`);
+      }
+
+      if (goalFilter) {
+        query = query.ilike("goal", `%${goalFilter}%`);
       }
 
       const { data, error } = await query;
