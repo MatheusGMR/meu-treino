@@ -37,6 +37,16 @@ export const useClientWorkoutBuilder = (clientId: string) => {
   });
   const [acknowledgeRisks, setAcknowledgeRisks] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Estados para IA Suggestions
+  const [aiSuggestions, setAiSuggestions] = useState<{
+    sessions: string;
+    mandatory: string[];
+    recommendations: string[];
+    warnings: string[];
+  } | null>(null);
+  const [loadingAI, setLoadingAI] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
   const assignWorkoutMutation = useAssignWorkout();
@@ -836,6 +846,39 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     };
   }, [tempWorkout, anamnesisData, weeklyVolume, weeklyTimeEstimate]);
 
+  // Função para buscar sugestões da IA
+  const fetchAISuggestions = useCallback(async () => {
+    if (!clientId || !anamnesisData?.anamnesis) return;
+    
+    setLoadingAI(true);
+    setAiError(null);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-workout-suggestions', {
+        body: { clientId }
+      });
+      
+      if (error) {
+        console.error('Erro ao buscar sugestões IA:', error);
+        setAiError('Não foi possível gerar sugestões. Tente novamente.');
+      } else if (data) {
+        setAiSuggestions(data);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar sugestões IA:', error);
+      setAiError('Erro de conexão. Verifique sua internet.');
+    } finally {
+      setLoadingAI(false);
+    }
+  }, [clientId, anamnesisData]);
+
+  // Auto-fetch ao montar (somente se ainda não temos sugestões)
+  useEffect(() => {
+    if (clientId && anamnesisData?.anamnesis && !aiSuggestions && !loadingAI) {
+      fetchAISuggestions();
+    }
+  }, [clientId, anamnesisData, aiSuggestions, loadingAI, fetchAISuggestions]);
+
   return {
     tempWorkout,
     setTempWorkout,
@@ -870,5 +913,10 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     exerciseRecommendations,
     qualityScores,
     workoutProgress,
+    // IA Suggestions
+    aiSuggestions,
+    loadingAI,
+    aiError,
+    refreshAISuggestions: fetchAISuggestions,
   };
 };

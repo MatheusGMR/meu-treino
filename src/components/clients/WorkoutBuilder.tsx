@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Plus, GripVertical } from "lucide-react";
+import { ArrowLeft, Plus, GripVertical, RefreshCw, Sparkles } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { useClientWorkoutBuilder } from "@/hooks/useClientWorkoutBuilder";
 import { HealthAlertPanel } from "./HealthAlertPanel";
@@ -15,6 +15,9 @@ import { MuscleDistributionCard } from "./cockpit/MuscleDistributionCard";
 import { RestrictionsCard } from "./cockpit/RestrictionsCard";
 import { QualityScoresCard } from "./cockpit/QualityScoresCard";
 import { WorkoutProgressCard } from "./cockpit/WorkoutProgressCard";
+import { AISuggestionsCard } from "./cockpit/AISuggestionsCard";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -369,6 +372,50 @@ export const WorkoutBuilder = ({
               recommended={builder.exerciseRecommendations.recommended}
               warnings={builder.exerciseRecommendations.warnings}
             />
+
+            {/* BLOCO 5: Sugestão Automática (IA ChatGPT) */}
+            {builder.loadingAI && (
+              <Card className="border-primary/30">
+                <CardContent className="py-6 text-center">
+                  <div className="flex flex-col items-center gap-2">
+                    <Sparkles className="w-6 h-6 text-primary animate-pulse" />
+                    <span className="text-sm text-muted-foreground">
+                      Gerando sugestões personalizadas...
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {builder.aiError && (
+              <Alert variant="destructive">
+                <AlertDescription className="flex items-center justify-between">
+                  <span>{builder.aiError}</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={builder.refreshAISuggestions}
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {!builder.loadingAI && !builder.aiError && builder.aiSuggestions && (
+              <div className="relative">
+                <AISuggestionsCard suggestions={builder.aiSuggestions} />
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="absolute top-2 right-2"
+                  onClick={builder.refreshAISuggestions}
+                  title="Gerar novas sugestões"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                </Button>
+              </div>
+            )}
 
             {/* BLOCO 6: Indicadores de Qualidade */}
             <QualityScoresCard scores={builder.qualityScores} />
