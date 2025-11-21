@@ -120,10 +120,22 @@ export const useAssignWorkout = () => {
       return insertedWorkout;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["client-workouts", variables.clientId] });
-      queryClient.invalidateQueries({ queryKey: ["client-details", variables.clientId] });
-      queryClient.invalidateQueries({ queryKey: ["today-workout", variables.clientId] });
-      queryClient.invalidateQueries({ queryKey: ["client-active-workouts", variables.clientId] });
+      queryClient.invalidateQueries({ 
+        queryKey: ["client-workouts", variables.clientId],
+        refetchType: 'all'
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: ["client-details", variables.clientId],
+        refetchType: 'all'
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: ["today-workout", variables.clientId],
+        refetchType: 'all'
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: ["client-active-workouts", variables.clientId],
+        refetchType: 'all'
+      });
       toast({
         title: "Treino atribuído e agendado!",
         description: "O treino foi atribuído e as sessões foram agendadas automaticamente.",
@@ -163,7 +175,10 @@ export const useUpdateClientWorkout = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["client-workouts"] });
+      queryClient.invalidateQueries({ 
+        queryKey: ["client-workouts"],
+        refetchType: 'all'
+      });
       toast({
         title: "Treino atualizado!",
       });
@@ -197,10 +212,22 @@ export const useUnassignWorkout = () => {
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["client-workouts", variables.clientId] });
-      queryClient.invalidateQueries({ queryKey: ["client-details", variables.clientId] });
-      queryClient.invalidateQueries({ queryKey: ["today-workout", variables.clientId] });
-      queryClient.invalidateQueries({ queryKey: ["client-active-workouts", variables.clientId] });
+      queryClient.invalidateQueries({ 
+        queryKey: ["client-workouts", variables.clientId],
+        refetchType: 'all'
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: ["client-details", variables.clientId],
+        refetchType: 'all'
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: ["today-workout", variables.clientId],
+        refetchType: 'all'
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: ["client-active-workouts", variables.clientId],
+        refetchType: 'all'
+      });
       toast({
         title: "Treino removido!",
         description: "O treino foi removido do cliente com sucesso.",
