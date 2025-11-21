@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { RadioCardGroup, RadioCardItem } from "@/components/ui/radio-card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
@@ -211,14 +211,13 @@ const ClientAnamnesis = () => {
 
             <div className="space-y-2">
               <Label>Gênero *</Label>
-              <RadioGroup value={formData.gender} onValueChange={(value) => updateField("gender", value)}>
+              <RadioCardGroup value={formData.gender} onValueChange={(value) => updateField("gender", value)}>
                 {["Masculino", "Feminino", "Não-binário", "Prefiro não dizer"].map((option) => (
-                  <div key={option} className="flex items-center space-x-2">
-                    <RadioGroupItem value={option} id={`gender-${option}`} />
-                    <Label htmlFor={`gender-${option}`}>{option}</Label>
-                  </div>
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
                 ))}
-              </RadioGroup>
+              </RadioCardGroup>
             </div>
 
             <div className="space-y-2">
@@ -292,14 +291,13 @@ const ClientAnamnesis = () => {
 
             <div className="space-y-2">
               <Label>Como você se enxerga hoje?</Label>
-              <RadioGroup value={formData.autoimagem} onValueChange={(value) => updateField("autoimagem", value)}>
+              <RadioCardGroup value={formData.autoimagem} onValueChange={(value) => updateField("autoimagem", value)}>
                 {["Abaixo do peso", "Peso normal", "Sobrepeso", "Obesidade", "Não sei avaliar"].map((option) => (
-                  <div key={option} className="flex items-center space-x-2">
-                    <RadioGroupItem value={option} id={`autoimagem-${option}`} />
-                    <Label htmlFor={`autoimagem-${option}`}>{option}</Label>
-                  </div>
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
                 ))}
-              </RadioGroup>
+              </RadioCardGroup>
             </div>
 
             <div className="space-y-2">
@@ -330,14 +328,13 @@ const ClientAnamnesis = () => {
 
             <div className="space-y-2">
               <Label>Você treina atualmente?</Label>
-              <RadioGroup value={formData.treina_atualmente} onValueChange={(value) => updateField("treina_atualmente", value)}>
+              <RadioCardGroup value={formData.treina_atualmente} onValueChange={(value) => updateField("treina_atualmente", value)}>
                 {["Sim", "Não"].map((option) => (
-                  <div key={option} className="flex items-center space-x-2">
-                    <RadioGroupItem value={option} id={`treina-${option}`} />
-                    <Label htmlFor={`treina-${option}`}>{option}</Label>
-                  </div>
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
                 ))}
-              </RadioGroup>
+              </RadioCardGroup>
             </div>
 
             <div className="space-y-2">
@@ -440,26 +437,24 @@ const ClientAnamnesis = () => {
 
             <div className="space-y-2">
               <Label>Possui alguma restrição médica?</Label>
-              <RadioGroup value={formData.restricao_medica} onValueChange={(value) => updateField("restricao_medica", value)}>
+              <RadioCardGroup value={formData.restricao_medica} onValueChange={(value) => updateField("restricao_medica", value)}>
                 {["Sim", "Não", "Não sei"].map((option) => (
-                  <div key={option} className="flex items-center space-x-2">
-                    <RadioGroupItem value={option} id={`restricao-${option}`} />
-                    <Label htmlFor={`restricao-${option}`}>{option}</Label>
-                  </div>
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
                 ))}
-              </RadioGroup>
+              </RadioCardGroup>
             </div>
 
             <div className="space-y-2">
               <Label>Possui liberação médica?</Label>
-              <RadioGroup value={formData.liberacao_medica} onValueChange={(value) => updateField("liberacao_medica", value)}>
+              <RadioCardGroup value={formData.liberacao_medica} onValueChange={(value) => updateField("liberacao_medica", value)}>
                 {["Sim", "Não", "Não se aplica"].map((option) => (
-                  <div key={option} className="flex items-center space-x-2">
-                    <RadioGroupItem value={option} id={`liberacao-${option}`} />
-                    <Label htmlFor={`liberacao-${option}`}>{option}</Label>
-                  </div>
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
                 ))}
-              </RadioGroup>
+              </RadioCardGroup>
             </div>
 
             <div className="space-y-2">
@@ -490,14 +485,13 @@ const ClientAnamnesis = () => {
 
             <div className="space-y-2">
               <Label>Objetivo principal</Label>
-              <RadioGroup value={formData.objetivo_principal} onValueChange={(value) => updateField("objetivo_principal", value)}>
+              <RadioCardGroup value={formData.objetivo_principal} onValueChange={(value) => updateField("objetivo_principal", value)}>
                 {["Emagrecimento", "Hipertrofia", "Condicionamento", "Saúde", "Performance", "Mobilidade"].map((option) => (
-                  <div key={option} className="flex items-center space-x-2">
-                    <RadioGroupItem value={option} id={`obj-principal-${option}`} />
-                    <Label htmlFor={`obj-principal-${option}`}>{option}</Label>
-                  </div>
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
                 ))}
-              </RadioGroup>
+              </RadioCardGroup>
             </div>
 
             <div className="space-y-2">
@@ -579,14 +573,13 @@ const ClientAnamnesis = () => {
 
             <div className="space-y-2">
               <Label>Como avalia sua alimentação?</Label>
-              <RadioGroup value={formData.alimentacao} onValueChange={(value) => updateField("alimentacao", value)}>
+              <RadioCardGroup value={formData.alimentacao} onValueChange={(value) => updateField("alimentacao", value)}>
                 {["Muito ruim", "Ruim", "Regular", "Boa", "Muito boa"].map((option) => (
-                  <div key={option} className="flex items-center space-x-2">
-                    <RadioGroupItem value={option} id={`alimentacao-${option}`} />
-                    <Label htmlFor={`alimentacao-${option}`}>{option}</Label>
-                  </div>
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
                 ))}
-              </RadioGroup>
+              </RadioCardGroup>
             </div>
 
             <div className="space-y-2">
@@ -605,14 +598,13 @@ const ClientAnamnesis = () => {
 
             <div className="space-y-2">
               <Label>Nível de estresse</Label>
-              <RadioGroup value={formData.estresse} onValueChange={(value) => updateField("estresse", value)}>
+              <RadioCardGroup value={formData.estresse} onValueChange={(value) => updateField("estresse", value)}>
                 {["Baixo", "Moderado", "Alto"].map((option) => (
-                  <div key={option} className="flex items-center space-x-2">
-                    <RadioGroupItem value={option} id={`estresse-${option}`} />
-                    <Label htmlFor={`estresse-${option}`}>{option}</Label>
-                  </div>
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
                 ))}
-              </RadioGroup>
+              </RadioCardGroup>
             </div>
 
             <div className="space-y-2">
@@ -645,14 +637,13 @@ const ClientAnamnesis = () => {
 
             <div className="space-y-2">
               <Label>Como prefere receber instruções?</Label>
-              <RadioGroup value={formData.preferencia_instrucao} onValueChange={(value) => updateField("preferencia_instrucao", value)}>
+              <RadioCardGroup value={formData.preferencia_instrucao} onValueChange={(value) => updateField("preferencia_instrucao", value)}>
                 {["Explicado em detalhes", "Direto ao ponto"].map((option) => (
-                  <div key={option} className="flex items-center space-x-2">
-                    <RadioGroupItem value={option} id={`instrucao-${option}`} />
-                    <Label htmlFor={`instrucao-${option}`}>{option}</Label>
-                  </div>
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
                 ))}
-              </RadioGroup>
+              </RadioCardGroup>
             </div>
           </div>
         );
@@ -776,8 +767,14 @@ const ClientAnamnesis = () => {
           <AnamnesisNavigation
             currentStep={currentStep}
             totalSteps={totalSteps}
-            onPrevious={() => setCurrentStep(prev => Math.max(1, prev - 1))}
-            onNext={() => setCurrentStep(prev => Math.min(totalSteps, prev + 1))}
+            onPrevious={() => {
+              setCurrentStep(prev => Math.max(1, prev - 1));
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onNext={() => {
+              setCurrentStep(prev => Math.min(totalSteps, prev + 1));
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
             onSubmit={handleSubmit}
             loading={loading}
           />
