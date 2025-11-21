@@ -256,7 +256,7 @@ export const WorkoutBuilder = ({
             </div>
 
             {/* Sessões do Treino */}
-            <Card className="p-6 space-y-6 border-0 shadow-none bg-transparent">
+            <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-semibold text-lg mb-1">Sessões do Treino</h3>
@@ -267,68 +267,54 @@ export const WorkoutBuilder = ({
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
+                    size="sm"
+                    onClick={handleAddNewSession}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nova Sessão
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => setShowExistingSelector(true)}
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    Adicionar Existente
-                  </Button>
-                  <Button onClick={handleAddNewSession}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Nova Sessão
+                    Adicionar Sessão Existente
                   </Button>
                 </div>
               </div>
 
-              {/* Lista de sessões */}
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
                 onDragEnd={handleSessionDragEnd}
               >
                 <SortableContext
-                  items={builder.tempWorkout.sessions.map((_, idx) => `session-${idx}`)}
+                  items={builder.tempWorkout.sessions.map((_, i) => `session-${i}`)}
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-4">
-                    {builder.tempWorkout.sessions.map((session, idx) => (
+                    {builder.tempWorkout.sessions.map((session, index) => (
                       <SortableSession
-                        key={`session-${idx}`}
+                        key={`session-${index}`}
                         session={session}
-                        sessionIndex={idx}
-                        isExpanded={expandedSessionIndex === idx}
-                        onToggleExpand={() => toggleSessionExpand(idx)}
-                        onRemove={() => builder.removeSession(idx)}
-                        onAddExercise={(exercise) => handleAddExerciseToSession(idx, exercise)}
+                        sessionIndex={index}
+                        isExpanded={expandedSessionIndex === index}
+                        onToggleExpand={() => toggleSessionExpand(index)}
+                        onRemove={() => builder.removeSession(index)}
+                        onAddExercise={(exercise) => handleAddExerciseToSession(index, exercise)}
                         onRemoveExercise={(exerciseIndex) =>
-                          handleRemoveExerciseFromSession(idx, exerciseIndex)
+                          handleRemoveExerciseFromSession(index, exerciseIndex)
                         }
-                        onReorderExercises={(startIndex, endIndex) =>
-                          builder.reorderExercisesInSession(idx, startIndex, endIndex)
-                        }
+                        onReorderExercises={(startIndex, endIndex) => {
+                          builder.reorderExercisesInSession(index, startIndex, endIndex);
+                        }}
                       />
                     ))}
-
-                    {builder.tempWorkout.sessions.length === 0 && (
-                      <div className="text-center py-8 border-2 border-dashed rounded-lg">
-                        <p className="text-muted-foreground mb-3">
-                          Nenhuma sessão adicionada ainda
-                        </p>
-                        <div className="flex justify-center gap-2">
-                          <Button variant="outline" onClick={() => setShowExistingSelector(true)}>
-                            <Plus className="w-4 h-4 mr-2" />
-                            Adicionar Existente
-                          </Button>
-                          <Button onClick={handleAddNewSession}>
-                            <Plus className="w-4 h-4 mr-2" />
-                            Nova Sessão
-                          </Button>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </SortableContext>
               </DndContext>
-            </Card>
+            </div>
           </div>
         </ResizablePanel>
 
