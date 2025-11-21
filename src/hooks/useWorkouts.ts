@@ -106,7 +106,10 @@ export const useCreateWorkout = () => {
       return workout;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workouts"] });
+      queryClient.invalidateQueries({ 
+        queryKey: ["workouts"],
+        refetchType: 'all'
+      });
       toast({
         title: "Sucesso!",
         description: "Treino criado com sucesso.",
@@ -163,8 +166,14 @@ export const useUpdateWorkout = () => {
       if (sessionsError) throw sessionsError;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["workouts"] });
-      queryClient.invalidateQueries({ queryKey: ["workout", variables.id] });
+      queryClient.invalidateQueries({ 
+        queryKey: ["workouts"],
+        refetchType: 'all'
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: ["workout", variables.id],
+        refetchType: 'all'
+      });
       toast({
         title: "Sucesso!",
         description: "Treino atualizado com sucesso.",
@@ -189,11 +198,26 @@ export const useDeleteWorkout = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workouts"] });
-      queryClient.invalidateQueries({ queryKey: ["client-workouts"] });
-      queryClient.invalidateQueries({ queryKey: ["today-workout"] });
-      queryClient.invalidateQueries({ queryKey: ["client-active-workouts"] });
-      queryClient.invalidateQueries({ queryKey: ["client-details"] });
+      queryClient.invalidateQueries({ 
+        queryKey: ["workouts"],
+        refetchType: 'all'
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: ["client-workouts"],
+        refetchType: 'all'
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: ["today-workout"],
+        refetchType: 'all'
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: ["client-active-workouts"],
+        refetchType: 'all'
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: ["client-details"],
+        refetchType: 'all'
+      });
       toast({
         title: "Sucesso!",
         description: "Treino deletado com sucesso.",

@@ -32,7 +32,17 @@ import Users from "./pages/admin/Users";
 import UploadBodyTypeImages from "./pages/admin/UploadBodyTypeImages";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 0,
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <BrowserRouter>
