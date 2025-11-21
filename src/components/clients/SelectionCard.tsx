@@ -32,9 +32,9 @@ export function SelectionCard({
         disabled && "opacity-50 cursor-not-allowed hover:scale-100"
       )}
     >
-      <div className="font-medium text-sm pr-8">{title}</div>
+      <div className="font-medium text-sm leading-tight pr-8">{title}</div>
       {subtitle && (
-        <div className="text-xs text-muted-foreground mt-1">
+        <div className="text-xs text-muted-foreground leading-tight mt-1">
           {subtitle}
         </div>
       )}

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Plus, GripVertical } from "lucide-react";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { useClientWorkoutBuilder } from "@/hooks/useClientWorkoutBuilder";
 import { MuscleImpactMeter } from "./MuscleImpactMeter";
 import { HealthAlertPanel } from "./HealthAlertPanel";
@@ -231,188 +232,194 @@ export const WorkoutBuilder = ({
         </div>
       </div>
 
-      {/* Grid: Construtor (esquerda) + Análise (direita) */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
-        {/* Coluna Esquerda: Construtor */}
-        <div className="space-y-6">
-          {/* Nome do Treino - SEMPRE VISÍVEL */}
-          <div className="space-y-2">
-            <Label htmlFor="workout-name">Nome do Treino</Label>
-            <Input
-              id="workout-name"
-              value={builder.tempWorkout.name}
-              onChange={(e) =>
-                builder.setTempWorkout({
-                  ...builder.tempWorkout,
-                  name: e.target.value,
-                })
-              }
-              placeholder="Ex: Treino ABC, Hipertrofia Completo..."
-              className="text-lg"
-              autoFocus
+      {/* Painel Redimensionável: Construtor (esquerda) + Análise (direita) */}
+      <ResizablePanelGroup direction="horizontal" className="gap-6 min-h-[600px]">
+        <ResizablePanel defaultSize={65} minSize={50} maxSize={75}>
+          {/* Coluna Esquerda: Construtor */}
+          <div className="space-y-6 pr-3">
+            {/* Nome do Treino - SEMPRE VISÍVEL */}
+            <div className="space-y-2">
+              <Label htmlFor="workout-name">Nome do Treino</Label>
+              <Input
+                id="workout-name"
+                value={builder.tempWorkout.name}
+                onChange={(e) =>
+                  builder.setTempWorkout({
+                    ...builder.tempWorkout,
+                    name: e.target.value,
+                  })
+                }
+                placeholder="Ex: Treino ABC, Hipertrofia Completo..."
+                className="text-lg"
+                autoFocus
+              />
+            </div>
+
+            {/* Sessões do Treino */}
+            <Card className="p-6 space-y-6 border-0 shadow-none bg-transparent">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-lg mb-1">Sessões do Treino</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Crie novas sessões ou adicione sessões existentes
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowExistingSelector(true)}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Adicionar Existente
+                  </Button>
+                  <Button onClick={handleAddNewSession}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nova Sessão
+                  </Button>
+                </div>
+              </div>
+
+              {/* Lista de sessões */}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleSessionDragEnd}
+              >
+                <SortableContext
+                  items={builder.tempWorkout.sessions.map((_, idx) => `session-${idx}`)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-4">
+                    {builder.tempWorkout.sessions.map((session, idx) => (
+                      <SortableSession
+                        key={`session-${idx}`}
+                        session={session}
+                        sessionIndex={idx}
+                        isExpanded={expandedSessionIndex === idx}
+                        onToggleExpand={() => toggleSessionExpand(idx)}
+                        onRemove={() => builder.removeSession(idx)}
+                        onAddExercise={(exercise) => handleAddExerciseToSession(idx, exercise)}
+                        onRemoveExercise={(exerciseIndex) =>
+                          handleRemoveExerciseFromSession(idx, exerciseIndex)
+                        }
+                        onReorderExercises={(startIndex, endIndex) =>
+                          builder.reorderExercisesInSession(idx, startIndex, endIndex)
+                        }
+                      />
+                    ))}
+
+                    {builder.tempWorkout.sessions.length === 0 && (
+                      <div className="text-center py-8 border-2 border-dashed rounded-lg">
+                        <p className="text-muted-foreground mb-3">
+                          Nenhuma sessão adicionada ainda
+                        </p>
+                        <div className="flex justify-center gap-2">
+                          <Button variant="outline" onClick={() => setShowExistingSelector(true)}>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Adicionar Existente
+                          </Button>
+                          <Button onClick={handleAddNewSession}>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Nova Sessão
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            </Card>
+          </div>
+        </ResizablePanel>
+
+        <ResizableHandle withHandle />
+
+        <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
+          {/* Coluna Direita: Análise em Tempo Real */}
+          <div className="space-y-4 pl-3">
+            <MuscleImpactMeter
+              muscleGroups={builder.muscleAnalysis.muscleGroups}
+              totalExercises={builder.muscleAnalysis.totalExercises}
+              warnings={builder.muscleAnalysis.warnings}
+              isBalanced={builder.muscleAnalysis.isBalanced}
+            />
+
+            <HealthAlertPanel
+              riskLevel={builder.compatibility.riskLevel}
+              warnings={builder.compatibility.warnings}
+              criticalIssues={builder.compatibility.criticalIssues}
+              recommendations={builder.compatibility.recommendations}
+              acknowledgeRisks={builder.acknowledgeRisks}
+              onAcknowledgeChange={builder.setAcknowledgeRisks}
+            />
+
+            <WorkoutQualityIndicators
+              totalExercises={builder.muscleAnalysis.totalExercises}
+              muscleGroupsCount={builder.muscleAnalysis.muscleGroups.length}
+              isBalanced={builder.muscleAnalysis.isBalanced}
+            />
+
+            {/* Volume Semanal */}
+            <Card className="p-4">
+              <h4 className="font-semibold text-sm mb-3">Volume Semanal</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Total de séries:</span>
+                  <span className="font-medium">{builder.weeklyVolume.totalSets}</span>
+                </div>
+                {builder.weeklyVolume.setsPerMuscle.length > 0 && (
+                  <div className="space-y-1 pt-2 border-t">
+                    <p className="text-xs text-muted-foreground mb-1">Por grupo muscular:</p>
+                    {builder.weeklyVolume.setsPerMuscle.map((item) => (
+                      <div key={item.group} className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">{item.group}:</span>
+                        <span>{item.sets} séries</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            {/* Resumo Enriquecido */}
+            <Card className="p-4">
+              <h4 className="font-semibold text-sm mb-3">Resumo do Treino</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Sessões:</span>
+                  <span className="font-medium">{builder.tempWorkout.sessions.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Exercícios:</span>
+                  <span className="font-medium">{builder.muscleAnalysis.totalExercises}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Grupos musculares:</span>
+                  <span className="font-medium">{builder.muscleAnalysis.muscleGroups.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Tempo estimado:</span>
+                  <span className="font-medium">{builder.estimatedTime}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Status:</span>
+                  <Badge variant={builder.muscleAnalysis.isBalanced ? "default" : "destructive"}>
+                    {builder.muscleAnalysis.isBalanced ? "Balanceado" : "Requer atenção"}
+                  </Badge>
+                </div>
+              </div>
+            </Card>
+
+            <ClientHealthSummary
+              medicalConditions={builder.clientProfile?.medical_conditions}
+              goals={builder.clientProfile?.goals}
+              primaryGoal={builder.clientAnamnesis?.primary_goal}
+              secondaryGoals={builder.clientAnamnesis?.secondary_goals}
+              activityLevel={builder.clientAnamnesis?.activity_level}
             />
           </div>
-
-          {/* Sessões do Treino */}
-          <Card className="p-6 space-y-6 border-0 shadow-none bg-transparent">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold text-lg mb-1">Sessões do Treino</h3>
-                <p className="text-sm text-muted-foreground">
-                  Crie novas sessões ou adicione sessões existentes
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowExistingSelector(true)}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Adicionar Existente
-                </Button>
-                <Button onClick={handleAddNewSession}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Nova Sessão
-                </Button>
-              </div>
-            </div>
-
-            {/* Lista de sessões */}
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleSessionDragEnd}
-            >
-              <SortableContext
-                items={builder.tempWorkout.sessions.map((_, idx) => `session-${idx}`)}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="space-y-4">
-                  {builder.tempWorkout.sessions.map((session, idx) => (
-                    <SortableSession
-                      key={`session-${idx}`}
-                      session={session}
-                      sessionIndex={idx}
-                      isExpanded={expandedSessionIndex === idx}
-                      onToggleExpand={() => toggleSessionExpand(idx)}
-                      onRemove={() => builder.removeSession(idx)}
-                      onAddExercise={(exercise) => handleAddExerciseToSession(idx, exercise)}
-                      onRemoveExercise={(exerciseIndex) =>
-                        handleRemoveExerciseFromSession(idx, exerciseIndex)
-                      }
-                      onReorderExercises={(startIndex, endIndex) =>
-                        builder.reorderExercisesInSession(idx, startIndex, endIndex)
-                      }
-                    />
-                  ))}
-
-                  {builder.tempWorkout.sessions.length === 0 && (
-                    <div className="text-center py-8 border-2 border-dashed rounded-lg">
-                      <p className="text-muted-foreground mb-3">
-                        Nenhuma sessão adicionada ainda
-                      </p>
-                      <div className="flex justify-center gap-2">
-                        <Button variant="outline" onClick={() => setShowExistingSelector(true)}>
-                          <Plus className="w-4 h-4 mr-2" />
-                          Adicionar Existente
-                        </Button>
-                        <Button onClick={handleAddNewSession}>
-                          <Plus className="w-4 h-4 mr-2" />
-                          Nova Sessão
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </SortableContext>
-            </DndContext>
-          </Card>
-        </div>
-
-        {/* Coluna Direita: Análise em Tempo Real */}
-        <div className="space-y-4">
-          <MuscleImpactMeter
-            muscleGroups={builder.muscleAnalysis.muscleGroups}
-            totalExercises={builder.muscleAnalysis.totalExercises}
-            warnings={builder.muscleAnalysis.warnings}
-            isBalanced={builder.muscleAnalysis.isBalanced}
-          />
-
-          <HealthAlertPanel
-            riskLevel={builder.compatibility.riskLevel}
-            warnings={builder.compatibility.warnings}
-            criticalIssues={builder.compatibility.criticalIssues}
-            recommendations={builder.compatibility.recommendations}
-            acknowledgeRisks={builder.acknowledgeRisks}
-            onAcknowledgeChange={builder.setAcknowledgeRisks}
-          />
-
-          <WorkoutQualityIndicators
-            totalExercises={builder.muscleAnalysis.totalExercises}
-            muscleGroupsCount={builder.muscleAnalysis.muscleGroups.length}
-            isBalanced={builder.muscleAnalysis.isBalanced}
-          />
-
-          {/* Volume Semanal */}
-          <Card className="p-4">
-            <h4 className="font-semibold text-sm mb-3">Volume Semanal</h4>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Total de séries:</span>
-                <span className="font-medium">{builder.weeklyVolume.totalSets}</span>
-              </div>
-              {builder.weeklyVolume.setsPerMuscle.length > 0 && (
-                <div className="space-y-1 pt-2 border-t">
-                  <p className="text-xs text-muted-foreground mb-1">Por grupo muscular:</p>
-                  {builder.weeklyVolume.setsPerMuscle.map((item) => (
-                    <div key={item.group} className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">{item.group}:</span>
-                      <span>{item.sets} séries</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </Card>
-
-          {/* Resumo Enriquecido */}
-          <Card className="p-4">
-            <h4 className="font-semibold text-sm mb-3">Resumo do Treino</h4>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Sessões:</span>
-                <span className="font-medium">{builder.tempWorkout.sessions.length}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Exercícios:</span>
-                <span className="font-medium">{builder.muscleAnalysis.totalExercises}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Grupos musculares:</span>
-                <span className="font-medium">{builder.muscleAnalysis.muscleGroups.length}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Tempo estimado:</span>
-                <span className="font-medium">{builder.estimatedTime}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Status:</span>
-                <Badge variant={builder.muscleAnalysis.isBalanced ? "default" : "destructive"}>
-                  {builder.muscleAnalysis.isBalanced ? "Balanceado" : "Requer atenção"}
-                </Badge>
-              </div>
-            </div>
-          </Card>
-
-          <ClientHealthSummary
-            medicalConditions={builder.clientProfile?.medical_conditions}
-            goals={builder.clientProfile?.goals}
-            primaryGoal={builder.clientAnamnesis?.primary_goal}
-            secondaryGoals={builder.clientAnamnesis?.secondary_goals}
-            activityLevel={builder.clientAnamnesis?.activity_level}
-          />
-        </div>
-      </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
 
       {/* Footer com ações */}
       <div className="flex justify-end gap-3 pt-6 border-t">

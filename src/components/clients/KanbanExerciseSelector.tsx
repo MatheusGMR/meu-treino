@@ -152,13 +152,13 @@ export function KanbanExerciseSelector({
   return (
     <div className="space-y-4">
       {/* Grid de 5 colunas */}
-      <div className="grid grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-4 lg:gap-6">
         {/* Coluna 1: Tipo */}
         <div className="space-y-2">
-          <h4 className="text-sm font-semibold text-muted-foreground">
+          <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground truncate mb-3">
             Tipo
           </h4>
-          <ScrollArea className="h-[400px] pr-3">
+            <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] pr-4">
             <div className="space-y-2">
               {EXERCISE_TYPES.map(type => (
                 <SelectionCard
@@ -174,10 +174,10 @@ export function KanbanExerciseSelector({
 
         {/* Coluna 2: Grupo */}
         <div className="space-y-2">
-          <h4 className="text-sm font-semibold text-muted-foreground">
+          <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground truncate mb-3">
             Grupo Muscular
           </h4>
-          <ScrollArea className="h-[400px] pr-3">
+          <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] pr-4">
             {!selectedType ? (
               <p className="text-xs text-muted-foreground p-3">
                 Selecione um tipo primeiro
@@ -203,10 +203,10 @@ export function KanbanExerciseSelector({
 
         {/* Coluna 3: Exercício */}
         <div className="space-y-2">
-          <h4 className="text-sm font-semibold text-muted-foreground">
+          <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground truncate mb-3">
             Exercício
           </h4>
-          <ScrollArea className="h-[400px] pr-3">
+          <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] pr-4">
             {!selectedGroup ? (
               <p className="text-xs text-muted-foreground p-3">
                 Selecione um grupo primeiro
@@ -237,10 +237,10 @@ export function KanbanExerciseSelector({
 
         {/* Coluna 4: Volume */}
         <div className="space-y-2">
-          <h4 className="text-sm font-semibold text-muted-foreground">
+          <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground truncate mb-3">
             Volume
           </h4>
-          <ScrollArea className="h-[400px] pr-3">
+          <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] pr-4">
             {!selectedExercise ? (
               <p className="text-xs text-muted-foreground p-3">
                 Selecione um exercício primeiro
@@ -267,10 +267,10 @@ export function KanbanExerciseSelector({
 
         {/* Coluna 5: Método */}
         <div className="space-y-2">
-          <h4 className="text-sm font-semibold text-muted-foreground">
+          <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground truncate mb-3">
             Método
           </h4>
-          <ScrollArea className="h-[400px] pr-3">
+          <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] pr-4">
             {!selectedVolume ? (
               <p className="text-xs text-muted-foreground p-3">
                 Selecione um volume primeiro
