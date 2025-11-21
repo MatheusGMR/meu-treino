@@ -1,8 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { useClientWorkoutBuilder } from "@/hooks/useClientWorkoutBuilder";
 import { MuscleImpactMeter } from "./MuscleImpactMeter";
 import { HealthAlertPanel } from "./HealthAlertPanel";
@@ -10,8 +10,14 @@ import { ClientHealthSummary } from "./ClientHealthSummary";
 import { WorkoutQualityIndicators } from "./WorkoutQualityIndicators";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { KanbanExerciseSelector } from "./KanbanExerciseSelector";
-import { InlineExerciseRow } from "./InlineExerciseRow";
+import { SessionCard } from "./SessionCard";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ExistingSessionSelector } from "./ExistingSessionSelector";
 import type { SessionExerciseData } from "@/lib/schemas/sessionSchema";
 
 interface WorkoutBuilderProps {
@@ -26,8 +32,10 @@ export const WorkoutBuilder = ({
   onSuccess,
 }: WorkoutBuilderProps) => {
   const builder = useClientWorkoutBuilder(clientId);
+  const [showExistingSelector, setShowExistingSelector] = useState(false);
+  const [expandedSessionIndex, setExpandedSessionIndex] = useState<number | null>(null);
 
-  // Criar sessão padrão ao montar
+  // Criar sessão padrão ao montar se não houver nenhuma
   useEffect(() => {
     if (builder.tempWorkout.sessions.length === 0) {
       builder.addNewSession({
@@ -36,40 +44,56 @@ export const WorkoutBuilder = ({
         exercises: [],
         isNew: true,
       });
+      setExpandedSessionIndex(0);
     }
   }, []);
 
-  const currentSession = builder.tempWorkout.sessions[0];
+  const handleAddNewSession = () => {
+    const sessionNumber = builder.tempWorkout.sessions.length + 1;
+    builder.addNewSession({
+      name: `Sessão ${sessionNumber}`,
+      description: "",
+      exercises: [],
+      isNew: true,
+    });
+    setExpandedSessionIndex(builder.tempWorkout.sessions.length);
+  };
 
-  const handleAddExercise = (exercise: SessionExerciseData) => {
-    if (!currentSession) return;
-    
-    // Garantir que todos os campos obrigatórios estão presentes
+  const handleAddExistingSession = async (sessionId: string) => {
+    await builder.addExistingSession(sessionId);
+    setShowExistingSelector(false);
+  };
+
+  const handleAddExerciseToSession = (sessionIndex: number, exercise: SessionExerciseData) => {
+    const session = builder.tempWorkout.sessions[sessionIndex];
+    if (!session) return;
+
     const validExercise: SessionExerciseData = {
       exercise_id: exercise.exercise_id,
       volume_id: exercise.volume_id,
       method_id: exercise.method_id,
       order_index: exercise.order_index,
     };
-    
+
     const updatedSession = {
-      ...currentSession,
-      exercises: [...currentSession.exercises, validExercise],
+      ...session,
+      exercises: [...session.exercises, validExercise],
     };
-    builder.updateSession(0, updatedSession);
+    builder.updateSession(sessionIndex, updatedSession);
   };
 
-  const handleRemoveExercise = (index: number) => {
-    if (!currentSession) return;
-    
-    const updatedExercises = currentSession.exercises.filter((_, i) => i !== index);
+  const handleRemoveExerciseFromSession = (sessionIndex: number, exerciseIndex: number) => {
+    const session = builder.tempWorkout.sessions[sessionIndex];
+    if (!session) return;
+
+    const updatedExercises = session.exercises.filter((_, i) => i !== exerciseIndex);
     const reorderedExercises = updatedExercises.map((ex, idx) => ({
       ...ex,
       order_index: idx,
     }));
-    
-    builder.updateSession(0, {
-      ...currentSession,
+
+    builder.updateSession(sessionIndex, {
+      ...session,
       exercises: reorderedExercises,
     });
   };
@@ -83,9 +107,9 @@ export const WorkoutBuilder = ({
     }
   };
 
-  if (!currentSession) {
-    return <div>Carregando...</div>;
-  }
+  const toggleSessionExpand = (index: number) => {
+    setExpandedSessionIndex(expandedSessionIndex === index ? null : index);
+  };
 
   return (
     <div className="space-y-6">
@@ -124,45 +148,64 @@ export const WorkoutBuilder = ({
             />
           </div>
 
-          {/* Kanban + Lista de Exercícios */}
+          {/* Sessões do Treino */}
           <Card className="p-6 space-y-6">
-            <div>
-              <h3 className="font-semibold text-lg mb-1">Adicionar Exercícios</h3>
-              <p className="text-sm text-muted-foreground">
-                Selecione exercícios progressivamente através das colunas
-              </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-lg mb-1">Sessões do Treino</h3>
+                <p className="text-sm text-muted-foreground">
+                  Crie novas sessões ou adicione sessões existentes
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowExistingSelector(true)}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Adicionar Existente
+                </Button>
+                <Button onClick={handleAddNewSession}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nova Sessão
+                </Button>
+              </div>
             </div>
 
-            {/* Lista de exercícios já adicionados */}
-            {currentSession.exercises.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold">
-                    Exercícios Adicionados
-                  </h4>
-                  <span className="text-sm text-muted-foreground">
-                    {currentSession.exercises.length} exercício{currentSession.exercises.length !== 1 ? 's' : ''}
-                  </span>
-                </div>
-                <div className="space-y-2 p-4 rounded-lg bg-muted/30">
-                  {currentSession.exercises.map((ex, idx) => (
-                    <InlineExerciseRow
-                      key={idx}
-                      exercise={ex}
-                      onRemove={() => handleRemoveExercise(idx)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Lista de sessões */}
+            <div className="space-y-4">
+              {builder.tempWorkout.sessions.map((session, idx) => (
+                <SessionCard
+                  key={idx}
+                  session={session}
+                  sessionIndex={idx}
+                  isExpanded={expandedSessionIndex === idx}
+                  onToggleExpand={() => toggleSessionExpand(idx)}
+                  onRemove={() => builder.removeSession(idx)}
+                  onAddExercise={(exercise) => handleAddExerciseToSession(idx, exercise)}
+                  onRemoveExercise={(exerciseIndex) =>
+                    handleRemoveExerciseFromSession(idx, exerciseIndex)
+                  }
+                />
+              ))}
 
-            {/* Kanban Selector */}
-            <div className="pt-4 border-t">
-              <KanbanExerciseSelector
-                onSave={handleAddExercise}
-                onComplete={() => {}}
-                orderIndex={currentSession.exercises.length}
-              />
+              {builder.tempWorkout.sessions.length === 0 && (
+                <div className="text-center py-8 border-2 border-dashed rounded-lg">
+                  <p className="text-muted-foreground mb-3">
+                    Nenhuma sessão adicionada ainda
+                  </p>
+                  <div className="flex justify-center gap-2">
+                    <Button variant="outline" onClick={() => setShowExistingSelector(true)}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Adicionar Existente
+                    </Button>
+                    <Button onClick={handleAddNewSession}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Nova Sessão
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </Card>
         </div>
@@ -218,6 +261,10 @@ export const WorkoutBuilder = ({
             <h4 className="font-semibold text-sm mb-3">Resumo do Treino</h4>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
+                <span className="text-muted-foreground">Sessões:</span>
+                <span className="font-medium">{builder.tempWorkout.sessions.length}</span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-muted-foreground">Exercícios:</span>
                 <span className="font-medium">{builder.muscleAnalysis.totalExercises}</span>
               </div>
@@ -260,6 +307,21 @@ export const WorkoutBuilder = ({
           {builder.isSubmitting ? "Atribuindo..." : "Atribuir Treino"}
         </Button>
       </div>
+
+      {/* Dialog de Seleção de Sessões Existentes */}
+      <Dialog open={showExistingSelector} onOpenChange={setShowExistingSelector}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Adicionar Sessão Existente</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto">
+            <ExistingSessionSelector
+              onSelectSession={handleAddExistingSession}
+              selectedSessionIds={builder.getExistingSessionIds()}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
