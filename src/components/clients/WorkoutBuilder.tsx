@@ -234,7 +234,8 @@ export const WorkoutBuilder = ({
       <ResizablePanelGroup direction="horizontal" className="gap-6 min-h-[600px]">
         <ResizablePanel defaultSize={70} minSize={55} maxSize={80}>
           {/* Coluna Esquerda: Construtor */}
-          <div className="space-y-6 pr-3">
+          <div className="h-full overflow-y-auto scrollarea-hidden pr-3">
+            <div className="space-y-6">
             {/* Nome do Treino - SEMPRE VISÍVEL */}
             <div className="space-y-2">
               <Label htmlFor="workout-name">Nome do Treino</Label>
@@ -325,6 +326,7 @@ export const WorkoutBuilder = ({
               </SortableContext>
               </DndContext>
             </div>
+            </div>
           </div>
         </ResizablePanel>
 
@@ -332,7 +334,8 @@ export const WorkoutBuilder = ({
 
         <ResizablePanel defaultSize={30} minSize={20} maxSize={45}>
           {/* Coluna Direita: Cockpit Revisado com 7 Blocos */}
-          <div className="space-y-4 pl-3">
+          <div className="h-full overflow-y-auto scrollarea-hidden pl-3">
+            <div className="space-y-4">
             {/* BLOCO 1: Perfil do Cliente */}
             <ClientProfileCard
               primaryGoal={builder.clientAnamnesis?.primary_goal || null}
@@ -434,6 +437,7 @@ export const WorkoutBuilder = ({
                 profileRiskFactors={builder.profileRisks.factors}
               />
             )}
+            </div>
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
