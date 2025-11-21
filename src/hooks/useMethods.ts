@@ -20,7 +20,38 @@ export const useMethods = (search?: string) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data;
+      
+      // Ordenar no frontend por risk_level e energy_cost (básico → avançado)
+      const sortedData = data?.sort((a, b) => {
+        const riskOrder: Record<string, number> = {
+          'Baixo risco': 1,
+          'Médio risco': 2,
+          'Alto risco': 3,
+          'Alto risco de fadiga': 4,
+        };
+        
+        const energyOrder: Record<string, number> = {
+          'Baixo': 1,
+          'Médio': 2,
+          'Alto': 3,
+        };
+        
+        const riskA = riskOrder[a.risk_level] || 999;
+        const riskB = riskOrder[b.risk_level] || 999;
+        
+        if (riskA !== riskB) return riskA - riskB;
+        
+        const energyA = energyOrder[a.energy_cost] || 999;
+        const energyB = energyOrder[b.energy_cost] || 999;
+        
+        if (energyA !== energyB) return energyA - energyB;
+        
+        // Desempate por objective e name
+        return (a.objective || '').localeCompare(b.objective || '') || 
+               (a.name || '').localeCompare(b.name || '');
+      });
+      
+      return sortedData;
     },
   });
 };
