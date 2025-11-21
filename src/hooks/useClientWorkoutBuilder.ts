@@ -40,6 +40,7 @@ export const useClientWorkoutBuilder = (clientId: string) => {
   
   // Estados para IA Suggestions
   const [aiSuggestions, setAiSuggestions] = useState<{
+    overview: string;
     sessions: string;
     recommendations: string[];
   } | null>(null);

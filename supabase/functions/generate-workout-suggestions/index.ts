@@ -70,7 +70,12 @@ ESTILO DE VIDA:
 - Horas Sentado/Dia: ${anamnesis.daily_sitting_hours || 'Não especificado'}
 
 TAREFA:
-Forneça sugestões para montar o treino ideal:
+Forneça um parecer estruturado:
+
+0. ANÁLISE DO PERFIL (2-3 frases):
+   - Resuma o objetivo principal e nível de atividade do cliente
+   - Mencione aspectos relevantes identificados (dores, restrições, estilo de vida)
+   - Indique que as recomendações a seguir SERÃO USADAS NA MONTAGEM DO TREINO
 
 1. FREQUÊNCIA E DURAÇÃO: Indique quantas sessões por semana e duração de cada uma
 2. RECOMENDAÇÕES (máximo 5 itens priorizados):
@@ -91,6 +96,10 @@ Seja direto e prático. Priorize o mais importante.
         parameters: {
           type: "object",
           properties: {
+            overview: {
+              type: "string",
+              description: "Parecer geral sobre o perfil do cliente analisado (2-3 frases). Mencione o objetivo principal, nível atual e contextualize que as recomendações a seguir serão usadas na montagem do treino."
+            },
             sessions: {
               type: "string",
               description: "Descrição de quantas sessões semanais e duração de cada uma (ex: '3 sessões de 50min por semana', '5x/semana com 45min cada')"
@@ -102,7 +111,7 @@ Seja direto e prático. Priorize o mais importante.
               maxItems: 5
             }
           },
-          required: ["sessions", "recommendations"],
+          required: ["overview", "sessions", "recommendations"],
           additionalProperties: false
         }
       }
