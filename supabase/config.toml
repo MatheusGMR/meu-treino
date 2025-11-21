@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.import-exercises-csv]
 verify_jwt = true
+
+[functions.generate-workout-suggestions]
+verify_jwt = true
