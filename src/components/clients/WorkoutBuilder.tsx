@@ -340,7 +340,7 @@ export const WorkoutBuilder = ({
             <ClientProfileCard
               primaryGoal={builder.clientAnamnesis?.primary_goal || null}
               secondaryGoal={builder.clientAnamnesis?.secondary_goals?.[0] || null}
-              level={builder.clientAnamnesis?.activity_level || 'Não definido'}
+              level={builder.clientAnamnesis?.nivel_experiencia || 'Não definido'}
               timeAvailable={builder.clientAnamnesis?.tempo_disponivel || 'Não definido'}
               suggestedFrequency={builder.weeklyTimeEstimate.suggestedSessions}
               pains={builder.fatigueAlert?.pains || []}
@@ -420,7 +420,10 @@ export const WorkoutBuilder = ({
             )}
 
             {/* BLOCO 6: Indicadores de Qualidade */}
-            <QualityScoresCard scores={builder.qualityScores} />
+            <QualityScoresCard 
+              scores={builder.qualityScores}
+              hasExercises={builder.muscleAnalysis.totalExercises > 0}
+            />
 
             {/* BLOCO 7: Progresso do Treino */}
             <WorkoutProgressCard progress={builder.workoutProgress} />

@@ -7,8 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useUpdateClientProfile } from "@/hooks/useClients";
-import { Save } from "lucide-react";
+import { Save, Sparkles } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ClientInfoFormProps {
   clientId: string;
@@ -17,6 +21,20 @@ interface ClientInfoFormProps {
 
 export const ClientInfoForm = ({ clientId, profile }: ClientInfoFormProps) => {
   const updateProfile = useUpdateClientProfile();
+
+  // Buscar dados da anamnese calculados pela IA
+  const { data: anamnesis } = useQuery({
+    queryKey: ["anamnesis", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("anamnesis")
+        .select("imc_calculado, imc_categoria, nivel_experiencia, calculated_profile, profile_confidence_score")
+        .eq("client_id", clientId)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!clientId,
+  });
 
   const form = useForm<ClientProfile>({
     resolver: zodResolver(clientProfileSchema),
@@ -59,6 +77,48 @@ export const ClientInfoForm = ({ clientId, profile }: ClientInfoFormProps) => {
           )}
         </div>
       </div>
+
+      {/* Seção: Análise da IA */}
+      {anamnesis && (
+        <Card className="bg-muted/30">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              Análise da IA
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-4 text-sm">
+            {anamnesis.imc_calculado && (
+              <div>
+                <span className="text-muted-foreground">IMC:</span>
+                <span className="ml-2 font-medium">
+                  {anamnesis.imc_calculado.toFixed(1)} - {anamnesis.imc_categoria}
+                </span>
+              </div>
+            )}
+            {anamnesis.nivel_experiencia && (
+              <div>
+                <span className="text-muted-foreground">Nível:</span>
+                <span className="ml-2 font-medium">{anamnesis.nivel_experiencia}</span>
+              </div>
+            )}
+            {anamnesis.calculated_profile && (
+              <div className="col-span-2">
+                <span className="text-muted-foreground">Perfil:</span>
+                <span className="ml-2 font-medium">{anamnesis.calculated_profile}</span>
+              </div>
+            )}
+            {anamnesis.profile_confidence_score && (
+              <div>
+                <span className="text-muted-foreground">Confiança:</span>
+                <Badge variant="outline" className="ml-2">
+                  {(anamnesis.profile_confidence_score * 100).toFixed(0)}%
+                </Badge>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
