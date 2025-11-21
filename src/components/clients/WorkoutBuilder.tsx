@@ -163,13 +163,6 @@ export const WorkoutBuilder = ({
 
         {/* Coluna Direita: Análise em Tempo Real */}
         <div className="space-y-4">
-          <div>
-            <h3 className="font-semibold text-lg mb-1">Análise em Tempo Real</h3>
-            <p className="text-sm text-muted-foreground">
-              Acompanhe o equilíbrio do treino
-            </p>
-          </div>
-
           <MuscleImpactMeter
             muscleGroups={builder.muscleAnalysis.muscleGroups}
             totalExercises={builder.muscleAnalysis.totalExercises}

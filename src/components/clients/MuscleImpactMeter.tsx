@@ -58,7 +58,10 @@ export const MuscleImpactMeter = ({
           className="flex items-center justify-between"
           layout
         >
-          <h4 className="font-semibold">Grupos Musculares</h4>
+          <div>
+            <h4 className="font-semibold">Análise em Tempo Real</h4>
+            <p className="text-xs text-muted-foreground">Grupos musculares trabalhados</p>
+          </div>
           <motion.div
             key={isBalanced ? "balanced" : "warning"}
             initial={{ scale: 0.8, opacity: 0 }}
