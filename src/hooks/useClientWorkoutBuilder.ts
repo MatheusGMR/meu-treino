@@ -877,7 +877,7 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     if (clientId && anamnesisData?.anamnesis && !aiSuggestions && !loadingAI) {
       fetchAISuggestions();
     }
-  }, [clientId, anamnesisData, aiSuggestions, loadingAI, fetchAISuggestions]);
+  }, [clientId, anamnesisData]); // Removido aiSuggestions e loadingAI para evitar loop
 
   return {
     tempWorkout,

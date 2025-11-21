@@ -167,12 +167,32 @@ Com base nessas informações, forneça sugestões estruturadas para montar o tr
     }
 
     const data = await response.json();
-    console.log('Resposta da OpenAI recebida');
+    console.log('Resposta da OpenAI recebida:', JSON.stringify(data).substring(0, 500));
 
     // Extrair JSON do tool call
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+    
     if (!toolCall) {
-      console.error('Tool call não encontrado na resposta');
+      console.error('Tool call não encontrado. Estrutura da resposta:', JSON.stringify(data.choices?.[0]?.message || {}).substring(0, 300));
+      
+      // Fallback: tentar extrair do content se disponível
+      const content = data.choices?.[0]?.message?.content;
+      if (content) {
+        try {
+          // Tentar parsear JSON do content
+          const parsed = JSON.parse(content);
+          if (parsed.sessions && parsed.mandatory && parsed.recommendations && parsed.warnings) {
+            console.log('Sugestões extraídas do content com sucesso');
+            return new Response(
+              JSON.stringify(parsed),
+              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+        } catch (e) {
+          console.error('Erro ao parsear content:', e);
+        }
+      }
+      
       return new Response(
         JSON.stringify({ error: 'Formato de resposta inválido da IA' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -180,7 +200,7 @@ Com base nessas informações, forneça sugestões estruturadas para montar o tr
     }
 
     const suggestions = JSON.parse(toolCall.function.arguments);
-    console.log('Sugestões geradas com sucesso');
+    console.log('Sugestões geradas com sucesso via tool calling');
 
     return new Response(
       JSON.stringify(suggestions),
