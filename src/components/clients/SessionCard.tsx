@@ -81,9 +81,21 @@ export const SessionCard = ({
 
       {isExpanded && (
         <CardContent className="space-y-4">
+          {/* Kanban para adicionar mais exercícios */}
+          <div>
+            <h5 className="text-sm font-semibold mb-3">
+              Adicionar mais exercícios
+            </h5>
+            <KanbanExerciseSelector
+              onSave={onAddExercise}
+              onComplete={() => {}}
+              orderIndex={session.exercises.length}
+            />
+          </div>
+
           {/* Lista de exercícios */}
           {session.exercises.length > 0 && (
-            <div className="space-y-2">
+            <div className="space-y-2 pt-4 border-t">
               <h5 className="text-sm font-semibold">Exercícios</h5>
               <div className="space-y-2 p-4 rounded-lg bg-muted/30">
                 {session.exercises.map((ex, idx) => (
@@ -96,18 +108,6 @@ export const SessionCard = ({
               </div>
             </div>
           )}
-
-          {/* Kanban para adicionar mais exercícios */}
-          <div className="pt-4 border-t">
-            <h5 className="text-sm font-semibold mb-3">
-              Adicionar mais exercícios
-            </h5>
-            <KanbanExerciseSelector
-              onSave={onAddExercise}
-              onComplete={() => {}}
-              orderIndex={session.exercises.length}
-            />
-          </div>
         </CardContent>
       )}
     </Card>
