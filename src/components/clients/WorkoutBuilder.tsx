@@ -149,7 +149,7 @@ export const WorkoutBuilder = ({
           </div>
 
           {/* Sessões do Treino */}
-          <Card className="p-6 space-y-6">
+          <Card className="p-6 space-y-6 border-0 shadow-none bg-transparent">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-semibold text-lg mb-1">Sessões do Treino</h3>
