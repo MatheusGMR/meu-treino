@@ -4,6 +4,7 @@ import { useHealthCompatibilityCheck } from "./useHealthCompatibilityCheck";
 import { useAssignWorkout } from "./useClientWorkouts";
 import { useClientDetails } from "./useClients";
 import { useClientAnamnesis } from "./useAnamnesis";
+import { useExercises } from "./useExercises";
 import type { SessionExerciseData } from "@/lib/schemas/sessionSchema";
 
 interface TempSession {
@@ -35,13 +36,16 @@ export const useClientWorkoutBuilder = (clientId: string) => {
   // Buscar dados do cliente
   const { data: clientDetails } = useClientDetails(clientId);
   const { data: anamnesisData } = useClientAnamnesis(clientId);
+  
+  // Buscar dados dos exercícios para análise correta
+  const { data: exercisesData } = useExercises();
 
   // Análise de saúde em tempo real
   const healthCheck = useHealthCompatibilityCheck(clientId, undefined);
 
   // Análise muscular para treino temporário
   const muscleAnalysis = useMemo(() => {
-    if (tempWorkout.sessions.length === 0) {
+    if (tempWorkout.sessions.length === 0 || !exercisesData) {
       return {
         muscleGroups: [],
         totalExercises: 0,
@@ -50,14 +54,22 @@ export const useClientWorkoutBuilder = (clientId: string) => {
       };
     }
 
-    // Mapear todos os exercícios das sessões temporárias
+    // Criar mapa de exerciseId -> dados do exercício
+    const exerciseMap = new Map(
+      exercisesData.map(ex => [ex.id, ex])
+    );
+
+    // Mapear todos os exercícios das sessões temporárias com dados reais
     const allExercises: Array<{ name: string; group: string }> = [];
     tempWorkout.sessions.forEach((session) => {
       session.exercises.forEach((ex) => {
-        allExercises.push({
-          name: ex.exercise_id,
-          group: "Peito",
-        });
+        const exerciseData = exerciseMap.get(ex.exercise_id);
+        if (exerciseData) {
+          allExercises.push({
+            name: exerciseData.name,
+            group: exerciseData.exercise_group,
+          });
+        }
       });
     });
 
@@ -79,6 +91,8 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     }));
 
     const warnings: string[] = [];
+    
+    // Verificar sobrecarga de grupos
     muscleGroups.forEach((mg) => {
       if (mg.percentage > 40) {
         warnings.push(
@@ -87,13 +101,31 @@ export const useClientWorkoutBuilder = (clientId: string) => {
       }
     });
 
+    // Verificar grupos antagonistas
+    const hasChest = muscleGroups.find((mg) => mg.group === "Peito");
+    const hasBack = muscleGroups.find((mg) => mg.group === "Costas");
+    
+    if (hasChest && !hasBack) {
+      warnings.push("Treino trabalha Peito mas não trabalha Costas - risco de desequilíbrio muscular");
+    }
+    if (hasBack && !hasChest) {
+      warnings.push("Treino trabalha Costas mas não trabalha Peito - considere balancear");
+    }
+
+    const hasQuadriceps = muscleGroups.find((mg) => mg.group === "Quadríceps" || mg.group === "Pernas");
+    const hasHamstrings = muscleGroups.find((mg) => mg.group === "Posterior");
+    
+    if (hasQuadriceps && !hasHamstrings) {
+      warnings.push("Treino trabalha frente das pernas mas não posterior - risco de desequilíbrio");
+    }
+
     return {
       muscleGroups: muscleGroups.sort((a, b) => b.percentage - a.percentage),
       totalExercises,
       warnings,
       isBalanced: warnings.length === 0,
     };
-  }, [tempWorkout]);
+  }, [tempWorkout, exercisesData]);
 
   const compatibility = healthCheck.data || {
     compatible: true,
@@ -151,6 +183,21 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     return `${totalExercises * 3}-${totalExercises * 5} min`;
   }, [muscleAnalysis]);
 
+  // Calcular volume semanal estimado
+  const weeklyVolume = useMemo(() => {
+    const totalSets = tempWorkout.sessions.reduce((sum, session) => {
+      return sum + session.exercises.length * 3; // Estimativa de 3 séries por exercício
+    }, 0);
+    
+    return {
+      totalSets,
+      setsPerMuscle: muscleAnalysis.muscleGroups.map(mg => ({
+        group: mg.group,
+        sets: Math.round((mg.percentage / 100) * totalSets),
+      })),
+    };
+  }, [tempWorkout, muscleAnalysis]);
+
   return {
     tempWorkout,
     setTempWorkout,
@@ -159,6 +206,7 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     muscleAnalysis,
     compatibility,
     estimatedTime,
+    weeklyVolume,
     addNewSession,
     removeSession,
     updateSession,
