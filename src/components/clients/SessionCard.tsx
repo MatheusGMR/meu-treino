@@ -80,10 +80,10 @@ export const SessionCard = ({
       </CardHeader>
 
       {isExpanded && (
-        <CardContent className="space-y-4">
-          {/* Kanban para adicionar mais exercícios */}
-          <div>
-            <h5 className="text-sm font-semibold mb-3">
+        <CardContent className="space-y-6">
+          {/* Kanban para adicionar mais exercícios - no topo */}
+          <div className="space-y-3">
+            <h5 className="text-sm font-semibold text-foreground">
               Adicionar mais exercícios
             </h5>
             <KanbanExerciseSelector
@@ -93,11 +93,13 @@ export const SessionCard = ({
             />
           </div>
 
-          {/* Lista de exercícios */}
+          {/* Lista de exercícios - se existirem */}
           {session.exercises.length > 0 && (
-            <div className="space-y-2 pt-4 border-t">
-              <h5 className="text-sm font-semibold">Exercícios</h5>
-              <div className="space-y-2 p-4 rounded-lg bg-muted/30">
+            <div className="space-y-3 pt-6 border-t border-border/30">
+              <h5 className="text-sm font-semibold text-muted-foreground">
+                Exercícios adicionados
+              </h5>
+              <div className="space-y-2">
                 {session.exercises.map((ex, idx) => (
                   <InlineExerciseRow
                     key={idx}
