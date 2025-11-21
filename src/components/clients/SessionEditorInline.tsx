@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown, ChevronUp, Trash2, Plus, GripVertical } from "lucide-react";
-import { InlineExerciseAdder } from "./InlineExerciseAdder";
+import { KanbanExerciseSelector } from "./KanbanExerciseSelector";
 import { InlineExerciseRow } from "./InlineExerciseRow";
 import { SessionAnalysisPanel } from "./SessionAnalysisPanel";
 import type { SessionExerciseData } from "@/lib/schemas/sessionSchema";
@@ -79,7 +79,8 @@ export const SessionEditorInline = ({
           </p>
 
           {isExpanded && (
-            <div className="space-y-3 pt-2 border-t">
+            <div className="space-y-4 pt-2 border-t">
+              {/* Nome e Descrição */}
               <div className="space-y-2">
                 <Input
                   value={session.name}
@@ -96,22 +97,12 @@ export const SessionEditorInline = ({
                 />
               </div>
 
-              {/* Split Layout: Exercises (70%) + Analysis (30%) */}
-              <div className="grid grid-cols-[70%_30%] gap-4">
-                {/* Exercises Section */}
-                <div className="space-y-3">
-                  {/* Table Header */}
-                  <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-2 pb-1 border-b">
-                    <div className="col-span-1"></div>
-                    <div className="col-span-2">Tipo</div>
-                    <div className="col-span-2">Grupo</div>
-                    <div className="col-span-2">Exercício</div>
-                    <div className="col-span-2">Volume</div>
-                    <div className="col-span-2">Método</div>
-                    <div className="col-span-1"></div>
-                  </div>
-
-                  {/* Exercise Rows */}
+              {/* Exercícios já adicionados */}
+              {session.exercises.length > 0 && (
+                <div className="space-y-2">
+                  <h5 className="font-semibold text-sm">
+                    Exercícios Adicionados ({session.exercises.length})
+                  </h5>
                   <div className="space-y-1">
                     {session.exercises.map((exercise, idx) => (
                       exercise.exercise_id && exercise.volume_id && exercise.method_id && (
@@ -127,28 +118,28 @@ export const SessionEditorInline = ({
                         />
                       )
                     ))}
-
-                    {session.exercises.length === 0 && (
-                      <p className="text-xs text-muted-foreground italic py-2 px-2">
-                        Use os campos abaixo para adicionar exercícios
-                      </p>
-                    )}
-
-                    <InlineExerciseAdder
-                      onSave={handleAddExercise}
-                      onCancel={() => {}}
-                      orderIndex={session.exercises.length}
-                    />
                   </div>
                 </div>
+              )}
 
-                {/* Analysis Panel - Side by side */}
-                <div>
-                  <SessionAnalysisPanel
-                    exercises={session.exercises}
-                    sessionName={session.name}
-                  />
-                </div>
+              {/* Kanban Selector */}
+              <div>
+                <h5 className="font-semibold text-sm mb-3">
+                  Adicionar Exercícios
+                </h5>
+                <KanbanExerciseSelector
+                  onSave={handleAddExercise}
+                  onComplete={() => setIsExpanded(false)}
+                  orderIndex={session.exercises.length}
+                />
+              </div>
+
+              {/* Analysis Panel */}
+              <div>
+                <SessionAnalysisPanel
+                  exercises={session.exercises}
+                  sessionName={session.name}
+                />
               </div>
             </div>
           )}
