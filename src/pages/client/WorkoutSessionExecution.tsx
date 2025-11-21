@@ -113,14 +113,23 @@ const WorkoutSessionExecution = () => {
     <div className="relative w-full h-screen bg-black overflow-hidden">
       {/* Video/Image Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-black via-black/90 to-black">
-        {currentExercise.exercises?.video_url && (
+        {currentExercise.exercises?.video_url ? (
           <div className="w-full h-full opacity-40">
             <ExerciseVideoPlayer
-              mediaUrl={currentExercise.exercises?.video_url}
+              mediaUrl={currentExercise.exercises.video_url}
+              mediaType="video"
               exerciseName={currentExercise.exercises?.name || ""}
             />
           </div>
-        )}
+        ) : currentExercise.exercises?.thumbnail_url ? (
+          <div className="w-full h-full opacity-30">
+            <img 
+              src={currentExercise.exercises.thumbnail_url}
+              alt={currentExercise.exercises.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        ) : null}
       </div>
 
       {/* Close Button */}

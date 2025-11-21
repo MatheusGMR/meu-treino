@@ -1,4 +1,4 @@
-import { CheckCircle2, Lock } from "lucide-react";
+import { CheckCircle2, Lock, Dumbbell } from "lucide-react";
 import { AnimatedCheckmark } from "./AnimatedCheckmark";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
@@ -38,12 +38,16 @@ export const DayCarousel = ({ days, selectedDay, onSelectDay }: DayCarouselProps
               >
                 {/* Thumbnail */}
                 <div className="absolute inset-0 bg-gradient-to-br from-muted to-muted/50">
-                  {day.thumbnailUrl && (
+                  {day.thumbnailUrl ? (
                     <img 
                       src={day.thumbnailUrl} 
                       alt={`Dia ${day.dayNumber}`}
                       className="w-full h-full object-cover"
                     />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                      <Dumbbell className="w-6 h-6 text-white/60" />
+                    </div>
                   )}
                   
                   {/* Overlay gradient */}
