@@ -6,6 +6,7 @@ import { ArrowLeft, Plus, GripVertical } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { useClientWorkoutBuilder } from "@/hooks/useClientWorkoutBuilder";
 import { MuscleImpactMeter } from "./MuscleImpactMeter";
+import { ImpactAnalysisMeter } from "./ImpactAnalysisMeter";
 import { HealthAlertPanel } from "./HealthAlertPanel";
 import { ClientHealthSummary } from "./ClientHealthSummary";
 import { WorkoutQualityIndicators } from "./WorkoutQualityIndicators";
@@ -338,6 +339,14 @@ export const WorkoutBuilder = ({
               isBalanced={builder.muscleAnalysis.isBalanced}
             />
 
+            <ImpactAnalysisMeter
+              distribution={builder.impactAnalysis.distribution}
+              overallIntensity={builder.impactAnalysis.overallIntensity}
+              warnings={builder.impactAnalysis.warnings}
+              score={builder.impactAnalysis.score}
+              totalExercises={builder.impactAnalysis.totalExercises}
+            />
+
             <HealthAlertPanel
               riskLevel={builder.compatibility.riskLevel}
               warnings={builder.compatibility.warnings}
@@ -351,6 +360,7 @@ export const WorkoutBuilder = ({
               totalExercises={builder.muscleAnalysis.totalExercises}
               muscleGroupsCount={builder.muscleAnalysis.muscleGroups.length}
               isBalanced={builder.muscleAnalysis.isBalanced}
+              overallIntensity={builder.impactAnalysis.overallIntensity}
             />
 
             {/* Volume Semanal */}
@@ -399,6 +409,20 @@ export const WorkoutBuilder = ({
                   <span className="text-muted-foreground">Status:</span>
                   <Badge variant={builder.muscleAnalysis.isBalanced ? "default" : "destructive"}>
                     {builder.muscleAnalysis.isBalanced ? "Balanceado" : "Requer atenção"}
+                  </Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Intensidade:</span>
+                  <Badge 
+                    variant={
+                      builder.impactAnalysis.overallIntensity === 'balanced' ? 'default' :
+                      builder.impactAnalysis.overallIntensity === 'light' ? 'secondary' :
+                      'destructive'
+                    }
+                  >
+                    {builder.impactAnalysis.overallIntensity === 'light' ? '💤 Leve' :
+                     builder.impactAnalysis.overallIntensity === 'balanced' ? '✓ Balanceado' :
+                     '⚡ Intenso'}
                   </Badge>
                 </div>
               </div>

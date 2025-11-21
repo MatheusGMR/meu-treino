@@ -5,12 +5,14 @@ interface WorkoutQualityIndicatorsProps {
   totalExercises: number;
   muscleGroupsCount: number;
   isBalanced: boolean;
+  overallIntensity?: 'light' | 'balanced' | 'intense';
 }
 
 export const WorkoutQualityIndicators = ({
   totalExercises,
   muscleGroupsCount,
   isBalanced,
+  overallIntensity,
 }: WorkoutQualityIndicatorsProps) => {
   const indicators = [
     {
@@ -39,6 +41,15 @@ export const WorkoutQualityIndicators = ({
         ? "Distribuição equilibrada" 
         : "Alguns grupos estão sobrecarregados",
     },
+    ...(overallIntensity ? [{
+      label: "Intensidade",
+      status: overallIntensity === 'balanced' ? "good" : "info",
+      icon: overallIntensity === 'balanced' ? CheckCircle2 : Info,
+      message: 
+        overallIntensity === 'balanced' ? "Intensidade equilibrada" :
+        overallIntensity === 'light' ? "Treino leve - considere aumentar intensidade" :
+        "Treino intenso - monitore recuperação",
+    }] : []),
   ];
 
   return (
