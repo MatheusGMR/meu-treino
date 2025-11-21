@@ -190,6 +190,10 @@ export const useDeleteWorkout = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workouts"] });
+      queryClient.invalidateQueries({ queryKey: ["client-workouts"] });
+      queryClient.invalidateQueries({ queryKey: ["today-workout"] });
+      queryClient.invalidateQueries({ queryKey: ["client-active-workouts"] });
+      queryClient.invalidateQueries({ queryKey: ["client-details"] });
       toast({
         title: "Sucesso!",
         description: "Treino deletado com sucesso.",
