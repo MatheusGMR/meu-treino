@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Plus, GripVertical } from "lucide-react";
 import { useClientWorkoutBuilder } from "@/hooks/useClientWorkoutBuilder";
 import { MuscleImpactMeter } from "./MuscleImpactMeter";
 import { HealthAlertPanel } from "./HealthAlertPanel";
@@ -19,12 +19,100 @@ import {
 } from "@/components/ui/dialog";
 import { ExistingSessionSelector } from "./ExistingSessionSelector";
 import type { SessionExerciseData } from "@/lib/schemas/sessionSchema";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { cn } from "@/lib/utils";
 
 interface WorkoutBuilderProps {
   clientId: string;
   onCancel: () => void;
   onSuccess: () => void;
 }
+
+// Componente sortable para sessão individual
+interface SortableSessionProps {
+  session: any;
+  sessionIndex: number;
+  isExpanded: boolean;
+  onToggleExpand: () => void;
+  onRemove: () => void;
+  onAddExercise: (exercise: SessionExerciseData) => void;
+  onRemoveExercise: (exerciseIndex: number) => void;
+  onReorderExercises: (startIndex: number, endIndex: number) => void;
+}
+
+const SortableSession = ({
+  session,
+  sessionIndex,
+  isExpanded,
+  onToggleExpand,
+  onRemove,
+  onAddExercise,
+  onRemoveExercise,
+  onReorderExercises,
+}: SortableSessionProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: `session-${sessionIndex}` });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "relative",
+        isDragging && "opacity-50 z-50"
+      )}
+    >
+      <div className="absolute left-2 top-6 z-10">
+        <button
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing p-1.5 hover:bg-muted rounded bg-background/80 backdrop-blur-sm border"
+        >
+          <GripVertical className="w-4 h-4 text-muted-foreground" />
+        </button>
+      </div>
+      <div className="pl-12">
+        <SessionCard
+          session={session}
+          sessionIndex={sessionIndex}
+          isExpanded={isExpanded}
+          onToggleExpand={onToggleExpand}
+          onRemove={onRemove}
+          onAddExercise={onAddExercise}
+          onRemoveExercise={onRemoveExercise}
+          onReorderExercises={onReorderExercises}
+        />
+      </div>
+    </div>
+  );
+};
 
 export const WorkoutBuilder = ({
   clientId,
@@ -34,6 +122,35 @@ export const WorkoutBuilder = ({
   const builder = useClientWorkoutBuilder(clientId);
   const [showExistingSelector, setShowExistingSelector] = useState(false);
   const [expandedSessionIndex, setExpandedSessionIndex] = useState<number | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleSessionDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = parseInt(active.id.toString().split("-")[1]);
+    const newIndex = parseInt(over.id.toString().split("-")[1]);
+
+    builder.reorderSessions(oldIndex, newIndex);
+
+    // Ajustar o índice expandido se necessário
+    if (expandedSessionIndex === oldIndex) {
+      setExpandedSessionIndex(newIndex);
+    } else if (expandedSessionIndex !== null) {
+      if (oldIndex < expandedSessionIndex && newIndex >= expandedSessionIndex) {
+        setExpandedSessionIndex(expandedSessionIndex - 1);
+      } else if (oldIndex > expandedSessionIndex && newIndex <= expandedSessionIndex) {
+        setExpandedSessionIndex(expandedSessionIndex + 1);
+      }
+    }
+  };
 
   // Criar sessão padrão ao montar se não houver nenhuma
   useEffect(() => {
@@ -173,40 +290,54 @@ export const WorkoutBuilder = ({
             </div>
 
             {/* Lista de sessões */}
-            <div className="space-y-4">
-              {builder.tempWorkout.sessions.map((session, idx) => (
-                <SessionCard
-                  key={idx}
-                  session={session}
-                  sessionIndex={idx}
-                  isExpanded={expandedSessionIndex === idx}
-                  onToggleExpand={() => toggleSessionExpand(idx)}
-                  onRemove={() => builder.removeSession(idx)}
-                  onAddExercise={(exercise) => handleAddExerciseToSession(idx, exercise)}
-                  onRemoveExercise={(exerciseIndex) =>
-                    handleRemoveExerciseFromSession(idx, exerciseIndex)
-                  }
-                />
-              ))}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleSessionDragEnd}
+            >
+              <SortableContext
+                items={builder.tempWorkout.sessions.map((_, idx) => `session-${idx}`)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-4">
+                  {builder.tempWorkout.sessions.map((session, idx) => (
+                    <SortableSession
+                      key={`session-${idx}`}
+                      session={session}
+                      sessionIndex={idx}
+                      isExpanded={expandedSessionIndex === idx}
+                      onToggleExpand={() => toggleSessionExpand(idx)}
+                      onRemove={() => builder.removeSession(idx)}
+                      onAddExercise={(exercise) => handleAddExerciseToSession(idx, exercise)}
+                      onRemoveExercise={(exerciseIndex) =>
+                        handleRemoveExerciseFromSession(idx, exerciseIndex)
+                      }
+                      onReorderExercises={(startIndex, endIndex) =>
+                        builder.reorderExercisesInSession(idx, startIndex, endIndex)
+                      }
+                    />
+                  ))}
 
-              {builder.tempWorkout.sessions.length === 0 && (
-                <div className="text-center py-8 border-2 border-dashed rounded-lg">
-                  <p className="text-muted-foreground mb-3">
-                    Nenhuma sessão adicionada ainda
-                  </p>
-                  <div className="flex justify-center gap-2">
-                    <Button variant="outline" onClick={() => setShowExistingSelector(true)}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Adicionar Existente
-                    </Button>
-                    <Button onClick={handleAddNewSession}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Nova Sessão
-                    </Button>
-                  </div>
+                  {builder.tempWorkout.sessions.length === 0 && (
+                    <div className="text-center py-8 border-2 border-dashed rounded-lg">
+                      <p className="text-muted-foreground mb-3">
+                        Nenhuma sessão adicionada ainda
+                      </p>
+                      <div className="flex justify-center gap-2">
+                        <Button variant="outline" onClick={() => setShowExistingSelector(true)}>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Adicionar Existente
+                        </Button>
+                        <Button onClick={handleAddNewSession}>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Nova Sessão
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </SortableContext>
+            </DndContext>
           </Card>
         </div>
 
