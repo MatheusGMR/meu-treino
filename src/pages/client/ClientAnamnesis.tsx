@@ -9,62 +9,74 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
 import { toast } from "@/hooks/use-toast";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import logoJmFull from "@/assets/logo-jm-full.png";
-import { BodyTypeSelector } from "@/components/client/BodyTypeSelector";
+import { AnamnesisProgress } from "@/components/client/anamnesis/AnamnesisProgress";
+import { AnamnesisNavigation } from "@/components/client/anamnesis/AnamnesisNavigation";
+import { AnamnesisStepHeader } from "@/components/client/anamnesis/AnamnesisStepHeader";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const ClientAnamnesis = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const totalSteps = 6;
+  const totalSteps = 8;
 
-  // Form state
+  // Form state - Anamnese 2.0
   const [formData, setFormData] = useState({
-    // Step 1: Informações Pessoais
+    // Pilar 1: Identificação
     age: "",
     gender: "",
     profession: "",
-    has_children: false,
+    contato: "",
+    tempo_sentado_dia: "",
     
-    // Step 2: Perfil Profissional
-    work_type: "",
-    work_shift: "",
-    daily_sitting_hours: "",
+    // Pilar 2: Composição Corporal
+    peso_kg: "",
+    altura_cm: "",
+    autoimagem: "",
+    regioes_que_deseja_melhorar: [] as string[],
     
-    // Step 3: Atividade Física
-    activity_level: "",
-    previous_weight_training: false,
-    time_without_training: "",
-    training_location: "",
-    workout_preference: "",
+    // Pilar 3: Histórico de Treino
+    treina_atualmente: "",
+    frequencia_atual: "",
+    tipos_de_treino_feitos: [] as string[],
+    tempo_parado: "",
     
-    // Step 4: Saúde
-    has_joint_pain: false,
-    pain_locations: [] as string[],
-    pain_details: "",
-    has_injury_or_surgery: false,
-    injury_type: "",
-    injury_details: "",
-    medical_restrictions: [] as string[],
-    medical_restrictions_details: "",
+    // Pilar 4: Limitações e Segurança
+    dores_atuais: "",
+    escala_dor: "",
+    lesoes: "",
+    cirurgias: "",
+    restricao_medica: "",
+    liberacao_medica: "",
+    problemas_articulares: [] as string[],
     
-    // Step 5: Objetivos e Estilo de Vida
-    primary_goal: "",
-    secondary_goals: [] as string[],
-    current_body_type: null as number | null,
-    desired_body_type: null as number | null,
-    sleep_quality: "",
-    nutrition_quality: "",
-    water_intake: "",
+    // Pilar 5: Objetivos
+    objetivo_principal: "",
+    objetivo_secundario: "",
+    prazo: "",
+    prioridade: "",
+    evento_especifico: "",
     
-    // Step 6: Perfil Comportamental
-    discipline_level: "",
-    handles_challenges: "",
-    wants_personalized_plan: false,
+    // Pilar 6: Hábitos e Comportamento
+    sono_horas: "",
+    alimentacao: "",
+    consumo_agua: "",
+    estresse: "",
+    alcool_cigarro: "",
+    motivacao: "",
+    preferencia_instrucao: "",
+    
+    // Pilar 7: Logística
+    local_treino: "",
+    tempo_disponivel: "",
+    horario_preferido: "",
+    tipo_treino_preferido: "",
+    
+    // Pilar 8: Final
+    comentarios_finais: "",
   });
 
   const updateField = (field: string, value: any) => {
@@ -85,41 +97,64 @@ const ClientAnamnesis = () => {
 
     setLoading(true);
     try {
-      // Insert anamnesis data
+      // Insert anamnesis data with new fields
       const { error: anamnesisError } = await supabase
         .from("anamnesis")
         .insert([{
           client_id: user.id,
+          // Pilar 1
           age: parseInt(formData.age) || null,
           gender: formData.gender || null,
           profession: formData.profession || null,
-          has_children: formData.has_children,
-          work_type: formData.work_type || null,
-          work_shift: formData.work_shift || null,
-          daily_sitting_hours: parseInt(formData.daily_sitting_hours) || null,
-          activity_level: formData.activity_level || null,
-          previous_weight_training: formData.previous_weight_training,
-          time_without_training: formData.time_without_training || null,
-          training_location: formData.training_location || null,
-          workout_preference: formData.workout_preference || null,
-          has_joint_pain: formData.has_joint_pain,
-          pain_locations: formData.pain_locations.length > 0 ? formData.pain_locations : null,
-          pain_details: formData.pain_details || null,
-          has_injury_or_surgery: formData.has_injury_or_surgery,
-          injury_type: formData.injury_type || null,
-          injury_details: formData.injury_details || null,
-          medical_restrictions: formData.medical_restrictions.length > 0 ? formData.medical_restrictions : null,
-          medical_restrictions_details: formData.medical_restrictions_details || null,
-          primary_goal: formData.primary_goal || null,
-          secondary_goals: formData.secondary_goals.length > 0 ? formData.secondary_goals : null,
-          current_body_type: formData.current_body_type,
-          desired_body_type: formData.desired_body_type,
-          sleep_quality: formData.sleep_quality || null,
-          nutrition_quality: formData.nutrition_quality || null,
-          water_intake: formData.water_intake || null,
-          discipline_level: formData.discipline_level || null,
-          handles_challenges: formData.handles_challenges || null,
-          wants_personalized_plan: formData.wants_personalized_plan,
+          contato: formData.contato || null,
+          daily_sitting_hours: formData.tempo_sentado_dia ? parseInt(formData.tempo_sentado_dia.split(' ')[0]) : null,
+          
+          // Pilar 2
+          peso_kg: parseFloat(formData.peso_kg) || null,
+          altura_cm: parseFloat(formData.altura_cm) || null,
+          autoimagem: formData.autoimagem || null,
+          regioes_que_deseja_melhorar: formData.regioes_que_deseja_melhorar.length > 0 ? formData.regioes_que_deseja_melhorar : null,
+          
+          // Pilar 3
+          treina_atualmente: formData.treina_atualmente === "Sim",
+          frequencia_atual: formData.frequencia_atual || null,
+          tipos_de_treino_feitos: formData.tipos_de_treino_feitos.length > 0 ? formData.tipos_de_treino_feitos : null,
+          time_without_training: formData.tempo_parado || null,
+          
+          // Pilar 4
+          pain_details: formData.dores_atuais || null,
+          escala_dor: parseInt(formData.escala_dor) || null,
+          lesoes: formData.lesoes || null,
+          cirurgias: formData.cirurgias || null,
+          restricao_medica: formData.restricao_medica || null,
+          liberacao_medica: formData.liberacao_medica || null,
+          pain_locations: formData.problemas_articulares.length > 0 ? formData.problemas_articulares : null,
+          has_joint_pain: formData.problemas_articulares.length > 0 && !formData.problemas_articulares.includes("Nenhum"),
+          
+          // Pilar 5
+          primary_goal: formData.objetivo_principal || null,
+          objetivo_secundario: formData.objetivo_secundario || null,
+          prazo: formData.prazo || null,
+          prioridade: parseInt(formData.prioridade) || 3,
+          evento_especifico: formData.evento_especifico || null,
+          
+          // Pilar 6
+          sono_horas: formData.sono_horas || null,
+          alimentacao: formData.alimentacao || null,
+          consumo_agua: formData.consumo_agua || null,
+          estresse: formData.estresse || null,
+          alcool_cigarro: formData.alcool_cigarro || null,
+          motivacao: formData.motivacao || null,
+          preferencia_instrucao: formData.preferencia_instrucao || null,
+          
+          // Pilar 7
+          local_treino: formData.local_treino || null,
+          tempo_disponivel: formData.tempo_disponivel || null,
+          horario_preferido: formData.horario_preferido || null,
+          tipo_treino_preferido: formData.tipo_treino_preferido || null,
+          
+          // Pilar 8
+          comentarios_finais: formData.comentarios_finais || null,
         }]);
 
       if (anamnesisError) throw anamnesisError;
@@ -155,35 +190,34 @@ const ClientAnamnesis = () => {
 
   const renderStep = () => {
     switch (currentStep) {
-      case 1:
+      case 1: // Pilar 1: Identificação
         return (
           <div className="space-y-4">
+            <AnamnesisStepHeader
+              title="Identificação"
+              description="Vamos começar conhecendo você melhor"
+            />
+
             <div className="space-y-2">
-              <Label htmlFor="age">Idade</Label>
+              <Label htmlFor="age">Idade *</Label>
               <Input
                 id="age"
                 type="number"
                 value={formData.age}
                 onChange={(e) => updateField("age", e.target.value)}
-                placeholder="Digite sua idade"
+                placeholder="Ex: 29"
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Gênero</Label>
+              <Label>Gênero *</Label>
               <RadioGroup value={formData.gender} onValueChange={(value) => updateField("gender", value)}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Masculino" id="masc" />
-                  <Label htmlFor="masc">Masculino</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Feminino" id="fem" />
-                  <Label htmlFor="fem">Feminino</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Outro" id="outro" />
-                  <Label htmlFor="outro">Outro</Label>
-                </div>
+                {["Masculino", "Feminino", "Não-binário", "Prefiro não dizer"].map((option) => (
+                  <div key={option} className="flex items-center space-x-2">
+                    <RadioGroupItem value={option} id={`gender-${option}`} />
+                    <Label htmlFor={`gender-${option}`}>{option}</Label>
+                  </div>
+                ))}
               </RadioGroup>
             </div>
 
@@ -197,455 +231,521 @@ const ClientAnamnesis = () => {
               />
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="has_children"
-                checked={formData.has_children}
-                onCheckedChange={(checked) => updateField("has_children", checked)}
-              />
-              <Label htmlFor="has_children">Tem filhos</Label>
-            </div>
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Tipo de trabalho</Label>
-              <RadioGroup value={formData.work_type} onValueChange={(value) => updateField("work_type", value)}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Escritório" id="office" />
-                  <Label htmlFor="office">Escritório</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Físico" id="physical" />
-                  <Label htmlFor="physical">Físico</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Misto" id="mixed" />
-                  <Label htmlFor="mixed">Misto</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Home Office" id="home" />
-                  <Label htmlFor="home">Home Office</Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Turno de trabalho</Label>
-              <RadioGroup value={formData.work_shift} onValueChange={(value) => updateField("work_shift", value)}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Diurno" id="day" />
-                  <Label htmlFor="day">Diurno</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Noturno" id="night" />
-                  <Label htmlFor="night">Noturno</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Alternado" id="alt" />
-                  <Label htmlFor="alt">Alternado</Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="sitting">Horas sentado por dia</Label>
+              <Label htmlFor="contato">Contato (WhatsApp ou Email)</Label>
               <Input
-                id="sitting"
-                type="number"
-                value={formData.daily_sitting_hours}
-                onChange={(e) => updateField("daily_sitting_hours", e.target.value)}
-                placeholder="Ex: 8"
+                id="contato"
+                value={formData.contato}
+                onChange={(e) => updateField("contato", e.target.value)}
+                placeholder="(99) 99999-9999 ou email@exemplo.com"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="tempo_sentado">Tempo sentado por dia</Label>
+              <Select value={formData.tempo_sentado_dia} onValueChange={(value) => updateField("tempo_sentado_dia", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["Menos de 2 horas", "2 a 4 horas", "4 a 6 horas", "6 a 8 horas", "Mais de 8 horas"].map((option) => (
+                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         );
 
-      case 3:
+      case 2: // Pilar 2: Composição Corporal
         return (
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Nível de atividade física</Label>
-              <RadioGroup value={formData.activity_level} onValueChange={(value) => updateField("activity_level", value)}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Sedentário" id="sed" />
-                  <Label htmlFor="sed">Sedentário</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Leve" id="light" />
-                  <Label htmlFor="light">Leve</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Moderado" id="mod" />
-                  <Label htmlFor="mod">Moderado</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Intenso" id="int" />
-                  <Label htmlFor="int">Intenso</Label>
-                </div>
-              </RadioGroup>
-            </div>
+            <AnamnesisStepHeader
+              title="Composição Corporal"
+              description="Informações sobre seu corpo atual"
+            />
 
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="prev_training"
-                checked={formData.previous_weight_training}
-                onCheckedChange={(checked) => updateField("previous_weight_training", checked)}
-              />
-              <Label htmlFor="prev_training">Já treinou musculação antes</Label>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Tempo sem treinar</Label>
-              <RadioGroup value={formData.time_without_training} onValueChange={(value) => updateField("time_without_training", value)}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Menos de 1 mês" id="t1" />
-                  <Label htmlFor="t1">Menos de 1 mês</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="1-6 meses" id="t2" />
-                  <Label htmlFor="t2">1-6 meses</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="6-12 meses" id="t3" />
-                  <Label htmlFor="t3">6-12 meses</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Mais de 1 ano" id="t4" />
-                  <Label htmlFor="t4">Mais de 1 ano</Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Preferência de local</Label>
-              <RadioGroup value={formData.training_location} onValueChange={(value) => updateField("training_location", value)}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Academia" id="gym" />
-                  <Label htmlFor="gym">Academia</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Casa" id="house" />
-                  <Label htmlFor="house">Casa</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Ambos" id="both" />
-                  <Label htmlFor="both">Ambos</Label>
-                </div>
-              </RadioGroup>
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="joint_pain"
-                checked={formData.has_joint_pain}
-                onCheckedChange={(checked) => updateField("has_joint_pain", checked)}
-              />
-              <Label htmlFor="joint_pain">Sente dores articulares</Label>
-            </div>
-
-            {formData.has_joint_pain && (
-              <>
-                <div className="space-y-2">
-                  <Label>Locais de dor</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {["Joelho", "Ombro", "Costas", "Pescoço", "Quadril", "Punho"].map((loc) => (
-                      <div key={loc} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={loc}
-                          checked={formData.pain_locations.includes(loc)}
-                          onCheckedChange={() => toggleArrayField("pain_locations", loc)}
-                        />
-                        <Label htmlFor={loc}>{loc}</Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="pain_details">Detalhes sobre as dores</Label>
-                  <Textarea
-                    id="pain_details"
-                    value={formData.pain_details}
-                    onChange={(e) => updateField("pain_details", e.target.value)}
-                    placeholder="Descreva suas dores..."
-                  />
-                </div>
-              </>
-            )}
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="injury"
-                checked={formData.has_injury_or_surgery}
-                onCheckedChange={(checked) => updateField("has_injury_or_surgery", checked)}
-              />
-              <Label htmlFor="injury">Teve lesões ou cirurgias</Label>
-            </div>
-
-            {formData.has_injury_or_surgery && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="injury_type">Tipo de lesão/cirurgia</Label>
-                  <Input
-                    id="injury_type"
-                    value={formData.injury_type}
-                    onChange={(e) => updateField("injury_type", e.target.value)}
-                    placeholder="Ex: Cirurgia no joelho"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="injury_details">Detalhes</Label>
-                  <Textarea
-                    id="injury_details"
-                    value={formData.injury_details}
-                    onChange={(e) => updateField("injury_details", e.target.value)}
-                    placeholder="Conte mais sobre a lesão ou cirurgia..."
-                  />
-                </div>
-              </>
-            )}
-
-            <div className="space-y-2">
-              <Label>Restrições médicas</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {["Hipertensão", "Diabetes", "Problemas cardíacos", "Asma", "Nenhuma"].map((rest) => (
-                  <div key={rest} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={rest}
-                      checked={formData.medical_restrictions.includes(rest)}
-                      onCheckedChange={() => toggleArrayField("medical_restrictions", rest)}
-                    />
-                    <Label htmlFor={rest}>{rest}</Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {formData.medical_restrictions.length > 0 && !formData.medical_restrictions.includes("Nenhuma") && (
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="med_details">Detalhes sobre restrições</Label>
-                <Textarea
-                  id="med_details"
-                  value={formData.medical_restrictions_details}
-                  onChange={(e) => updateField("medical_restrictions_details", e.target.value)}
-                  placeholder="Forneça mais informações..."
+                <Label htmlFor="peso">Peso (kg)</Label>
+                <Input
+                  id="peso"
+                  type="number"
+                  step="0.1"
+                  value={formData.peso_kg}
+                  onChange={(e) => updateField("peso_kg", e.target.value)}
+                  placeholder="Ex: 75.5"
                 />
               </div>
-            )}
-          </div>
-        );
 
-      case 5:
-        return (
-          <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="altura">Altura (cm)</Label>
+                <Input
+                  id="altura"
+                  type="number"
+                  value={formData.altura_cm}
+                  onChange={(e) => updateField("altura_cm", e.target.value)}
+                  placeholder="Ex: 175"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label>Objetivo principal</Label>
-              <RadioGroup value={formData.primary_goal} onValueChange={(value) => updateField("primary_goal", value)}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Emagrecimento" id="g1" />
-                  <Label htmlFor="g1">Emagrecimento</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Hipertrofia" id="g2" />
-                  <Label htmlFor="g2">Ganho de massa muscular</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Condicionamento" id="g3" />
-                  <Label htmlFor="g3">Condicionamento físico</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Saúde" id="g4" />
-                  <Label htmlFor="g4">Saúde e bem-estar</Label>
-                </div>
+              <Label>Como você se enxerga hoje?</Label>
+              <RadioGroup value={formData.autoimagem} onValueChange={(value) => updateField("autoimagem", value)}>
+                {["Abaixo do peso", "Peso normal", "Sobrepeso", "Obesidade", "Não sei avaliar"].map((option) => (
+                  <div key={option} className="flex items-center space-x-2">
+                    <RadioGroupItem value={option} id={`autoimagem-${option}`} />
+                    <Label htmlFor={`autoimagem-${option}`}>{option}</Label>
+                  </div>
+                ))}
               </RadioGroup>
             </div>
 
             <div className="space-y-2">
-              <Label>Objetivos secundários (opcional)</Label>
+              <Label>Regiões que deseja melhorar</Label>
               <div className="grid grid-cols-2 gap-2">
-                {["Flexibilidade", "Força", "Resistência", "Mobilidade"].map((goal) => (
-                  <div key={goal} className="flex items-center space-x-2">
+                {["Peito", "Costas", "Ombros", "Braços", "Abdômen", "Quadríceps", "Posterior de coxa", "Glúteos", "Panturrilhas", "Mobilidade", "Postura"].map((regiao) => (
+                  <div key={regiao} className="flex items-center space-x-2">
                     <Checkbox
-                      id={goal}
-                      checked={formData.secondary_goals.includes(goal)}
-                      onCheckedChange={() => toggleArrayField("secondary_goals", goal)}
+                      id={`regiao-${regiao}`}
+                      checked={formData.regioes_que_deseja_melhorar.includes(regiao)}
+                      onCheckedChange={() => toggleArrayField("regioes_que_deseja_melhorar", regiao)}
                     />
-                    <Label htmlFor={goal}>{goal}</Label>
+                    <Label htmlFor={`regiao-${regiao}`} className="text-sm">{regiao}</Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 3: // Pilar 3: Histórico de Treino
+        return (
+          <div className="space-y-4">
+            <AnamnesisStepHeader
+              title="Histórico de Treino"
+              description="Conte-nos sobre sua experiência com atividades físicas"
+            />
+
+            <div className="space-y-2">
+              <Label>Você treina atualmente?</Label>
+              <RadioGroup value={formData.treina_atualmente} onValueChange={(value) => updateField("treina_atualmente", value)}>
+                {["Sim", "Não"].map((option) => (
+                  <div key={option} className="flex items-center space-x-2">
+                    <RadioGroupItem value={option} id={`treina-${option}`} />
+                    <Label htmlFor={`treina-${option}`}>{option}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Frequência atual</Label>
+              <Select value={formData.frequencia_atual} onValueChange={(value) => updateField("frequencia_atual", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["0 vezes/semana", "1 vez/semana", "2 vezes/semana", "3 vezes/semana", "4 vezes/semana", "5 vezes/semana", "6+ vezes/semana"].map((option) => (
+                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Tipos de treino que já realizou</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {["Musculação", "Funcional", "Crossfit", "Corrida", "Lutas", "Pilates", "Yoga", "HIIT", "Esportes coletivos"].map((tipo) => (
+                  <div key={tipo} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`tipo-${tipo}`}
+                      checked={formData.tipos_de_treino_feitos.includes(tipo)}
+                      onCheckedChange={() => toggleArrayField("tipos_de_treino_feitos", tipo)}
+                    />
+                    <Label htmlFor={`tipo-${tipo}`} className="text-sm">{tipo}</Label>
                   </div>
                 ))}
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Tipo corporal atual</Label>
-              <p className="text-sm text-muted-foreground mb-2">
-                Selecione a imagem que melhor representa seu corpo atualmente
-              </p>
-              <BodyTypeSelector
-                gender={formData.gender}
-                value={formData.current_body_type}
-                onChange={(value) => updateField("current_body_type", value)}
+              <Label>Caso esteja parado, há quanto tempo?</Label>
+              <Select value={formData.tempo_parado} onValueChange={(value) => updateField("tempo_parado", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["Não estou parado", "Menos de 1 mês", "1 a 3 meses", "3 a 6 meses", "6 a 12 meses", "Mais de 1 ano"].map((option) => (
+                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+
+      case 4: // Pilar 4: Limitações e Segurança
+        return (
+          <div className="space-y-4">
+            <AnamnesisStepHeader
+              title="Limitações e Segurança"
+              description="Informações importantes para sua segurança no treino"
+            />
+
+            <div className="space-y-2">
+              <Label htmlFor="dores">Dores atuais</Label>
+              <Textarea
+                id="dores"
+                value={formData.dores_atuais}
+                onChange={(e) => updateField("dores_atuais", e.target.value)}
+                placeholder="Descreva qualquer dor que esteja sentindo..."
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Tipo corporal desejado</Label>
-              <p className="text-sm text-muted-foreground mb-2">
-                Selecione a imagem que representa seu objetivo corporal
-              </p>
-              <BodyTypeSelector
-                gender={formData.gender}
-                value={formData.desired_body_type}
-                onChange={(value) => updateField("desired_body_type", value)}
+              <Label htmlFor="escala_dor">Escala de dor (0 a 10)</Label>
+              <p className="text-sm text-muted-foreground">0 = sem dor | 10 = dor extrema</p>
+              <Input
+                id="escala_dor"
+                type="number"
+                min="0"
+                max="10"
+                value={formData.escala_dor}
+                onChange={(e) => updateField("escala_dor", e.target.value)}
+                placeholder="0"
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Qualidade do sono</Label>
-              <RadioGroup value={formData.sleep_quality} onValueChange={(value) => updateField("sleep_quality", value)}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Ruim" id="s1" />
-                  <Label htmlFor="s1">Ruim</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Regular" id="s2" />
-                  <Label htmlFor="s2">Regular</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Boa" id="s3" />
-                  <Label htmlFor="s3">Boa</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Excelente" id="s4" />
-                  <Label htmlFor="s4">Excelente</Label>
-                </div>
+              <Label htmlFor="lesoes">Lesões</Label>
+              <Textarea
+                id="lesoes"
+                value={formData.lesoes}
+                onChange={(e) => updateField("lesoes", e.target.value)}
+                placeholder="Descreva lesões que já teve..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="cirurgias">Cirurgias</Label>
+              <Textarea
+                id="cirurgias"
+                value={formData.cirurgias}
+                onChange={(e) => updateField("cirurgias", e.target.value)}
+                placeholder="Descreva cirurgias que já fez..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Possui alguma restrição médica?</Label>
+              <RadioGroup value={formData.restricao_medica} onValueChange={(value) => updateField("restricao_medica", value)}>
+                {["Sim", "Não", "Não sei"].map((option) => (
+                  <div key={option} className="flex items-center space-x-2">
+                    <RadioGroupItem value={option} id={`restricao-${option}`} />
+                    <Label htmlFor={`restricao-${option}`}>{option}</Label>
+                  </div>
+                ))}
               </RadioGroup>
             </div>
 
             <div className="space-y-2">
-              <Label>Qualidade da alimentação</Label>
-              <RadioGroup value={formData.nutrition_quality} onValueChange={(value) => updateField("nutrition_quality", value)}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Ruim" id="n1" />
-                  <Label htmlFor="n1">Ruim</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Regular" id="n2" />
-                  <Label htmlFor="n2">Regular</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Boa" id="n3" />
-                  <Label htmlFor="n3">Boa</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Excelente" id="n4" />
-                  <Label htmlFor="n4">Excelente</Label>
-                </div>
+              <Label>Possui liberação médica?</Label>
+              <RadioGroup value={formData.liberacao_medica} onValueChange={(value) => updateField("liberacao_medica", value)}>
+                {["Sim", "Não", "Não se aplica"].map((option) => (
+                  <div key={option} className="flex items-center space-x-2">
+                    <RadioGroupItem value={option} id={`liberacao-${option}`} />
+                    <Label htmlFor={`liberacao-${option}`}>{option}</Label>
+                  </div>
+                ))}
               </RadioGroup>
             </div>
 
             <div className="space-y-2">
-              <Label>Ingestão de água</Label>
-              <RadioGroup value={formData.water_intake} onValueChange={(value) => updateField("water_intake", value)}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Menos de 1L" id="w1" />
-                  <Label htmlFor="w1">Menos de 1L</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="1-2L" id="w2" />
-                  <Label htmlFor="w2">1-2L</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="2-3L" id="w3" />
-                  <Label htmlFor="w3">2-3L</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Mais de 3L" id="w4" />
-                  <Label htmlFor="w4">Mais de 3L</Label>
-                </div>
+              <Label>Problemas articulares / posturais</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {["Lombar", "Joelho", "Quadril", "Ombro", "Cervical", "Tornozelo", "Nenhum"].map((problema) => (
+                  <div key={problema} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`problema-${problema}`}
+                      checked={formData.problemas_articulares.includes(problema)}
+                      onCheckedChange={() => toggleArrayField("problemas_articulares", problema)}
+                    />
+                    <Label htmlFor={`problema-${problema}`} className="text-sm">{problema}</Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 5: // Pilar 5: Objetivos
+        return (
+          <div className="space-y-4">
+            <AnamnesisStepHeader
+              title="Objetivos"
+              description="Defina suas metas e expectativas"
+            />
+
+            <div className="space-y-2">
+              <Label>Objetivo principal</Label>
+              <RadioGroup value={formData.objetivo_principal} onValueChange={(value) => updateField("objetivo_principal", value)}>
+                {["Emagrecimento", "Hipertrofia", "Condicionamento", "Saúde", "Performance", "Mobilidade"].map((option) => (
+                  <div key={option} className="flex items-center space-x-2">
+                    <RadioGroupItem value={option} id={`obj-principal-${option}`} />
+                    <Label htmlFor={`obj-principal-${option}`}>{option}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Objetivo secundário</Label>
+              <Select value={formData.objetivo_secundario} onValueChange={(value) => updateField("objetivo_secundario", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["Nenhum", "Emagrecimento", "Hipertrofia", "Condicionamento", "Saúde", "Performance", "Mobilidade"].map((option) => (
+                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Prazo desejado</Label>
+              <Select value={formData.prazo} onValueChange={(value) => updateField("prazo", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["30 dias", "3 meses", "6 meses", "1 ano", "Sem prazo"].map((option) => (
+                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Prioridade (1 a 5)</Label>
+              <p className="text-sm text-muted-foreground">Quanto isso é prioritário para você?</p>
+              <Select value={formData.prioridade} onValueChange={(value) => updateField("prioridade", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["1", "2", "3", "4", "5"].map((option) => (
+                    <SelectItem key={option} value={option}>{option} {option === "5" ? "(Máxima)" : option === "1" ? "(Mínima)" : ""}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="evento">Treina para algum evento específico?</Label>
+              <Input
+                id="evento"
+                value={formData.evento_especifico}
+                onChange={(e) => updateField("evento_especifico", e.target.value)}
+                placeholder="Ex: Casamento, competição, viagem..."
+              />
+            </div>
+          </div>
+        );
+
+      case 6: // Pilar 6: Hábitos e Comportamento
+        return (
+          <div className="space-y-4">
+            <AnamnesisStepHeader
+              title="Hábitos e Comportamento"
+              description="Entenda como seu estilo de vida impacta seus resultados"
+            />
+
+            <div className="space-y-2">
+              <Label>Horas de sono por noite</Label>
+              <Select value={formData.sono_horas} onValueChange={(value) => updateField("sono_horas", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["Menos de 5 horas", "5 a 6 horas", "6 a 7 horas", "7 a 8 horas", "Mais de 8 horas"].map((option) => (
+                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Como avalia sua alimentação?</Label>
+              <RadioGroup value={formData.alimentacao} onValueChange={(value) => updateField("alimentacao", value)}>
+                {["Muito ruim", "Ruim", "Regular", "Boa", "Muito boa"].map((option) => (
+                  <div key={option} className="flex items-center space-x-2">
+                    <RadioGroupItem value={option} id={`alimentacao-${option}`} />
+                    <Label htmlFor={`alimentacao-${option}`}>{option}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Consumo diário de água</Label>
+              <Select value={formData.consumo_agua} onValueChange={(value) => updateField("consumo_agua", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["Menos de 1 litro", "1 a 2 litros", "2 a 3 litros", "Mais de 3 litros"].map((option) => (
+                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Nível de estresse</Label>
+              <RadioGroup value={formData.estresse} onValueChange={(value) => updateField("estresse", value)}>
+                {["Baixo", "Moderado", "Alto"].map((option) => (
+                  <div key={option} className="flex items-center space-x-2">
+                    <RadioGroupItem value={option} id={`estresse-${option}`} />
+                    <Label htmlFor={`estresse-${option}`}>{option}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Consumo de álcool / cigarro</Label>
+              <Select value={formData.alcool_cigarro} onValueChange={(value) => updateField("alcool_cigarro", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["Não consumo", "Álcool ocasional", "Álcool frequente", "Cigarro", "Álcool e cigarro"].map((option) => (
+                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>O que mais te motiva?</Label>
+              <Select value={formData.motivacao} onValueChange={(value) => updateField("motivacao", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["Resultados", "Saúde", "Estética", "Disciplina", "Bem-estar", "Performance"].map((option) => (
+                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Como prefere receber instruções?</Label>
+              <RadioGroup value={formData.preferencia_instrucao} onValueChange={(value) => updateField("preferencia_instrucao", value)}>
+                {["Explicado em detalhes", "Direto ao ponto"].map((option) => (
+                  <div key={option} className="flex items-center space-x-2">
+                    <RadioGroupItem value={option} id={`instrucao-${option}`} />
+                    <Label htmlFor={`instrucao-${option}`}>{option}</Label>
+                  </div>
+                ))}
               </RadioGroup>
             </div>
           </div>
         );
 
-      case 6:
+      case 7: // Pilar 7: Logística
         return (
           <div className="space-y-4">
+            <AnamnesisStepHeader
+              title="Logística"
+              description="Organize sua rotina de treinos"
+            />
+
             <div className="space-y-2">
-              <Label>Nível de disciplina</Label>
-              <RadioGroup value={formData.discipline_level} onValueChange={(value) => updateField("discipline_level", value)}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Baixo" id="d1" />
-                  <Label htmlFor="d1">Baixo - preciso de bastante motivação</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Médio" id="d2" />
-                  <Label htmlFor="d2">Médio - geralmente mantenho consistência</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Alto" id="d3" />
-                  <Label htmlFor="d3">Alto - sou muito disciplinado</Label>
-                </div>
-              </RadioGroup>
+              <Label>Onde pretende treinar?</Label>
+              <Select value={formData.local_treino} onValueChange={(value) => updateField("local_treino", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["Academia", "Condomínio", "Casa", "Estúdio", "Ar livre"].map((option) => (
+                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
-              <Label>Como lida com desafios?</Label>
-              <RadioGroup value={formData.handles_challenges} onValueChange={(value) => updateField("handles_challenges", value)}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Desisto facilmente" id="c1" />
-                  <Label htmlFor="c1">Desisto facilmente</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Persisto com dificuldade" id="c2" />
-                  <Label htmlFor="c2">Persisto com dificuldade</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Enfrento bem" id="c3" />
-                  <Label htmlFor="c3">Enfrento bem</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Amo desafios" id="c4" />
-                  <Label htmlFor="c4">Amo desafios</Label>
-                </div>
-              </RadioGroup>
+              <Label>Tempo disponível por sessão</Label>
+              <Select value={formData.tempo_disponivel} onValueChange={(value) => updateField("tempo_disponivel", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["30 minutos", "45 minutos", "60 minutos", "Mais de 60 minutos"].map((option) => (
+                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
-              <Label>Preferência de treino</Label>
-              <RadioGroup value={formData.workout_preference} onValueChange={(value) => updateField("workout_preference", value)}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Sozinho" id="p1" />
-                  <Label htmlFor="p1">Prefiro treinar sozinho</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Com parceiro" id="p2" />
-                  <Label htmlFor="p2">Gosto de treinar com parceiro</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Em grupo" id="p3" />
-                  <Label htmlFor="p3">Prefiro treinos em grupo</Label>
-                </div>
-              </RadioGroup>
+              <Label>Horário preferido</Label>
+              <Select value={formData.horario_preferido} onValueChange={(value) => updateField("horario_preferido", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["Manhã", "Tarde", "Noite", "Horários flexíveis"].map((option) => (
+                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="personalized"
-                checked={formData.wants_personalized_plan}
-                onCheckedChange={(checked) => updateField("wants_personalized_plan", checked)}
+            <div className="space-y-2">
+              <Label>Tipo de treino preferido</Label>
+              <Select value={formData.tipo_treino_preferido} onValueChange={(value) => updateField("tipo_treino_preferido", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["Musculação", "Funcional", "Cardio", "Mobilidade", "HIIT", "Mix combinado"].map((option) => (
+                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+
+      case 8: // Pilar 8: Final
+        return (
+          <div className="space-y-4">
+            <AnamnesisStepHeader
+              title="Comentários Finais"
+              description="Algo mais que gostaria de compartilhar?"
+            />
+
+            <div className="space-y-2">
+              <Label htmlFor="comentarios">Comentários finais</Label>
+              <Textarea
+                id="comentarios"
+                value={formData.comentarios_finais}
+                onChange={(e) => updateField("comentarios_finais", e.target.value)}
+                placeholder="Escreva algo que não foi perguntado, mas é importante..."
+                rows={6}
               />
-              <Label htmlFor="personalized">Desejo receber um plano personalizado baseado nesta anamnese</Label>
+            </div>
+
+            <div className="rounded-lg bg-primary/10 p-4 mt-6">
+              <p className="text-sm text-center">
+                🎯 Você está quase lá! Revise suas respostas e clique em <strong>Concluir</strong> para finalizar sua anamnese.
+              </p>
             </div>
           </div>
         );
@@ -655,71 +755,32 @@ const ClientAnamnesis = () => {
     }
   };
 
-  const getStepTitle = () => {
-    switch (currentStep) {
-      case 1: return "Informações Pessoais";
-      case 2: return "Perfil Profissional";
-      case 3: return "Atividade Física";
-      case 4: return "Saúde";
-      case 5: return "Objetivos e Estilo de Vida";
-      case 6: return "Perfil Comportamental";
-      default: return "";
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary via-primary-glow to-accent flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full max-w-3xl">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <img src={logoJmFull} alt="JM" className="h-12" />
           </div>
-          <CardTitle>Anamnese - Primeira vez</CardTitle>
-          <CardDescription>
-            Precisamos conhecer você melhor. Preencha a anamnese para personalizar seu treino.
+          <CardTitle className="text-3xl">Anamnese 2.0</CardTitle>
+          <CardDescription className="text-base">
+            Precisamos conhecer você melhor para personalizar seu treino
           </CardDescription>
-          <div className="mt-4">
-            <Progress value={(currentStep / totalSteps) * 100} className="h-2" />
-            <p className="text-sm text-muted-foreground mt-2">
-              Etapa {currentStep} de {totalSteps}: {getStepTitle()}
-            </p>
-          </div>
         </CardHeader>
 
         <CardContent className="space-y-6">
+          <AnamnesisProgress currentStep={currentStep} totalSteps={totalSteps} />
+          
           {renderStep()}
 
-          <div className="flex justify-between pt-4">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
-              disabled={currentStep === 1 || loading}
-            >
-              <ChevronLeft className="mr-2 h-4 w-4" />
-              Anterior
-            </Button>
-
-            {currentStep < totalSteps ? (
-              <Button
-                onClick={() => setCurrentStep(prev => Math.min(totalSteps, prev + 1))}
-                disabled={loading}
-              >
-                Próximo
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            ) : (
-              <Button onClick={handleSubmit} disabled={loading}>
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Salvando...
-                  </>
-                ) : (
-                  "Concluir"
-                )}
-              </Button>
-            )}
-          </div>
+          <AnamnesisNavigation
+            currentStep={currentStep}
+            totalSteps={totalSteps}
+            onPrevious={() => setCurrentStep(prev => Math.max(1, prev - 1))}
+            onNext={() => setCurrentStep(prev => Math.min(totalSteps, prev + 1))}
+            onSubmit={handleSubmit}
+            loading={loading}
+          />
         </CardContent>
       </Card>
     </div>
