@@ -21,19 +21,22 @@ export const MonthlyMetricsCards = () => {
       icon: Activity,
       label: "Sessões",
       value: `${metrics?.sessionsCompleted || 0}/${metrics?.totalSessions || 0}`,
-      color: "text-primary",
+      color: "bg-primary/10",
+      iconColor: "text-primary",
     },
     {
       icon: TrendingDown,
       label: "Variação",
       value: `${metrics?.weightChange || 0}kg`,
-      color: "text-accent",
+      color: "bg-success/10",
+      iconColor: "text-success",
     },
     {
       icon: Calendar,
       label: "Frequência",
       value: `${metrics?.weeklyFrequency || 0}%`,
-      color: "text-secondary",
+      color: "bg-warning/10",
+      iconColor: "text-warning",
     },
   ];
 
@@ -42,14 +45,14 @@ export const MonthlyMetricsCards = () => {
       {cards.map((card) => {
         const Icon = card.icon;
         return (
-          <Card key={card.label} className="p-6 hover:shadow-lg hover:shadow-primary/10 transition-all hover:border-primary/50 border-border/50 bg-gradient-to-br from-card to-card/90 backdrop-blur-sm">
+          <Card key={card.label} className="p-6">
             <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10`}>
-                <Icon className={`w-6 h-6 ${card.color}`} />
+              <div className={`w-14 h-14 rounded-full ${card.color} flex items-center justify-center`}>
+                <Icon className={`w-7 h-7 ${card.iconColor}`} />
               </div>
               <div>
-                <p className="text-sm text-foreground/60">{card.label}</p>
-                <p className="text-2xl font-bold text-foreground">{card.value}</p>
+                <p className="text-sm text-muted-foreground">{card.label}</p>
+                <p className="text-3xl font-bold text-foreground">{card.value}</p>
               </div>
             </div>
           </Card>
