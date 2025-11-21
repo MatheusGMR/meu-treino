@@ -339,10 +339,8 @@ export const WorkoutBuilder = ({
               secondaryGoal={builder.clientAnamnesis?.secondary_goals?.[0] || null}
               level={builder.clientAnamnesis?.activity_level || 'Não definido'}
               timeAvailable={builder.clientAnamnesis?.tempo_disponivel || 'Não definido'}
-              suggestedFrequency={builder.clientAnamnesis?.frequencia_atual || '3-4 sessões'}
-              pains={[
-                ...(builder.clientAnamnesis?.pain_locations || []),
-              ]}
+              suggestedFrequency={builder.weeklyTimeEstimate.suggestedSessions}
+              pains={builder.fatigueAlert?.pains || []}
               restrictions={builder.clientAnamnesis?.medical_restrictions_details || builder.clientProfile?.medical_conditions}
               stress={builder.clientAnamnesis?.estresse || null}
               sleep={builder.clientAnamnesis?.sono_horas || null}
