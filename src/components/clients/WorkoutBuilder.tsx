@@ -228,7 +228,7 @@ export const WorkoutBuilder = ({
 
       {/* Painel Redimensionável: Construtor (esquerda) + Análise (direita) */}
       <ResizablePanelGroup direction="horizontal" className="gap-6 min-h-[600px]">
-        <ResizablePanel defaultSize={65} minSize={50} maxSize={75}>
+        <ResizablePanel defaultSize={70} minSize={55} maxSize={80}>
           {/* Coluna Esquerda: Construtor */}
           <div className="space-y-6 pr-3">
             {/* Nome do Treino - SEMPRE VISÍVEL */}
@@ -326,7 +326,7 @@ export const WorkoutBuilder = ({
 
         <ResizableHandle withHandle />
 
-        <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
+        <ResizablePanel defaultSize={30} minSize={20} maxSize={45}>
           {/* Coluna Direita: Análise em Tempo Real */}
           <div className="space-y-4 pl-3">
             <ClientHealthSummary
