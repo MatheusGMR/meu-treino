@@ -7,7 +7,9 @@ import { useClientWorkoutBuilder } from "@/hooks/useClientWorkoutBuilder";
 import { MuscleImpactMeter } from "./MuscleImpactMeter";
 import { HealthAlertPanel } from "./HealthAlertPanel";
 import { ClientHealthSummary } from "./ClientHealthSummary";
+import { WorkoutQualityIndicators } from "./WorkoutQualityIndicators";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { KanbanExerciseSelector } from "./KanbanExerciseSelector";
 import { InlineExerciseRow } from "./InlineExerciseRow";
 import type { SessionExerciseData } from "@/lib/schemas/sessionSchema";
@@ -179,6 +181,59 @@ export const WorkoutBuilder = ({
             onAcknowledgeChange={builder.setAcknowledgeRisks}
           />
 
+          <WorkoutQualityIndicators
+            totalExercises={builder.muscleAnalysis.totalExercises}
+            muscleGroupsCount={builder.muscleAnalysis.muscleGroups.length}
+            isBalanced={builder.muscleAnalysis.isBalanced}
+          />
+
+          {/* Volume Semanal */}
+          <Card className="p-4">
+            <h4 className="font-semibold text-sm mb-3">Volume Semanal</h4>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Total de séries:</span>
+                <span className="font-medium">{builder.weeklyVolume.totalSets}</span>
+              </div>
+              {builder.weeklyVolume.setsPerMuscle.length > 0 && (
+                <div className="space-y-1 pt-2 border-t">
+                  <p className="text-xs text-muted-foreground mb-1">Por grupo muscular:</p>
+                  {builder.weeklyVolume.setsPerMuscle.map((item) => (
+                    <div key={item.group} className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">{item.group}:</span>
+                      <span>{item.sets} séries</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Resumo Enriquecido */}
+          <Card className="p-4">
+            <h4 className="font-semibold text-sm mb-3">Resumo do Treino</h4>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Exercícios:</span>
+                <span className="font-medium">{builder.muscleAnalysis.totalExercises}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Grupos musculares:</span>
+                <span className="font-medium">{builder.muscleAnalysis.muscleGroups.length}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Tempo estimado:</span>
+                <span className="font-medium">{builder.estimatedTime}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Status:</span>
+                <Badge variant={builder.muscleAnalysis.isBalanced ? "default" : "destructive"}>
+                  {builder.muscleAnalysis.isBalanced ? "Balanceado" : "Requer atenção"}
+                </Badge>
+              </div>
+            </div>
+          </Card>
+
           <ClientHealthSummary
             medicalConditions={builder.clientProfile?.medical_conditions}
             goals={builder.clientProfile?.goals}
@@ -186,21 +241,6 @@ export const WorkoutBuilder = ({
             secondaryGoals={builder.clientAnamnesis?.secondary_goals}
             activityLevel={builder.clientAnamnesis?.activity_level}
           />
-
-          {/* Resumo */}
-          <Card className="p-4">
-            <h4 className="font-semibold text-sm mb-3">Resumo</h4>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Exercícios:</span>
-                <span className="font-medium">{builder.muscleAnalysis.totalExercises}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Tempo estimado:</span>
-                <span className="font-medium">{builder.estimatedTime}</span>
-              </div>
-            </div>
-          </Card>
         </div>
       </div>
 
