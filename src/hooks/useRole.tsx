@@ -8,6 +8,7 @@ export const useRole = () => {
   const { user } = useAuth();
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     if (!user) {
@@ -23,13 +24,24 @@ export const useRole = () => {
         .eq("user_id", user.id);
 
       if (!error && data) {
-        setRoles(data.map((r) => r.role as AppRole));
+        const fetchedRoles = data.map((r) => r.role as AppRole);
+        setRoles(fetchedRoles);
+        
+        // Se não encontrou roles e ainda não tentou 3 vezes, tentar novamente
+        if (fetchedRoles.length === 0 && retryCount < 3) {
+          setTimeout(() => {
+            setRetryCount(prev => prev + 1);
+          }, 1000);
+        } else {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchRoles();
-  }, [user]);
+  }, [user, retryCount]);
 
   const hasRole = (role: AppRole) => roles.includes(role);
   const isAdmin = hasRole("admin");
