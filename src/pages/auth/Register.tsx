@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Dumbbell, Crown, Users } from "lucide-react";
+import { Dumbbell, Users } from "lucide-react";
 import logoJmFull from "@/assets/logo-jm-full.png";
 import { toast } from "sonner";
 import { BackgroundWrapper } from "@/components/BackgroundWrapper";
+import { supabase } from "@/integrations/supabase/client";
 
 const Register = () => {
   const [email, setEmail] = useState("");
@@ -28,17 +29,36 @@ const Register = () => {
 
     if (error) {
       toast.error(error.message);
-    } else {
-      if (role === "client") {
-        toast.success("Cadastro realizado! Agora queremos conhecer você melhor 😊");
-        navigate("/client/anamnesis");
-      } else {
-        toast.success("Cadastro realizado com sucesso!");
-        navigate("/dashboard");
-      }
+      setLoading(false);
+      return;
     }
 
-    setLoading(false);
+    // Aguardar a sessão ser estabelecida
+    const maxAttempts = 10;
+    let attempts = 0;
+    
+    const waitForSession = setInterval(async () => {
+      attempts++;
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        clearInterval(waitForSession);
+        setLoading(false);
+        
+        if (role === "client") {
+          toast.success("Cadastro realizado! Agora queremos conhecer você melhor 😊");
+          navigate("/client/anamnesis");
+        } else {
+          toast.success("Cadastro realizado com sucesso!");
+          navigate("/dashboard");
+        }
+      } else if (attempts >= maxAttempts) {
+        clearInterval(waitForSession);
+        setLoading(false);
+        toast.error("Erro ao estabelecer sessão. Tente fazer login.");
+        navigate("/auth/login");
+      }
+    }, 500);
   };
 
   return (
