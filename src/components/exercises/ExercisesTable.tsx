@@ -83,7 +83,7 @@ export const ExercisesTable = ({ exercises, isLoading }: ExercisesTableProps) =>
           <TableBody>
             {exercises.map((exercise) => (
               <TableRow key={exercise.id}>
-                <TableCell className="font-medium">
+                <TableCell className="font-medium pr-6">
                   <div className="flex items-center gap-2">
                     {exercise.name}
                     {exercise.is_new && exercise.added_at && (
