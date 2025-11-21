@@ -1,4 +1,4 @@
-import { Home, Dumbbell, Users, Settings, LogOut, ChevronRight, Activity, ClipboardList, Crown, BarChart, Hash, Zap } from "lucide-react";
+import { Home, Dumbbell, Users, Settings, LogOut, ChevronRight, Activity, ClipboardList, Crown, BarChart, Hash, Zap, Sparkles } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
@@ -245,6 +245,19 @@ export const AppSidebar = () => {
                 >
                   <Settings className="w-4 h-4" />
                   Usuários
+                </Button>
+              </Link>
+              <Link to="/admin/pending-updates">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "w-full justify-start gap-3",
+                    isActive("/admin/pending-updates") && "bg-sidebar-accent text-sidebar-accent-foreground"
+                  )}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Atualizações
                 </Button>
               </Link>
             </CollapsibleContent>
