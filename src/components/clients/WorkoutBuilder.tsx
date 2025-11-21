@@ -56,6 +56,7 @@ interface SortableSessionProps {
   onAddExercise: (exercise: SessionExerciseData) => void;
   onRemoveExercise: (exerciseIndex: number) => void;
   onReorderExercises: (startIndex: number, endIndex: number) => void;
+  clientMedicalConditions?: string | null;
 }
 
 const SortableSession = ({
@@ -67,6 +68,7 @@ const SortableSession = ({
   onAddExercise,
   onRemoveExercise,
   onReorderExercises,
+  clientMedicalConditions,
 }: SortableSessionProps) => {
   const {
     attributes,
@@ -99,6 +101,7 @@ const SortableSession = ({
         onReorderExercises={onReorderExercises}
         dragHandleAttributes={attributes}
         dragHandleListeners={listeners}
+        clientMedicalConditions={clientMedicalConditions}
       />
     </div>
   );
@@ -309,6 +312,7 @@ export const WorkoutBuilder = ({
                         onReorderExercises={(startIndex, endIndex) => {
                           builder.reorderExercisesInSession(index, startIndex, endIndex);
                         }}
+                        clientMedicalConditions={builder.clientProfile?.medical_conditions}
                       />
                     ))
                   )}

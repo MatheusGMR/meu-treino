@@ -44,6 +44,7 @@ interface SessionCardProps {
   onReorderExercises?: (startIndex: number, endIndex: number) => void;
   dragHandleAttributes?: any;
   dragHandleListeners?: any;
+  clientMedicalConditions?: string | null;
 }
 
 // Componente sortable para exercício individual
@@ -102,6 +103,7 @@ export const SessionCard = ({
   onReorderExercises,
   dragHandleAttributes,
   dragHandleListeners,
+  clientMedicalConditions,
 }: SessionCardProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -186,6 +188,7 @@ export const SessionCard = ({
               onSave={onAddExercise}
               onComplete={() => {}}
               orderIndex={session.exercises.length}
+              clientMedicalConditions={clientMedicalConditions}
             />
           </div>
 

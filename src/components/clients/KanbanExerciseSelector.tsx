@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus } from "lucide-react";
@@ -8,6 +8,8 @@ import { useExercises } from "@/hooks/useExercises";
 import { useVolumes } from "@/hooks/useVolumes";
 import { useMethods } from "@/hooks/useMethods";
 import { ExercisePreview } from "@/components/exercises/ExercisePreview";
+import { checkContraindicationBatch } from "@/hooks/useContraindicationCheck";
+import { toast } from "@/hooks/use-toast";
 import type { SessionExerciseData } from "@/lib/schemas/sessionSchema";
 import type { Enums, Database } from "@/integrations/supabase/types";
 
@@ -17,6 +19,7 @@ interface KanbanExerciseSelectorProps {
   onSave: (exercise: SessionExerciseData) => void;
   onComplete?: () => void;
   orderIndex: number;
+  clientMedicalConditions?: string | null;
 }
 
 const EXERCISE_TYPES: { value: Enums<"exercise_type_enum">; label: string }[] = [
@@ -45,7 +48,8 @@ const EXERCISE_GROUPS: { value: Enums<"exercise_group">; label: string }[] = [
 export function KanbanExerciseSelector({ 
   onSave, 
   onComplete, 
-  orderIndex 
+  orderIndex,
+  clientMedicalConditions
 }: KanbanExerciseSelectorProps) {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
@@ -58,6 +62,12 @@ export function KanbanExerciseSelector({
   const { data: allExercises } = useExercises();
   const { data: volumes } = useVolumes();
   const { data: methods } = useMethods();
+
+  // Verificar contraindicações em lote
+  const contraindicationResults = useMemo(() => {
+    if (!allExercises || !clientMedicalConditions) return new Map();
+    return checkContraindicationBatch(allExercises, clientMedicalConditions);
+  }, [allExercises, clientMedicalConditions]);
 
   const availableGroups = useMemo(() => {
     if (!selectedType || !allExercises) return [];
@@ -104,6 +114,20 @@ export function KanbanExerciseSelector({
     setSelectedExercise(exerciseId);
     setSelectedVolume(null);
     setSelectedMethod(null);
+
+    // Verificar contraindicação e mostrar toast
+    const contraindicationCheck = contraindicationResults.get(exerciseId);
+    if (contraindicationCheck?.hasRisk) {
+      const exercise = allExercises?.find(ex => ex.id === exerciseId);
+      toast({
+        variant: contraindicationCheck.severity === 'error' ? 'destructive' : 'default',
+        title: contraindicationCheck.severity === 'error' 
+          ? "⚠️ Atenção: Contraindicação Crítica" 
+          : "⚠️ Atenção: Contraindicação",
+        description: `${exercise?.name}: ${contraindicationCheck.message}`,
+        duration: 6000,
+      });
+    }
   };
 
   const handleVolumeSelect = (volumeId: string) => {
@@ -217,19 +241,25 @@ export function KanbanExerciseSelector({
               </p>
             ) : (
               <div className="space-y-2">
-                {availableExercises.map(ex => (
-                  <SelectionCard
-                    key={ex.id}
-                    title={ex.name}
-                  subtitle={ex.level || undefined}
-                  isSelected={selectedExercise === ex.id}
-                  onClick={() => handleExerciseSelect(ex.id)}
-                  onPreview={() => {
-                    setPreviewExercise(ex);
-                    setShowPreview(true);
-                  }}
-                />
-                ))}
+                {availableExercises.map(ex => {
+                  const contraindicationCheck = contraindicationResults.get(ex.id);
+                  return (
+                    <SelectionCard
+                      key={ex.id}
+                      title={ex.name}
+                      subtitle={ex.level || undefined}
+                      isSelected={selectedExercise === ex.id}
+                      onClick={() => handleExerciseSelect(ex.id)}
+                      onPreview={() => {
+                        setPreviewExercise(ex);
+                        setShowPreview(true);
+                      }}
+                      hasWarning={contraindicationCheck?.hasRisk}
+                      warningMessage={contraindicationCheck?.message}
+                      warningSeverity={contraindicationCheck?.severity}
+                    />
+                  );
+                })}
               </div>
             )}
           </ScrollArea>
