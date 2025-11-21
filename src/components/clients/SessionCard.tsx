@@ -35,7 +35,7 @@ export const SessionCard = ({
   onRemoveExercise,
 }: SessionCardProps) => {
   return (
-    <Card className="border-2">
+    <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1">
