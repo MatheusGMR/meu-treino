@@ -24,6 +24,7 @@ import {
 import { ExerciseDialog } from "./ExerciseDialog";
 import { ExercisePreview } from "./ExercisePreview";
 import { useDeleteExercise } from "@/hooks/useExercises";
+import { NewBadge } from "@/components/shared/NewBadge";
 import type { Database } from "@/integrations/supabase/types";
 
 type Exercise = Database["public"]["Tables"]["exercises"]["Row"];
@@ -82,7 +83,17 @@ export const ExercisesTable = ({ exercises, isLoading }: ExercisesTableProps) =>
           <TableBody>
             {exercises.map((exercise) => (
               <TableRow key={exercise.id}>
-                <TableCell className="font-medium">{exercise.name}</TableCell>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-2">
+                    {exercise.name}
+                    {exercise.is_new && exercise.added_at && (
+                      <NewBadge 
+                        addedAt={exercise.added_at} 
+                        sourceReference={exercise.source_reference} 
+                      />
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell>
                   <Badge variant="outline">{exercise.exercise_group}</Badge>
                 </TableCell>

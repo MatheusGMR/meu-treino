@@ -30,6 +30,7 @@ import AllClients from "./pages/admin/AllClients";
 import Assignments from "./pages/admin/Assignments";
 import Users from "./pages/admin/Users";
 import UploadBodyTypeImages from "./pages/admin/UploadBodyTypeImages";
+import PendingUpdates from "./pages/admin/PendingUpdates";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -263,6 +264,16 @@ const App = () => (
                 <AuthGuard>
                   <RoleGuard allowedRoles={["admin"]}>
                     <UploadBodyTypeImages />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/admin/pending-updates"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["admin"]}>
+                    <PendingUpdates />
                   </RoleGuard>
                 </AuthGuard>
               }
