@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SelectionCard } from "./SelectionCard";
@@ -182,7 +181,7 @@ export function KanbanExerciseSelector({
           <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
             Tipo
           </h4>
-          <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px]">
+          <div className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] overflow-y-auto scrollarea-hidden">
             <div className="space-y-2 pr-1">
               {EXERCISE_TYPES.map(type => (
                 <SelectionCard
@@ -193,7 +192,7 @@ export function KanbanExerciseSelector({
                 />
               ))}
             </div>
-          </ScrollArea>
+          </div>
         </div>
 
         {/* Coluna 2: Grupo */}
@@ -201,7 +200,7 @@ export function KanbanExerciseSelector({
           <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
             Grupo Muscular
           </h4>
-          <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px]">
+          <div className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] overflow-y-auto scrollarea-hidden">
             {!selectedType ? (
               <p className="text-xs text-muted-foreground p-3">
                 Selecione um tipo primeiro
@@ -222,7 +221,7 @@ export function KanbanExerciseSelector({
                 ))}
               </div>
             )}
-          </ScrollArea>
+          </div>
         </div>
 
         {/* Coluna 3: Exercício */}
@@ -230,7 +229,7 @@ export function KanbanExerciseSelector({
           <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
             Exercício
           </h4>
-          <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px]">
+          <div className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] overflow-y-auto scrollarea-hidden">
             {!selectedGroup ? (
               <p className="text-xs text-muted-foreground p-3">
                 Selecione um grupo primeiro
@@ -262,7 +261,7 @@ export function KanbanExerciseSelector({
                 })}
               </div>
             )}
-          </ScrollArea>
+          </div>
         </div>
 
         {/* Coluna 4: Volume */}
@@ -270,7 +269,7 @@ export function KanbanExerciseSelector({
           <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
             Volume
           </h4>
-          <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px]">
+          <div className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] overflow-y-auto scrollarea-hidden">
             {!selectedExercise ? (
               <p className="text-xs text-muted-foreground p-3">
                 Selecione um exercício primeiro
@@ -292,7 +291,7 @@ export function KanbanExerciseSelector({
                 ))}
               </div>
             )}
-          </ScrollArea>
+          </div>
         </div>
 
         {/* Coluna 5: Método */}
@@ -300,7 +299,7 @@ export function KanbanExerciseSelector({
           <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
             Método
           </h4>
-          <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px]">
+          <div className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] overflow-y-auto scrollarea-hidden">
             {!selectedVolume ? (
               <p className="text-xs text-muted-foreground p-3">
                 Selecione um volume primeiro
@@ -322,7 +321,7 @@ export function KanbanExerciseSelector({
                 ))}
               </div>
             )}
-          </ScrollArea>
+          </div>
         </div>
       </div>
 

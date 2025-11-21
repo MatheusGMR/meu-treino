@@ -156,6 +156,9 @@ All colors MUST be HSL.
   .scrollarea-hidden {
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE/Edge */
+    overflow-y: auto; /* Garantir scroll vertical */
+    overscroll-behavior: contain; /* Prevenir scroll propagation */
+    -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
   }
 
   .scrollarea-hidden::-webkit-scrollbar {
