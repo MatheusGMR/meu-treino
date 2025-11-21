@@ -27,23 +27,14 @@ export const ClientHeader = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 z-40 bg-gradient-to-r from-background/98 via-background/95 to-background/98 backdrop-blur-lg border-b border-primary/20 shadow-lg shadow-primary/5">
+    <header className="sticky top-0 z-40 backdrop-blur-xl bg-white/60 border-b border-white/20 shadow-lg">
       <div className="container mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/client/dashboard" className="flex items-center gap-3">
-            <img 
-              src={logoJmFull} 
-              alt="Junior Mello Treinamentos" 
-              className="h-10 w-auto hidden sm:block rounded-lg"
-            />
-            <img 
-              src={logoJmIcon} 
-              alt="JM" 
-              className="h-10 w-10 sm:hidden rounded-lg"
-            />
+            <div className="font-bold text-xl text-primary">Meu Treino</div>
             {anamnesisCompleted === false && (
-              <Badge variant="destructive" className="flex items-center gap-1 animate-pulse">
+              <Badge variant="warning" className="flex items-center gap-1 animate-pulse">
                 <AlertCircle className="h-3 w-3" />
                 <span className="hidden sm:inline">Anamnese Pendente</span>
                 <span className="sm:hidden">!</span>
@@ -87,11 +78,7 @@ export const ClientHeader = () => {
             <SheetContent side="left" className="w-3/4 max-w-sm">
               <SheetHeader>
             <SheetTitle className="flex items-center">
-              <img 
-                src={logoJmFull} 
-                alt="Junior Mello Treinamentos" 
-                className="h-8 w-auto rounded-lg"
-              />
+              <div className="font-bold text-xl text-primary">Meu Treino</div>
             </SheetTitle>
               </SheetHeader>
               
@@ -102,9 +89,9 @@ export const ClientHeader = () => {
                     <Link
                       key={item.path}
                       to={item.path}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      className={`flex items-center gap-3 px-4 py-3 rounded-[16px] transition-all duration-300 ${
                         isActive(item.path)
-                          ? "bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-md shadow-primary/30"
+                          ? "bg-primary text-primary-foreground shadow-lg"
                           : "hover:bg-muted"
                       }`}
                     >
