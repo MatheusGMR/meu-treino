@@ -41,9 +41,7 @@ export const useClientWorkoutBuilder = (clientId: string) => {
   // Estados para IA Suggestions
   const [aiSuggestions, setAiSuggestions] = useState<{
     sessions: string;
-    mandatory: string[];
     recommendations: string[];
-    warnings: string[];
   } | null>(null);
   const [loadingAI, setLoadingAI] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
@@ -597,6 +595,36 @@ export const useClientWorkoutBuilder = (clientId: string) => {
 
   // ==================== NOVOS CÁLCULOS PARA COCKPIT ====================
 
+  // Helper para limpar dados de dores/lesões
+  const cleanPainData = useCallback((anamnesis: any) => {
+    const pains: string[] = [];
+    
+    // Pain locations
+    if (anamnesis.pain_locations && Array.isArray(anamnesis.pain_locations)) {
+      const validPains = anamnesis.pain_locations.filter(
+        (p: string) => p && p !== 'Nenhum' && p !== 'Não' && p !== 'Nenhuma'
+      );
+      pains.push(...validPains);
+    }
+    
+    // Pain details
+    if (anamnesis.pain_details && anamnesis.pain_details !== 'Não' && anamnesis.pain_details.trim() !== '') {
+      pains.push(`Detalhe: ${anamnesis.pain_details}`);
+    }
+    
+    // Lesões
+    if (anamnesis.lesoes && anamnesis.lesoes !== 'Não' && anamnesis.lesoes !== 'Não tenho' && anamnesis.lesoes.trim() !== '') {
+      pains.push(`Lesão: ${anamnesis.lesoes}`);
+    }
+    
+    // Cirurgias
+    if (anamnesis.cirurgias && anamnesis.cirurgias !== 'Não' && anamnesis.cirurgias !== 'Não fiz' && anamnesis.cirurgias.trim() !== '') {
+      pains.push(`Cirurgia: ${anamnesis.cirurgias}`);
+    }
+    
+    return pains;
+  }, []);
+
   // 1. Alerta de Fadiga
   const fatigueAlert = useMemo(() => {
     if (!anamnesisData?.anamnesis) return null;
@@ -604,6 +632,7 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     const sono = anamnesisData.anamnesis.sono_horas;
     const estresse = anamnesisData.anamnesis.estresse;
     const volume = weeklyVolume.totalSets;
+    const cleanedPains = cleanPainData(anamnesisData.anamnesis);
     
     let score = 0;
     
@@ -629,7 +658,10 @@ export const useClientWorkoutBuilder = (clientId: string) => {
           'Reduzir volume de treino em 20-30%',
           'Priorizar exercícios de baixo impacto',
           'Incluir mais dias de descanso'
-        ]
+        ],
+        pains: cleanedPains,
+        stress: estresse || 'Não informado',
+        sleep: sono || 'Não informado',
       };
     } else if (score >= 3) {
       return {
@@ -639,12 +671,22 @@ export const useClientWorkoutBuilder = (clientId: string) => {
           'Manter volume controlado',
           'Garantir aquecimento adequado',
           'Incluir alongamentos ao final'
-        ]
+        ],
+        pains: cleanedPains,
+        stress: estresse || 'Não informado',
+        sleep: sono || 'Não informado',
       };
     }
     
-    return null;
-  }, [anamnesisData, weeklyVolume]);
+    return {
+      level: null,
+      message: null,
+      recommendations: [],
+      pains: cleanedPains,
+      stress: estresse || 'Não informado',
+      sleep: sono || 'Não informado',
+    };
+  }, [anamnesisData, weeklyVolume, cleanPainData]);
 
   // 2. Progresso da Sessão
   const sessionProgress = useMemo(() => {
@@ -666,6 +708,23 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     const tempoDisponivel = anamnesisData?.anamnesis?.tempo_disponivel;
     const totalMinutes = muscleAnalysis.totalExercises * 4; // 4 min por exercício
     
+    // Buscar frequência recomendada do perfil
+    let suggestedFrequency = '3-4x/semana'; // Padrão
+    
+    if (anamnesisProfile?.recommended_frequency) {
+      suggestedFrequency = anamnesisProfile.recommended_frequency;
+    } else {
+      // Fallback baseado no objetivo
+      const goal = anamnesisData?.anamnesis?.primary_goal;
+      if (goal === 'Emagrecimento') suggestedFrequency = '4-5x/semana';
+      else if (goal === 'Hipertrofia') suggestedFrequency = '5-6x/semana';
+      else if (goal === 'Condicionamento') suggestedFrequency = '3-4x/semana';
+    }
+    
+    // Extrair número de sessões atuais
+    const currentFreq = anamnesisData?.anamnesis?.frequencia_atual || '0 vezes/semana';
+    const currentSessions = parseInt(currentFreq.match(/\d+/)?.[0] || '0');
+    
     let recommended = { min: 90, max: 150 }; // Padrão
     
     if (tempoDisponivel === '30 minutos') {
@@ -685,9 +744,10 @@ export const useClientWorkoutBuilder = (clientId: string) => {
       totalMinutes,
       recommended,
       status,
-      sessionsPerWeek: anamnesisData?.anamnesis?.frequencia_atual || 'Não definido'
+      currentSessions,
+      suggestedSessions: suggestedFrequency,
     };
-  }, [muscleAnalysis, anamnesisData]);
+  }, [muscleAnalysis, anamnesisData, anamnesisProfile]);
 
   // 4. Distribuição Muscular com Metas
   const muscleDistributionGoals = useMemo(() => {
@@ -787,28 +847,72 @@ export const useClientWorkoutBuilder = (clientId: string) => {
 
   // 6. Indicadores de Qualidade em Escala 0-100
   const qualityScores = useMemo(() => {
-    // Volume Score (0-100)
-    const volumeScore = weeklyVolume.status === 'optimal' ? 100 :
-                        weeklyVolume.status === 'below' ? Math.min((weeklyVolume.percentage || 0), 100) :
-                        Math.max(100 - ((weeklyVolume.percentage || 100) - 100), 0);
+    // Volume Score (0-100) - escala gradual
+    const volumeScore = (() => {
+      if (!weeklyVolume.benchmark) return 50;
+      
+      const current = weeklyVolume.totalSets;
+      const { min, optimal, max } = weeklyVolume.benchmark;
+      
+      if (current < min) {
+        // Abaixo do mínimo: 0-70
+        return Math.max((current / min) * 70, 0);
+      } else if (current <= optimal) {
+        // Zona ideal: 70-100
+        return 70 + ((current - min) / (optimal - min)) * 30;
+      } else if (current <= max) {
+        // Acima do ideal mas ok: 85-100
+        return Math.max(100 - ((current - optimal) / (max - optimal)) * 15, 85);
+      } else {
+        // Excessivo: 50-85
+        return Math.max(85 - ((current - max) / max) * 35, 50);
+      }
+    })();
     
-    // Variety Score (0-100)
-    const varietyScore = Math.min((muscleAnalysis.muscleGroups.length / 8) * 100, 100);
+    // Variety Score (0-100) - 5-6 grupos já é bom
+    const varietyScore = Math.min((muscleAnalysis.muscleGroups.length / 6) * 100, 100);
     
-    // Balance Score (0-100)
+    // Balance Score (0-100) - penalidade reduzida
     const balanceScore = muscleAnalysis.isBalanced ? 100 : 
-                         Math.max(100 - (muscleAnalysis.warnings.length * 20), 0);
+                         Math.max(100 - (muscleAnalysis.warnings.length * 10), 50);
     
-    // Intensity Score (0-100)
-    const intensityScore = intensityCheck?.aligned ? 100 : 60;
+    // Intensity Score (0-100) - gradual
+    const intensityScore = (() => {
+      if (!intensityCheck?.aligned) {
+        const current = intensityCheck?.current;
+        const recommended = intensityCheck?.recommended;
+        
+        // Desalinhamento moderado mas razoável: 70-85
+        if (
+          (current === 'balanced' && recommended?.includes('moderate')) ||
+          (current === 'light' && recommended?.includes('low'))
+        ) return 85;
+        
+        // Desalinhamento maior: 60-70
+        return 70;
+      }
+      
+      return 100;
+    })();
     
-    // Goal Alignment Score (0-100)
-    const goalScore = goalAlignment?.percentage || 0;
+    // Goal Alignment Score (0-100) - mínimo 40 se tem exercícios
+    const goalScore = goalAlignment 
+      ? Math.max(goalAlignment.percentage, muscleAnalysis.totalExercises > 0 ? 40 : 0)
+      : (muscleAnalysis.totalExercises > 0 ? 40 : 0);
     
     // Overall Score
     const overallScore = Math.round(
       (volumeScore + varietyScore + balanceScore + intensityScore + goalScore) / 5
     );
+    
+    console.log('Quality Scores:', {
+      volumeScore: Math.round(volumeScore),
+      varietyScore: Math.round(varietyScore),
+      balanceScore: Math.round(balanceScore),
+      intensityScore: Math.round(intensityScore),
+      goalScore: Math.round(goalScore),
+      overallScore
+    });
     
     return {
       volume: Math.round(volumeScore),

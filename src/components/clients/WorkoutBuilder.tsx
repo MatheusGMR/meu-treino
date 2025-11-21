@@ -358,7 +358,7 @@ export const WorkoutBuilder = ({
                 optimal: builder.weeklyVolume.benchmark?.optimal || 50
               }}
               currentSessions={builder.tempWorkout.sessions.length}
-              recommendedSessions={builder.clientAnamnesis?.frequencia_atual || '3-4'}
+              suggestedSessions={builder.weeklyTimeEstimate.suggestedSessions}
               currentTime={builder.weeklyTimeEstimate.totalMinutes}
               recommendedTime={builder.weeklyTimeEstimate.recommended}
             />

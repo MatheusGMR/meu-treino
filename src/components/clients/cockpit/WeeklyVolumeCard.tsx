@@ -6,7 +6,7 @@ interface WeeklyVolumeCardProps {
   currentSets: number;
   recommendedSets: { min: number; max: number; optimal: number };
   currentSessions: number;
-  recommendedSessions: string;
+  suggestedSessions: string;
   currentTime: number;
   recommendedTime: { min: number; max: number };
 }
@@ -15,7 +15,7 @@ export const WeeklyVolumeCard = ({
   currentSets,
   recommendedSets,
   currentSessions,
-  recommendedSessions,
+  suggestedSessions,
   currentTime,
   recommendedTime
 }: WeeklyVolumeCardProps) => {
@@ -49,7 +49,7 @@ export const WeeklyVolumeCard = ({
             <span className="text-muted-foreground">Sessões</span>
             <div className="flex items-center gap-2">
               <span className="font-bold">{currentSessions}</span>
-              <span className="text-muted-foreground">/ {recommendedSessions}</span>
+              <span className="text-muted-foreground">/ {suggestedSessions}</span>
             </div>
           </div>
 
