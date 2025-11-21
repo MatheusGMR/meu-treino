@@ -42,6 +42,8 @@ interface SessionCardProps {
   onAddExercise: (exercise: SessionExerciseData) => void;
   onRemoveExercise: (exerciseIndex: number) => void;
   onReorderExercises?: (startIndex: number, endIndex: number) => void;
+  dragHandleAttributes?: any;
+  dragHandleListeners?: any;
 }
 
 // Componente sortable para exercício individual
@@ -98,6 +100,8 @@ export const SessionCard = ({
   onAddExercise,
   onRemoveExercise,
   onReorderExercises,
+  dragHandleAttributes,
+  dragHandleListeners,
 }: SessionCardProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -122,6 +126,15 @@ export const SessionCard = ({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1">
+            {dragHandleListeners && (
+              <button
+                {...dragHandleAttributes}
+                {...dragHandleListeners}
+                className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded shrink-0"
+              >
+                <GripVertical className="w-4 h-4 text-muted-foreground" />
+              </button>
+            )}
             <Button
               variant="ghost"
               size="icon"

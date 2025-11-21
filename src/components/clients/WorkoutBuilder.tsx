@@ -84,32 +84,20 @@ const SortableSession = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={cn(
-        "relative",
-        isDragging && "opacity-50 z-50"
-      )}
+      className={cn(isDragging && "opacity-50")}
     >
-      <div className="absolute left-2 top-6 z-10">
-        <button
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1.5 hover:bg-muted rounded bg-background/80 backdrop-blur-sm border"
-        >
-          <GripVertical className="w-4 h-4 text-muted-foreground" />
-        </button>
-      </div>
-      <div className="pl-12">
-        <SessionCard
-          session={session}
-          sessionIndex={sessionIndex}
-          isExpanded={isExpanded}
-          onToggleExpand={onToggleExpand}
-          onRemove={onRemove}
-          onAddExercise={onAddExercise}
-          onRemoveExercise={onRemoveExercise}
-          onReorderExercises={onReorderExercises}
-        />
-      </div>
+      <SessionCard
+        session={session}
+        sessionIndex={sessionIndex}
+        isExpanded={isExpanded}
+        onToggleExpand={onToggleExpand}
+        onRemove={onRemove}
+        onAddExercise={onAddExercise}
+        onRemoveExercise={onRemoveExercise}
+        onReorderExercises={onReorderExercises}
+        dragHandleAttributes={attributes}
+        dragHandleListeners={listeners}
+      />
     </div>
   );
 };
