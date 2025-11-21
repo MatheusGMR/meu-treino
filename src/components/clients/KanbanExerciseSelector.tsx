@@ -152,10 +152,10 @@ export function KanbanExerciseSelector({
   return (
     <div className="space-y-4">
       {/* Grid de 5 colunas */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6 auto-cols-fr">
         {/* Coluna 1: Tipo */}
-        <div className="space-y-2">
-          <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground truncate mb-3">
+        <div className="space-y-2 min-w-[140px]">
+          <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
             Tipo
           </h4>
             <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] pr-4">
@@ -173,8 +173,8 @@ export function KanbanExerciseSelector({
         </div>
 
         {/* Coluna 2: Grupo */}
-        <div className="space-y-2">
-          <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground truncate mb-3">
+        <div className="space-y-2 min-w-[140px]">
+          <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
             Grupo Muscular
           </h4>
           <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] pr-4">
@@ -202,8 +202,8 @@ export function KanbanExerciseSelector({
         </div>
 
         {/* Coluna 3: Exercício */}
-        <div className="space-y-2">
-          <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground truncate mb-3">
+        <div className="space-y-2 min-w-[140px]">
+          <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
             Exercício
           </h4>
           <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] pr-4">
@@ -236,8 +236,8 @@ export function KanbanExerciseSelector({
         </div>
 
         {/* Coluna 4: Volume */}
-        <div className="space-y-2">
-          <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground truncate mb-3">
+        <div className="space-y-2 min-w-[140px]">
+          <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
             Volume
           </h4>
           <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] pr-4">
@@ -266,8 +266,8 @@ export function KanbanExerciseSelector({
         </div>
 
         {/* Coluna 5: Método */}
-        <div className="space-y-2">
-          <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground truncate mb-3">
+        <div className="space-y-2 min-w-[140px]">
+          <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
             Método
           </h4>
           <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] pr-4">

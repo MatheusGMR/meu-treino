@@ -28,8 +28,22 @@ export const ExercisePreview = ({
         <DialogHeader>
           <DialogTitle>{exercise.name}</DialogTitle>
         </DialogHeader>
-
+        
         <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+          {/* Thumbnail do exercício */}
+          {exercise.thumbnail_url && (
+            <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
+              <img
+                src={exercise.thumbnail_url}
+                alt={exercise.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-muted-foreground mb-2">Tipo</p>
@@ -63,35 +77,43 @@ export const ExercisePreview = ({
             </div>
           )}
 
-          {exercise.equipment && exercise.equipment.length > 0 && (
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">Equipamentos</p>
-              <div className="flex gap-2 flex-wrap">
-                {exercise.equipment.map((eq: string) => (
-                  <Badge key={eq} variant="outline">{eq}</Badge>
-                ))}
+          {/* Informações Técnicas */}
+          {(exercise.biomechanical_class || exercise.dominant_movement || exercise.impact_level) && (
+            <div className="border-t pt-4">
+              <p className="text-sm font-semibold mb-3">Informações Técnicas</p>
+              <div className="grid gap-3">
+                {exercise.biomechanical_class && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Classe Biomecânica</p>
+                    <Badge variant="outline" className="text-xs">{exercise.biomechanical_class}</Badge>
+                  </div>
+                )}
+                {exercise.dominant_movement && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Movimento Dominante</p>
+                    <Badge variant="outline" className="text-xs">{exercise.dominant_movement}</Badge>
+                  </div>
+                )}
+                {exercise.impact_level && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Nível de Impacto</p>
+                    <Badge variant="outline" className="text-xs">{exercise.impact_level}</Badge>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
-          {exercise.impact_level && (
+          {exercise.equipment && exercise.equipment.length > 0 && (
             <div>
-              <p className="text-sm text-muted-foreground mb-2">Nível de Impacto</p>
-              <Badge variant="outline">{exercise.impact_level}</Badge>
-            </div>
-          )}
-
-          {exercise.biomechanical_class && (
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">Classe Biomecânica</p>
-              <p className="text-sm">{exercise.biomechanical_class}</p>
-            </div>
-          )}
-
-          {exercise.dominant_movement && (
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">Movimento Dominante</p>
-              <p className="text-sm">{exercise.dominant_movement}</p>
+              <p className="text-sm text-muted-foreground mb-2">Equipamentos Necessários</p>
+              <div className="flex gap-2 flex-wrap">
+                {exercise.equipment.map((eq: string, idx: number) => (
+                  <Badge key={`${eq}-${idx}`} variant="secondary" className="text-xs">
+                    {eq}
+                  </Badge>
+                ))}
+              </div>
             </div>
           )}
 
