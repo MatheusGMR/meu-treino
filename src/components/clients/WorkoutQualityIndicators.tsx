@@ -6,6 +6,8 @@ interface WorkoutQualityIndicatorsProps {
   muscleGroupsCount: number;
   isBalanced: boolean;
   overallIntensity?: 'light' | 'balanced' | 'intense';
+  profileAligned?: boolean;
+  profileName?: string | null;
 }
 
 export const WorkoutQualityIndicators = ({
@@ -13,6 +15,8 @@ export const WorkoutQualityIndicators = ({
   muscleGroupsCount,
   isBalanced,
   overallIntensity,
+  profileAligned,
+  profileName,
 }: WorkoutQualityIndicatorsProps) => {
   const indicators = [
     {
@@ -49,6 +53,14 @@ export const WorkoutQualityIndicators = ({
         overallIntensity === 'balanced' ? "Intensidade equilibrada" :
         overallIntensity === 'light' ? "Treino leve - considere aumentar intensidade" :
         "Treino intenso - monitore recuperação",
+    }] : []),
+    ...(profileName ? [{
+      label: "Alinhamento com Perfil",
+      status: profileAligned ? "good" : "warning",
+      icon: profileAligned ? CheckCircle2 : AlertTriangle,
+      message: profileAligned 
+        ? `✅ Adequado para ${profileName}`
+        : `⚠️ Revisar adequação para ${profileName}`,
     }] : []),
   ];
 

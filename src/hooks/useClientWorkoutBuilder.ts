@@ -5,6 +5,7 @@ import { useHealthCompatibilityCheck } from "./useHealthCompatibilityCheck";
 import { useAssignWorkout } from "./useClientWorkouts";
 import { useClientDetails } from "./useClients";
 import { useClientAnamnesis } from "./useAnamnesis";
+import { useClientAnamnesisProfile } from "./useClientAnamnesisProfile";
 import { useExercises } from "./useExercises";
 import { useSessions } from "./useSessions";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,6 +43,7 @@ export const useClientWorkoutBuilder = (clientId: string) => {
   // Buscar dados do cliente
   const { data: clientDetails } = useClientDetails(clientId);
   const { data: anamnesisData } = useClientAnamnesis(clientId);
+  const { data: anamnesisProfile } = useClientAnamnesisProfile(clientId);
   
   // Buscar dados dos exercícios para análise correta
   const { data: exercisesData } = useExercises();
@@ -426,11 +428,39 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     return `${totalExercises * 3}-${totalExercises * 5} min`;
   }, [muscleAnalysis]);
 
-  // Calcular volume semanal estimado
+  // Calcular volume semanal estimado com benchmark do perfil
   const weeklyVolume = useMemo(() => {
     const totalSets = tempWorkout.sessions.reduce((sum, session) => {
       return sum + session.exercises.length * 3; // Estimativa de 3 séries por exercício
     }, 0);
+    
+    const benchmark = anamnesisProfile ? {
+      min: (anamnesisProfile.typical_combination as any)?.min_weekly_volume || 15,
+      optimal: (anamnesisProfile.typical_combination as any)?.optimal_weekly_volume || 25,
+      max: (anamnesisProfile.typical_combination as any)?.max_weekly_volume || 35,
+    } : null;
+
+    let status: 'below' | 'optimal' | 'above' | 'excessive' | null = null;
+    let percentage: number | null = null;
+    let message = '';
+
+    if (benchmark) {
+      percentage = (totalSets / benchmark.optimal) * 100;
+      
+      if (totalSets < benchmark.min) {
+        status = 'below';
+        message = `Volume abaixo do mínimo recomendado para ${anamnesisProfile?.name}`;
+      } else if (totalSets <= benchmark.optimal) {
+        status = 'optimal';
+        message = `Volume adequado para ${anamnesisProfile?.name}`;
+      } else if (totalSets <= benchmark.max) {
+        status = 'above';
+        message = `Volume acima do ideal, mas dentro do limite para ${anamnesisProfile?.name}`;
+      } else {
+        status = 'excessive';
+        message = `⚠️ Volume excessivo para ${anamnesisProfile?.name}`;
+      }
+    }
     
     return {
       totalSets,
@@ -438,8 +468,99 @@ export const useClientWorkoutBuilder = (clientId: string) => {
         group: mg.group,
         sets: Math.round((mg.percentage / 100) * totalSets),
       })),
+      benchmark,
+      status,
+      percentage,
+      message,
     };
-  }, [tempWorkout, muscleAnalysis]);
+  }, [tempWorkout, muscleAnalysis, anamnesisProfile]);
+
+  // Análise de intensidade contextualizada
+  const intensityCheck = useMemo(() => {
+    if (!anamnesisProfile) return null;
+
+    const currentIntensity = impactAnalysis.overallIntensity;
+    const recommendedIntensity = anamnesisProfile.recommended_intensity?.toLowerCase();
+    
+    let aligned = false;
+    let message = '';
+
+    if (recommendedIntensity) {
+      if (
+        (recommendedIntensity.includes('baixa') && currentIntensity === 'light') ||
+        (recommendedIntensity.includes('moderada') && currentIntensity === 'balanced') ||
+        (recommendedIntensity.includes('alta') && currentIntensity === 'intense')
+      ) {
+        aligned = true;
+        message = 'Intensidade alinhada com o perfil';
+      } else {
+        message = `⚠️ Perfil recomenda intensidade ${recommendedIntensity}, treino está ${
+          currentIntensity === 'light' ? 'leve' : 
+          currentIntensity === 'balanced' ? 'balanceado' : 
+          'intenso'
+        }`;
+      }
+    }
+
+    return {
+      current: currentIntensity,
+      recommended: recommendedIntensity || null,
+      aligned,
+      message,
+    };
+  }, [impactAnalysis, anamnesisProfile]);
+
+  // Alinhamento com objetivos primários
+  const goalAlignment = useMemo(() => {
+    if (!exercisesData || !anamnesisData?.anamnesis?.primary_goal) return null;
+
+    const primaryGoal = anamnesisData.anamnesis.primary_goal;
+    const exerciseMap = new Map(exercisesData.map(ex => [ex.id, ex]));
+    
+    let alignedCount = 0;
+    let totalCount = 0;
+
+    tempWorkout.sessions.forEach((session) => {
+      session.exercises.forEach((ex) => {
+        const exercise = exerciseMap.get(ex.exercise_id);
+        if (exercise) {
+          totalCount++;
+          // Verificar se o tipo de exercício se alinha com o objetivo
+          if (primaryGoal === 'Emagrecimento' && exercise.exercise_type === 'Cardio') {
+            alignedCount++;
+          } else if (primaryGoal === 'Hipertrofia' && exercise.exercise_type === 'Musculação') {
+            alignedCount++;
+          } else if (primaryGoal === 'Condicionamento' && exercise.exercise_type === 'Funcional') {
+            alignedCount++;
+          }
+        }
+      });
+    });
+
+    const percentage = totalCount > 0 ? (alignedCount / totalCount) * 100 : 0;
+    const aligned = percentage >= 50;
+
+    return {
+      primaryGoal,
+      alignedCount,
+      totalCount,
+      percentage,
+      aligned,
+      message: aligned 
+        ? `✓ ${percentage.toFixed(0)}% dos exercícios focam em ${primaryGoal}`
+        : `⚠️ Apenas ${percentage.toFixed(0)}% dos exercícios focam em ${primaryGoal}`,
+    };
+  }, [tempWorkout, exercisesData, anamnesisData]);
+
+  // Risk factors do perfil
+  const profileRisks = useMemo(() => {
+    if (!anamnesisProfile?.risk_factors) return { factors: [], recommendations: [] };
+
+    return {
+      factors: anamnesisProfile.risk_factors || [],
+      recommendations: anamnesisProfile.strategy ? [anamnesisProfile.strategy] : [],
+    };
+  }, [anamnesisProfile]);
 
   return {
     tempWorkout,
@@ -451,6 +572,9 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     compatibility,
     estimatedTime,
     weeklyVolume,
+    intensityCheck,
+    goalAlignment,
+    profileRisks,
     addNewSession,
     removeSession,
     updateSession,
@@ -463,5 +587,6 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     isSubmitting,
     clientProfile: clientDetails?.profile,
     clientAnamnesis: anamnesisData?.anamnesis,
+    anamnesisProfile,
   };
 };
