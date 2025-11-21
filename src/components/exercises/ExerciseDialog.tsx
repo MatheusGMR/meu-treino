@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -28,6 +28,10 @@ import { Button } from "@/components/ui/button";
 import { exerciseSchema, type ExerciseFormData } from "@/lib/schemas/exerciseSchema";
 import { useCreateExercise, useUpdateExercise } from "@/hooks/useExercises";
 import type { Database } from "@/integrations/supabase/types";
+import { MediaUpload } from "@/components/shared/MediaUpload";
+import { uploadExerciseMedia } from "@/lib/supabase/storage";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
 
 type Exercise = Database["public"]["Tables"]["exercises"]["Row"];
 
@@ -73,6 +77,12 @@ export const ExerciseDialog = ({
 }: ExerciseDialogProps) => {
   const createMutation = useCreateExercise();
   const updateMutation = useUpdateExercise();
+  const { user } = useAuth();
+  
+  const [thumbnailFile, setThumbnailFile] = useState<File | undefined>();
+  const [videoFile, setVideoFile] = useState<File | undefined>();
+  const [mediaType, setMediaType] = useState<"image" | "video">("image");
+  const [isUploading, setIsUploading] = useState(false);
 
   const form = useForm<ExerciseFormData>({
     resolver: zodResolver(exerciseSchema),
@@ -129,27 +139,66 @@ export const ExerciseDialog = ({
     }
   }, [exercise, open, form]);
 
-  const onSubmit = (data: ExerciseFormData) => {
-    if (exercise) {
-      updateMutation.mutate(
-        { id: exercise.id, data },
-        {
-          onSuccess: () => {
-            onOpenChange(false);
-            form.reset();
-          },
-        }
-      );
-    } else {
-      createMutation.mutate(
-        { data },
-        {
-          onSuccess: () => {
-            onOpenChange(false);
-            form.reset();
-          },
-        }
-      );
+  const onSubmit = async (data: ExerciseFormData) => {
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar autenticado",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      let finalData = { ...data };
+
+      // Upload de thumbnail se houver
+      if (thumbnailFile) {
+        const thumbnailUrl = await uploadExerciseMedia(thumbnailFile, user.id);
+        finalData.thumbnail_url = thumbnailUrl;
+      }
+
+      // Upload de vídeo se houver
+      if (videoFile) {
+        const videoUrl = await uploadExerciseMedia(videoFile, user.id);
+        finalData.video_url = videoUrl;
+      }
+
+      if (exercise) {
+        updateMutation.mutate(
+          { id: exercise.id, data: finalData },
+          {
+            onSuccess: () => {
+              onOpenChange(false);
+              form.reset();
+              setThumbnailFile(undefined);
+              setVideoFile(undefined);
+            },
+          }
+        );
+      } else {
+        createMutation.mutate(
+          { data: finalData },
+          {
+            onSuccess: () => {
+              onOpenChange(false);
+              form.reset();
+              setThumbnailFile(undefined);
+              setVideoFile(undefined);
+            },
+          }
+        );
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro no upload",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -342,39 +391,30 @@ export const ExerciseDialog = ({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="video_url"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>URL do Vídeo</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="https://youtube.com/..."
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="thumbnail_url"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>URL da Thumbnail</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="https://..."
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Media Upload */}
+            <div className="border rounded-lg p-4 bg-muted/50">
+              <MediaUpload
+                value={exercise?.thumbnail_url || exercise?.video_url || ""}
+                mediaType={mediaType}
+                onMediaTypeChange={setMediaType}
+                onFileSelect={(file) => {
+                  if (mediaType === "image") {
+                    setThumbnailFile(file);
+                    setVideoFile(undefined);
+                  } else {
+                    setVideoFile(file);
+                    setThumbnailFile(undefined);
+                  }
+                }}
+                onUrlChange={(url) => {
+                  if (mediaType === "image") {
+                    form.setValue("thumbnail_url", url);
+                  } else {
+                    form.setValue("video_url", url);
+                  }
+                }}
+              />
+            </div>
 
             <FormField
               control={form.control}
@@ -403,9 +443,9 @@ export const ExerciseDialog = ({
               </Button>
               <Button
                 type="submit"
-                disabled={createMutation.isPending || updateMutation.isPending}
+                disabled={createMutation.isPending || updateMutation.isPending || isUploading}
               >
-                {exercise ? "Atualizar" : "Criar"}
+                {isUploading ? "Enviando..." : exercise ? "Atualizar" : "Criar"}
               </Button>
             </div>
           </form>
