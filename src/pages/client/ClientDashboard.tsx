@@ -5,8 +5,10 @@ import { useAnamnesisStatus } from "@/hooks/useAnamnesisStatus";
 import { useTodayWorkout } from "@/hooks/useTodayWorkout";
 import { useWeeklySchedule } from "@/hooks/useWeeklySchedule";
 import { useClientGoals } from "@/hooks/useClientGoals";
+import { useHasWorkout } from "@/hooks/useHasWorkout";
 import { SolidBackgroundWrapper } from "@/components/SolidBackgroundWrapper";
 import { WelcomeSplash } from "@/components/client/WelcomeSplash";
+import { WaitingForWorkout } from "@/components/client/WaitingForWorkout";
 import { AnamnesisNotification } from "@/components/client/AnamnesisNotification";
 import { DayCarousel } from "@/components/client/DayCarousel";
 import { GoalsDisplay } from "@/components/client/GoalsDisplay";
@@ -22,6 +24,7 @@ const ClientDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { anamnesisCompleted, loading: anamnesisLoading } = useAnamnesisStatus();
+  const { data: hasWorkout, isLoading: workoutLoading } = useHasWorkout();
   const [showSplash, setShowSplash] = useState(true);
   const [selectedDay, setSelectedDay] = useState(1);
   
@@ -76,7 +79,7 @@ const ClientDashboard = () => {
     }
   }, [anamnesisCompleted, anamnesisLoading, navigate]);
 
-  if (anamnesisLoading) {
+  if (anamnesisLoading || workoutLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-primary-glow to-accent">
         <div className="text-center">
@@ -85,6 +88,11 @@ const ClientDashboard = () => {
         </div>
       </div>
     );
+  }
+
+  // Mostrar tela de espera se anamnese completa mas sem treino
+  if (anamnesisCompleted && !hasWorkout) {
+    return <WaitingForWorkout />;
   }
 
   if (showSplash) {
