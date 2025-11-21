@@ -70,7 +70,16 @@ ESTILO DE VIDA:
 - Horas Sentado/Dia: ${anamnesis.daily_sitting_hours || 'Não especificado'}
 
 TAREFA:
-Com base nessas informações, forneça sugestões estruturadas para montar o treino ideal.
+Forneça sugestões para montar o treino ideal:
+
+1. FREQUÊNCIA E DURAÇÃO: Indique quantas sessões por semana e duração de cada uma
+2. RECOMENDAÇÕES (máximo 5 itens priorizados):
+   - Use 🔥 para exercícios ou grupos musculares obrigatórios
+   - Use ⚡ para ajustes de intensidade/volume
+   - Use ⚠️ para cuidados com restrições/dores
+   - Use 💡 para sugestões gerais de montagem
+
+Seja direto e prático. Priorize o mais importante.
 `;
 
     // Tool calling para JSON estruturado
@@ -84,25 +93,16 @@ Com base nessas informações, forneça sugestões estruturadas para montar o tr
           properties: {
             sessions: {
               type: "string",
-              description: "Descrição de quantas sessões semanais e como distribuir o treino (ex: '3 sessões de 50min focando em hipertrofia de membros inferiores')"
-            },
-            mandatory: {
-              type: "array",
-              items: { type: "string" },
-              description: "Lista de 3-5 exercícios ou grupos musculares obrigatórios a incluir (ex: '2 exercícios de mobilidade de quadril', 'Exercícios unilaterais para pernas')"
+              description: "Descrição de quantas sessões semanais e duração de cada uma (ex: '3 sessões de 50min por semana', '5x/semana com 45min cada')"
             },
             recommendations: {
               type: "array",
               items: { type: "string" },
-              description: "Lista de 3-5 recomendações gerais para montagem do treino (ex: 'Incluir aquecimento de 10min focado em mobilidade', 'Priorizar exercícios de baixo impacto articular')"
-            },
-            warnings: {
-              type: "array",
-              items: { type: "string" },
-              description: "Lista de avisos importantes sobre restrições do cliente (ex: 'Evitar exercícios com compressão axial', 'Atenção especial ao ombro direito')"
+              description: "Lista de até 5 recomendações priorizadas. Use ícones: 🔥 para obrigatórias (exercícios/grupos musculares essenciais), ⚡ para ajustes de intensidade/volume, ⚠️ para cuidados com restrições/dores, 💡 para sugestões gerais",
+              maxItems: 5
             }
           },
-          required: ["sessions", "mandatory", "recommendations", "warnings"],
+          required: ["sessions", "recommendations"],
           additionalProperties: false
         }
       }
@@ -181,7 +181,7 @@ Com base nessas informações, forneça sugestões estruturadas para montar o tr
         try {
           // Tentar parsear JSON do content
           const parsed = JSON.parse(content);
-          if (parsed.sessions && parsed.mandatory && parsed.recommendations && parsed.warnings) {
+          if (parsed.sessions && parsed.recommendations) {
             console.log('Sugestões extraídas do content com sucesso');
             return new Response(
               JSON.stringify(parsed),
