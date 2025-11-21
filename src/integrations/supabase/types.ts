@@ -646,59 +646,95 @@ export type Database = {
       exercises: {
         Row: {
           biomechanical_class: string | null
+          coaching_cues: string[] | null
+          common_mistakes: string[] | null
           contraindication: string | null
           created_at: string | null
           created_by: string | null
+          difficulty_progression: string[] | null
           dominant_movement: string | null
           equipment: string[] | null
           exercise_group: Database["public"]["Enums"]["exercise_group"]
+          exercise_id: string | null
           exercise_type: Database["public"]["Enums"]["exercise_type_enum"]
           id: string
           impact_level: string | null
           level: string | null
+          long_description: string | null
           name: string
           primary_muscle: string | null
           secondary_muscle: string | null
+          short_description: string | null
+          slug: string | null
+          suggested_methods: string[] | null
+          suggested_volume: Json | null
+          tags: string[] | null
+          target_audience: string[] | null
           thumbnail_url: string | null
           updated_at: string | null
+          variations: string[] | null
           video_url: string | null
         }
         Insert: {
           biomechanical_class?: string | null
+          coaching_cues?: string[] | null
+          common_mistakes?: string[] | null
           contraindication?: string | null
           created_at?: string | null
           created_by?: string | null
+          difficulty_progression?: string[] | null
           dominant_movement?: string | null
           equipment?: string[] | null
           exercise_group: Database["public"]["Enums"]["exercise_group"]
+          exercise_id?: string | null
           exercise_type?: Database["public"]["Enums"]["exercise_type_enum"]
           id?: string
           impact_level?: string | null
           level?: string | null
+          long_description?: string | null
           name: string
           primary_muscle?: string | null
           secondary_muscle?: string | null
+          short_description?: string | null
+          slug?: string | null
+          suggested_methods?: string[] | null
+          suggested_volume?: Json | null
+          tags?: string[] | null
+          target_audience?: string[] | null
           thumbnail_url?: string | null
           updated_at?: string | null
+          variations?: string[] | null
           video_url?: string | null
         }
         Update: {
           biomechanical_class?: string | null
+          coaching_cues?: string[] | null
+          common_mistakes?: string[] | null
           contraindication?: string | null
           created_at?: string | null
           created_by?: string | null
+          difficulty_progression?: string[] | null
           dominant_movement?: string | null
           equipment?: string[] | null
           exercise_group?: Database["public"]["Enums"]["exercise_group"]
+          exercise_id?: string | null
           exercise_type?: Database["public"]["Enums"]["exercise_type_enum"]
           id?: string
           impact_level?: string | null
           level?: string | null
+          long_description?: string | null
           name?: string
           primary_muscle?: string | null
           secondary_muscle?: string | null
+          short_description?: string | null
+          slug?: string | null
+          suggested_methods?: string[] | null
+          suggested_volume?: Json | null
+          tags?: string[] | null
+          target_audience?: string[] | null
           thumbnail_url?: string | null
           updated_at?: string | null
+          variations?: string[] | null
           video_url?: string | null
         }
         Relationships: []
