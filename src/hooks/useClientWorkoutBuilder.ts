@@ -487,9 +487,9 @@ export const useClientWorkoutBuilder = (clientId: string) => {
 
     if (recommendedIntensity) {
       if (
-        (recommendedIntensity.includes('baixa') && currentIntensity === 'light') ||
-        (recommendedIntensity.includes('moderada') && currentIntensity === 'balanced') ||
-        (recommendedIntensity.includes('alta') && currentIntensity === 'intense')
+        (recommendedIntensity.includes('low') && currentIntensity === 'light') ||
+        (recommendedIntensity.includes('moderate') && currentIntensity === 'balanced') ||
+        (recommendedIntensity.includes('high') && currentIntensity === 'intense')
       ) {
         aligned = true;
         message = 'Intensidade alinhada com o perfil';
