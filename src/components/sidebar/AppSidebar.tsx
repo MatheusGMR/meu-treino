@@ -1,4 +1,4 @@
-import { Home, Dumbbell, Users, Settings, LogOut, ChevronRight, Activity, ClipboardList, Crown, BarChart, Hash, Zap, Sparkles } from "lucide-react";
+import { Home, Dumbbell, Users, Settings, LogOut, ChevronRight, Activity, ClipboardList, Crown, BarChart, Hash, Zap, Sparkles, Upload } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
@@ -258,6 +258,19 @@ export const AppSidebar = () => {
                 >
                   <Sparkles className="w-4 h-4" />
                   Atualizações
+                </Button>
+              </Link>
+              <Link to="/admin/exercise-import">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "w-full justify-start gap-3",
+                    isActive("/admin/exercise-import") && "bg-sidebar-accent text-sidebar-accent-foreground"
+                  )}
+                >
+                  <Upload className="w-4 h-4" />
+                  Importar CSV
                 </Button>
               </Link>
             </CollapsibleContent>

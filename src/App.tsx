@@ -31,6 +31,7 @@ import Assignments from "./pages/admin/Assignments";
 import Users from "./pages/admin/Users";
 import UploadBodyTypeImages from "./pages/admin/UploadBodyTypeImages";
 import PendingUpdates from "./pages/admin/PendingUpdates";
+import ExerciseImport from "./pages/admin/ExerciseImport";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -274,6 +275,16 @@ const App = () => (
                 <AuthGuard>
                   <RoleGuard allowedRoles={["admin"]}>
                     <PendingUpdates />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/admin/exercise-import"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["admin"]}>
+                    <ExerciseImport />
                   </RoleGuard>
                 </AuthGuard>
               }
