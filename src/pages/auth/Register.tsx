@@ -15,7 +15,7 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [role, setRole] = useState<"client" | "personal" | "admin">("client");
+  const [role, setRole] = useState<"client" | "personal">("client");
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
@@ -29,8 +29,13 @@ const Register = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Cadastro realizado com sucesso!");
-      navigate("/dashboard");
+      if (role === "client") {
+        toast.success("Cadastro realizado! Agora queremos conhecer você melhor 😊");
+        navigate("/client/anamnesis");
+      } else {
+        toast.success("Cadastro realizado com sucesso!");
+        navigate("/dashboard");
+      }
     }
 
     setLoading(false);
@@ -106,16 +111,6 @@ const Register = () => {
                     <div>
                       <p className="font-medium">Personal Trainer</p>
                       <p className="text-xs text-muted-foreground">Gerenciar clientes e treinos</p>
-                    </div>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-accent cursor-pointer">
-                  <RadioGroupItem value="admin" id="admin" />
-                  <Label htmlFor="admin" className="flex items-center gap-2 cursor-pointer flex-1">
-                    <Crown className="w-5 h-5 text-primary" />
-                    <div>
-                      <p className="font-medium">Administrador</p>
-                      <p className="text-xs text-muted-foreground">Controle total da plataforma</p>
                     </div>
                   </Label>
                 </div>

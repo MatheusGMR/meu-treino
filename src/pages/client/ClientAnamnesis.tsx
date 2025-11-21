@@ -265,7 +265,7 @@ const ClientAnamnesis = () => {
               description="Informações sobre seu corpo atual"
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="peso">Peso (kg)</Label>
                 <Input
@@ -304,7 +304,7 @@ const ClientAnamnesis = () => {
 
             <div className="space-y-2">
               <Label>Regiões que deseja melhorar</Label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                 {["Peito", "Costas", "Ombros", "Braços", "Abdômen", "Quadríceps", "Posterior de coxa", "Glúteos", "Panturrilhas", "Mobilidade", "Postura"].map((regiao) => (
                   <div key={regiao} className="flex items-center space-x-2">
                     <Checkbox
@@ -356,7 +356,7 @@ const ClientAnamnesis = () => {
 
             <div className="space-y-2">
               <Label>Tipos de treino que já realizou</Label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                 {["Musculação", "Funcional", "Crossfit", "Corrida", "Lutas", "Pilates", "Yoga", "HIIT", "Esportes coletivos"].map((tipo) => (
                   <div key={tipo} className="flex items-center space-x-2">
                     <Checkbox
@@ -464,7 +464,7 @@ const ClientAnamnesis = () => {
 
             <div className="space-y-2">
               <Label>Problemas articulares / posturais</Label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                 {["Lombar", "Joelho", "Quadril", "Ombro", "Cervical", "Tornozelo", "Nenhum"].map((problema) => (
                   <div key={problema} className="flex items-center space-x-2">
                     <Checkbox
@@ -756,19 +756,19 @@ const ClientAnamnesis = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary via-primary-glow to-accent flex items-center justify-center p-4">
-      <Card className="w-full max-w-3xl">
-        <CardHeader className="text-center">
+    <div className="min-h-screen bg-gradient-to-br from-primary via-primary-glow to-accent flex items-center justify-center p-2 sm:p-4 md:p-6">
+      <Card className="w-full max-w-4xl shadow-2xl">
+        <CardHeader className="text-center px-4 sm:px-6 py-6">
           <div className="flex justify-center mb-4">
-            <img src={logoJmFull} alt="JM" className="h-12" />
+            <img src={logoJmFull} alt="JM" className="h-10 sm:h-12" />
           </div>
-          <CardTitle className="text-3xl">Anamnese 2.0</CardTitle>
-          <CardDescription className="text-base">
-            Precisamos conhecer você melhor para personalizar seu treino
+          <CardTitle className="text-2xl sm:text-3xl">Queremos conhecer você melhor</CardTitle>
+          <CardDescription className="text-sm sm:text-base mt-2">
+            Responda algumas perguntas para personalizarmos seu treino
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 px-4 sm:px-6 pb-6">
           <AnamnesisProgress currentStep={currentStep} totalSteps={totalSteps} />
           
           {renderStep()}

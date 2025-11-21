@@ -25,7 +25,7 @@ export const AnamnesisProgress = ({ currentStep, totalSteps }: AnamnesisProgress
           <div key={step} className="flex flex-col items-center flex-1">
             <div 
               className={cn(
-                "w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors",
+                "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold transition-colors text-sm sm:text-base",
                 currentStep === step 
                   ? "bg-primary text-primary-foreground" 
                   : currentStep > step 
@@ -33,7 +33,7 @@ export const AnamnesisProgress = ({ currentStep, totalSteps }: AnamnesisProgress
                   : "bg-muted text-muted-foreground"
               )}
             >
-              {currentStep > step ? <Check className="w-5 h-5" /> : step}
+              {currentStep > step ? <Check className="w-4 h-4 sm:w-5 sm:h-5" /> : step}
             </div>
             <span className="text-xs mt-2 text-center hidden sm:block">
               {stepLabels[step - 1]}
