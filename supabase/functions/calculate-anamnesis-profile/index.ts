@@ -20,8 +20,37 @@ interface ProfileMatch {
   confidence: number;
 }
 
+interface IMC {
+  valor: string;
+  categoria: string;
+}
+
 /**
- * Calcula scores baseado nas respostas da anamnese
+ * Calcula IMC e categoria
+ */
+function calcularIMC(peso: number | null, altura: number | null): IMC | null {
+  if (!peso || !altura || altura <= 0) return null;
+  const imc = peso / Math.pow(altura / 100, 2);
+  const categoria = 
+    imc < 18.5 ? 'Abaixo do peso' :
+    imc < 25 ? 'Peso normal' :
+    imc < 30 ? 'Sobrepeso' :
+    'Obesidade';
+  return { valor: imc.toFixed(1), categoria };
+}
+
+/**
+ * Infere nível de experiência baseado no histórico
+ */
+function inferirExperiencia(tipos: string[] | null, frequencia: string | null): string {
+  if (!tipos || tipos.length === 0) return 'Iniciante';
+  if (tipos.includes('Musculação') || tipos.includes('Crossfit')) return 'Intermediário';
+  if (tipos.includes('Pilates') || tipos.includes('Yoga')) return 'Iniciante+';
+  return 'Iniciante';
+}
+
+/**
+ * Calcula scores baseado nas respostas da anamnese (usando campos NOVOS)
  */
 function calculateDimensionScores(anamnesis: any): DimensionScore {
   const scores: DimensionScore = {
@@ -32,59 +61,94 @@ function calculateDimensionScores(anamnesis: any): DimensionScore {
     mobility: 0,
   };
 
-  // Disciplina (0-10)
-  if (anamnesis.discipline_level === 'Alta') scores.discipline += 8;
-  else if (anamnesis.discipline_level === 'Média') scores.discipline += 5;
-  else scores.discipline += 2;
+  // DISCIPLINA (0-10): alimentação + hidratação + motivação
+  let discipline = 0;
+  if (anamnesis.alimentacao === 'Boa') discipline += 3;
+  else if (anamnesis.alimentacao === 'Regular') discipline += 2;
+  else discipline += 1;
 
-  if (anamnesis.nutrition_quality === 'Boa') scores.discipline += 2;
-  else if (anamnesis.nutrition_quality === 'Regular') scores.discipline += 1;
-
-  // Resiliência (0-10)
-  if (anamnesis.handles_challenges === 'Bem') scores.resilience += 8;
-  else if (anamnesis.handles_challenges === 'Moderadamente') scores.resilience += 5;
-  else scores.resilience += 2;
-
-  if (anamnesis.activity_level === 'Muito Ativo') scores.resilience += 2;
-  else if (anamnesis.activity_level === 'Ativo') scores.resilience += 1;
-
-  // Recuperação (0-10)
-  if (anamnesis.sleep_quality === 'Boa') scores.recovery += 5;
-  else if (anamnesis.sleep_quality === 'Regular') scores.recovery += 3;
-  else scores.recovery += 1;
-
-  if (anamnesis.water_intake === 'Adequada') scores.recovery += 3;
-  else if (anamnesis.water_intake === 'Regular') scores.recovery += 2;
-  else scores.recovery += 1;
-
-  if (anamnesis.work_type === 'Sedentário' || anamnesis.daily_sitting_hours >= 8) {
-    scores.recovery -= 1;
+  if (anamnesis.consumo_agua === '2 a 3 litros' || anamnesis.consumo_agua === 'Mais de 3 litros') {
+    discipline += 2;
+  } else if (anamnesis.consumo_agua === '1 a 2 litros') {
+    discipline += 1;
   }
 
-  scores.recovery = Math.max(0, Math.min(10, scores.recovery));
+  if (anamnesis.motivacao) discipline += 2;
 
-  // Restrições (0-10, invertido: mais restrições = score menor)
-  let constraintsPenalty = 0;
-  if (anamnesis.has_joint_pain) constraintsPenalty += 3;
-  if (anamnesis.has_injury_or_surgery) constraintsPenalty += 4;
-  if (anamnesis.medical_restrictions?.length > 0) {
-    constraintsPenalty += anamnesis.medical_restrictions.length * 2;
+  scores.discipline = Math.min(10, discipline);
+
+  // RESILIÊNCIA (0-10): prioridade + prazo + motivação
+  let resilience = anamnesis.prioridade || 3; // 1-5
+  if (anamnesis.prazo === '1 mês' || anamnesis.prazo === '3 meses') resilience += 2;
+  else if (anamnesis.prazo === '6 meses') resilience += 1;
+  
+  if (anamnesis.motivacao === 'Saúde' || anamnesis.motivacao === 'Estética') resilience += 2;
+
+  scores.resilience = Math.min(10, resilience);
+
+  // RECUPERAÇÃO (0-10): sono + estresse + hidratação
+  let recovery = 5;
+  if (anamnesis.sono_horas === '7 a 8 horas' || anamnesis.sono_horas === 'Mais de 8 horas') {
+    recovery += 3;
+  } else if (anamnesis.sono_horas === '6 a 7 horas') {
+    recovery += 2;
+  } else {
+    recovery += 1;
   }
 
-  scores.constraints = Math.max(0, 10 - constraintsPenalty);
+  if (anamnesis.estresse === 'Baixo') recovery += 2;
+  else if (anamnesis.estresse === 'Moderado') recovery += 0;
+  else if (anamnesis.estresse === 'Alto' || anamnesis.estresse === 'Muito alto') recovery -= 2;
 
-  // Mobilidade (0-10)
-  if (anamnesis.activity_level === 'Muito Ativo') scores.mobility += 8;
-  else if (anamnesis.activity_level === 'Ativo') scores.mobility += 6;
-  else if (anamnesis.activity_level === 'Moderadamente Ativo') scores.mobility += 4;
-  else scores.mobility += 2;
-
-  if (anamnesis.has_joint_pain) scores.mobility -= 2;
-  if (anamnesis.time_without_training === 'Mais de 1 ano' || anamnesis.time_without_training === '6 meses a 1 ano') {
-    scores.mobility -= 1;
+  if (anamnesis.consumo_agua === '2 a 3 litros' || anamnesis.consumo_agua === 'Mais de 3 litros') {
+    recovery += 1;
   }
 
-  scores.mobility = Math.max(0, Math.min(10, scores.mobility));
+  if (anamnesis.daily_sitting_hours && anamnesis.daily_sitting_hours >= 8) {
+    recovery -= 1;
+  }
+
+  scores.recovery = Math.max(0, Math.min(10, recovery));
+
+  // RESTRIÇÕES (0-10, invertido: mais restrições = score menor)
+  let constraints = 10;
+  
+  // IMC
+  const imc = calcularIMC(anamnesis.peso_kg, anamnesis.altura_cm);
+  if (imc && parseFloat(imc.valor) > 30) constraints -= 3; // Obesidade
+  else if (imc && parseFloat(imc.valor) > 25) constraints -= 1; // Sobrepeso
+
+  // Dor
+  if (anamnesis.has_joint_pain && anamnesis.escala_dor) {
+    if (anamnesis.escala_dor >= 7) constraints -= 3;
+    else if (anamnesis.escala_dor >= 5) constraints -= 2;
+    else constraints -= 1;
+  }
+
+  // Lesão/Cirurgia
+  if (anamnesis.has_injury_or_surgery) constraints -= 3;
+
+  // Restrições médicas
+  if (anamnesis.restricao_medica === 'Sim') constraints -= 2;
+
+  scores.constraints = Math.max(0, constraints);
+
+  // MOBILIDADE (0-10): experiência + frequência + tempo parado
+  let mobility = 5;
+  const experiencia = inferirExperiencia(anamnesis.tipos_de_treino_feitos, anamnesis.frequencia_atual);
+  
+  if (experiencia === 'Intermediário') mobility += 3;
+  else if (experiencia === 'Iniciante+') mobility += 2;
+  else mobility += 1;
+
+  if (anamnesis.frequencia_atual === '0 vezes/semana' || !anamnesis.frequencia_atual) mobility -= 1;
+
+  if (anamnesis.time_without_training === 'Mais de 1 ano') mobility -= 2;
+  else if (anamnesis.time_without_training === '6 meses a 1 ano') mobility -= 1;
+
+  if (anamnesis.has_joint_pain) mobility -= 1;
+
+  scores.mobility = Math.max(0, Math.min(10, mobility));
 
   return scores;
 }
@@ -176,13 +240,23 @@ serve(async (req) => {
     const profileMatch = matchProfile(dimensionScores, profiles);
     console.log('Profile Match:', profileMatch);
 
-    // 5. Atualizar anamnese com perfil calculado
+    // 5. Calcular IMC e nível de experiência
+    const imc = calcularIMC(anamnesis.peso_kg, anamnesis.altura_cm);
+    const nivelExperiencia = inferirExperiencia(anamnesis.tipos_de_treino_feitos, anamnesis.frequencia_atual);
+    console.log('IMC:', imc);
+    console.log('Nível Experiência:', nivelExperiencia);
+
+    // 6. Atualizar anamnese com perfil calculado + dados persistidos
     const { error: updateError } = await supabase
       .from('anamnesis')
       .update({
         calculated_profile: profileMatch.profileName,
         dimension_scores: dimensionScores,
         profile_confidence_score: profileMatch.confidence,
+        imc_calculado: imc ? parseFloat(imc.valor) : null,
+        imc_categoria: imc?.categoria || null,
+        nivel_experiencia: nivelExperiencia,
+        calculated_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq('client_id', clientId);
@@ -191,7 +265,7 @@ serve(async (req) => {
       throw new Error(`Erro ao atualizar anamnese: ${updateError.message}`);
     }
 
-    // 6. Atualizar profile com nome do perfil
+    // 7. Atualizar profile com nome do perfil
     const { error: profileUpdateError } = await supabase
       .from('profiles')
       .update({
@@ -211,6 +285,8 @@ serve(async (req) => {
         profile: profileMatch.profileName,
         confidence: profileMatch.confidence,
         dimensionScores,
+        imc,
+        nivelExperiencia,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

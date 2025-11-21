@@ -17,6 +17,7 @@ interface ClientProfileCardProps {
     level: 'high' | 'moderate';
     message: string;
   } | null;
+  clientAnamnesis?: any;
 }
 
 export const ClientProfileCard = ({ 
@@ -29,14 +30,56 @@ export const ClientProfileCard = ({
   restrictions,
   stress,
   sleep,
-  fatigueAlert
+  fatigueAlert,
+  clientAnamnesis
 }: ClientProfileCardProps) => {
+  // Calcular IMC (priorizar dados persistidos)
+  const calcularIMC = () => {
+    if (clientAnamnesis?.imc_calculado && clientAnamnesis?.imc_categoria) {
+      return {
+        valor: clientAnamnesis.imc_calculado.toFixed(1),
+        categoria: clientAnamnesis.imc_categoria
+      };
+    }
+    
+    if (clientAnamnesis?.peso_kg && clientAnamnesis?.altura_cm) {
+      const peso = clientAnamnesis.peso_kg;
+      const altura = clientAnamnesis.altura_cm;
+      const imc = peso / Math.pow(altura / 100, 2);
+      const categoria = 
+        imc < 18.5 ? 'Abaixo do peso' :
+        imc < 25 ? 'Peso normal' :
+        imc < 30 ? 'Sobrepeso' : 'Obesidade';
+      return { valor: imc.toFixed(1), categoria };
+    }
+    
+    return null;
+  };
+
+  const imc = calcularIMC();
+
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-sm">Perfil do Cliente</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 text-xs">
+        {/* IMC e Nível */}
+        {imc && (
+          <div className="space-y-1 pb-2 border-b">
+            <div className="flex items-center gap-2">
+              <Activity className="w-3.5 h-3.5 text-primary" />
+              <span className="font-medium">Composição:</span>
+            </div>
+            <p className="text-muted-foreground pl-5">
+              IMC: {imc.valor} ({imc.categoria})
+              {clientAnamnesis?.nivel_experiencia && (
+                <> • {clientAnamnesis.nivel_experiencia}</>
+              )}
+            </p>
+          </div>
+        )}
+
         {/* Objetivos */}
         <div className="space-y-1">
           <div className="flex items-center gap-2">
