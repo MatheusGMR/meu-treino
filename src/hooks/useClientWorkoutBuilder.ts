@@ -133,6 +133,89 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     };
   }, [tempWorkout, exercisesData]);
 
+  // Análise de impacto dos exercícios
+  const impactAnalysis = useMemo(() => {
+    if (tempWorkout.sessions.length === 0 || !exercisesData) {
+      return {
+        distribution: { Baixo: 0, Médio: 0, Alto: 0 },
+        totalExercises: 0,
+        overallIntensity: 'balanced' as 'light' | 'balanced' | 'intense',
+        warnings: [] as string[],
+        score: 0,
+      };
+    }
+
+    const exerciseMap = new Map(exercisesData.map(ex => [ex.id, ex]));
+    
+    const impactCounts = { Baixo: 0, Médio: 0, Alto: 0 };
+    let totalExercises = 0;
+
+    tempWorkout.sessions.forEach((session) => {
+      session.exercises.forEach((ex) => {
+        const exerciseData = exerciseMap.get(ex.exercise_id);
+        if (exerciseData?.impact_level) {
+          impactCounts[exerciseData.impact_level as keyof typeof impactCounts]++;
+          totalExercises++;
+        }
+      });
+    });
+
+    // Calcular percentuais
+    const distribution = {
+      Baixo: totalExercises > 0 ? (impactCounts.Baixo / totalExercises) * 100 : 0,
+      Médio: totalExercises > 0 ? (impactCounts.Médio / totalExercises) * 100 : 0,
+      Alto: totalExercises > 0 ? (impactCounts.Alto / totalExercises) * 100 : 0,
+    };
+
+    // Calcular score (1 = leve, 2 = médio, 3 = intenso)
+    const score = totalExercises > 0
+      ? ((impactCounts.Baixo * 1) + (impactCounts.Médio * 2) + (impactCounts.Alto * 3)) / totalExercises
+      : 0;
+
+    // Determinar intensidade geral
+    let overallIntensity: 'light' | 'balanced' | 'intense';
+    if (score < 1.7) {
+      overallIntensity = 'light';
+    } else if (score > 2.3) {
+      overallIntensity = 'intense';
+    } else {
+      overallIntensity = 'balanced';
+    }
+
+    // Gerar warnings
+    const warnings: string[] = [];
+    
+    if (distribution.Alto > 50) {
+      warnings.push('⚡ Treino com alta intensidade - verifique a recuperação do cliente');
+    }
+    
+    if (distribution.Alto > 70) {
+      warnings.push('🔥 Treino muito intenso - risco de sobrecarga');
+    }
+    
+    if (distribution.Baixo > 70) {
+      warnings.push('💤 Treino com baixa intensidade - pode não gerar estímulo suficiente');
+    }
+    
+    // Considerar nível de atividade do cliente
+    const activityLevel = anamnesisData?.anamnesis?.activity_level;
+    if (activityLevel === 'Sedentário' && distribution.Alto > 30) {
+      warnings.push('⚠️ Cliente sedentário com muitos exercícios de alto impacto');
+    }
+    
+    if (activityLevel === 'Muito Ativo' && distribution.Baixo > 50) {
+      warnings.push('💡 Cliente muito ativo - considere aumentar a intensidade');
+    }
+
+    return {
+      distribution,
+      totalExercises,
+      overallIntensity,
+      warnings,
+      score: Math.round(score * 10) / 10,
+    };
+  }, [tempWorkout, exercisesData, anamnesisData]);
+
   const compatibility = healthCheck.data || {
     compatible: true,
     warnings: [],
@@ -364,6 +447,7 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     acknowledgeRisks,
     setAcknowledgeRisks,
     muscleAnalysis,
+    impactAnalysis,
     compatibility,
     estimatedTime,
     weeklyVolume,
