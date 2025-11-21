@@ -10,6 +10,7 @@ import { ImpactAnalysisMeter } from "./ImpactAnalysisMeter";
 import { HealthAlertPanel } from "./HealthAlertPanel";
 import { ClientHealthSummary } from "./ClientHealthSummary";
 import { WorkoutQualityIndicators } from "./WorkoutQualityIndicators";
+import { ProfileAlignmentCard } from "./ProfileAlignmentCard";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SessionCard } from "./SessionCard";
@@ -336,6 +337,22 @@ export const WorkoutBuilder = ({
               activityLevel={builder.clientAnamnesis?.activity_level}
             />
 
+            <ProfileAlignmentCard
+              profileName={builder.anamnesisProfile?.name || null}
+              volumeStatus={builder.weeklyVolume.status}
+              volumePercentage={builder.weeklyVolume.percentage}
+              intensityAligned={builder.intensityCheck?.aligned || false}
+              currentIntensity={
+                builder.impactAnalysis.overallIntensity === 'light' ? 'Leve' :
+                builder.impactAnalysis.overallIntensity === 'balanced' ? 'Balanceado' :
+                'Intenso'
+              }
+              recommendedIntensity={builder.intensityCheck?.recommended || null}
+              goalAlignment={builder.goalAlignment?.percentage || 0}
+              primaryGoal={builder.goalAlignment?.primaryGoal || null}
+              riskFactors={builder.profileRisks.factors}
+            />
+
             <MuscleImpactMeter
               muscleGroups={builder.muscleAnalysis.muscleGroups}
               totalExercises={builder.muscleAnalysis.totalExercises}
@@ -358,6 +375,7 @@ export const WorkoutBuilder = ({
               recommendations={builder.compatibility.recommendations}
               acknowledgeRisks={builder.acknowledgeRisks}
               onAcknowledgeChange={builder.setAcknowledgeRisks}
+              profileRiskFactors={builder.profileRisks.factors}
             />
 
             <WorkoutQualityIndicators
@@ -365,9 +383,15 @@ export const WorkoutBuilder = ({
               muscleGroupsCount={builder.muscleAnalysis.muscleGroups.length}
               isBalanced={builder.muscleAnalysis.isBalanced}
               overallIntensity={builder.impactAnalysis.overallIntensity}
+              profileAligned={
+                builder.weeklyVolume.status === 'optimal' &&
+                (builder.intensityCheck?.aligned || false) &&
+                (builder.goalAlignment?.aligned || false)
+              }
+              profileName={builder.anamnesisProfile?.name}
             />
 
-            {/* Volume Semanal */}
+            {/* Volume Semanal com Benchmark */}
             <Card className="p-4">
               <h4 className="font-semibold text-sm mb-3">Volume Semanal</h4>
               <div className="space-y-2">
@@ -375,6 +399,38 @@ export const WorkoutBuilder = ({
                   <span className="text-muted-foreground">Total de séries:</span>
                   <span className="font-medium">{builder.weeklyVolume.totalSets}</span>
                 </div>
+                
+                {builder.weeklyVolume.benchmark && builder.weeklyVolume.status && (
+                  <div className="space-y-2 pt-2 border-t">
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full transition-all ${
+                          builder.weeklyVolume.status === 'optimal' ? 'bg-green-500' :
+                          builder.weeklyVolume.status === 'below' ? 'bg-blue-500' :
+                          builder.weeklyVolume.status === 'above' ? 'bg-yellow-500' :
+                          'bg-red-500'
+                        }`}
+                        style={{ 
+                          width: `${Math.min((builder.weeklyVolume.percentage || 0), 150)}%` 
+                        }}
+                      />
+                    </div>
+                    <p className={`text-xs ${
+                      builder.weeklyVolume.status === 'optimal' ? 'text-green-600' :
+                      builder.weeklyVolume.status === 'below' ? 'text-blue-600' :
+                      builder.weeklyVolume.status === 'above' ? 'text-yellow-600' :
+                      'text-red-600'
+                    }`}>
+                      {builder.weeklyVolume.message}
+                    </p>
+                    <div className="text-xs text-muted-foreground">
+                      Recomendado: {builder.weeklyVolume.benchmark.min}-{builder.weeklyVolume.benchmark.max} séries
+                      {' | '}
+                      Ótimo: {builder.weeklyVolume.benchmark.optimal} séries
+                    </div>
+                  </div>
+                )}
+
                 {builder.weeklyVolume.setsPerMuscle.length > 0 && (
                   <div className="space-y-1 pt-2 border-t">
                     <p className="text-xs text-muted-foreground mb-1">Por grupo muscular:</p>
@@ -409,8 +465,22 @@ export const WorkoutBuilder = ({
                   <span className="text-muted-foreground">Tempo estimado:</span>
                   <span className="font-medium">{builder.estimatedTime}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Status:</span>
+                {builder.goalAlignment && (
+                  <div className="flex justify-between items-center pt-1 border-t">
+                    <span className="text-muted-foreground">Objetivo principal:</span>
+                    <Badge variant={builder.goalAlignment.aligned ? "default" : "destructive"}>
+                      {builder.goalAlignment.primaryGoal}
+                    </Badge>
+                  </div>
+                )}
+                {builder.goalAlignment && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Alinhamento:</span>
+                    <span className="font-medium">{builder.goalAlignment.percentage.toFixed(0)}%</span>
+                  </div>
+                )}
+                <div className="flex justify-between pt-1 border-t">
+                  <span className="text-muted-foreground">Equilíbrio:</span>
                   <Badge variant={builder.muscleAnalysis.isBalanced ? "default" : "destructive"}>
                     {builder.muscleAnalysis.isBalanced ? "Balanceado" : "Requer atenção"}
                   </Badge>

@@ -27,6 +27,7 @@ interface HealthAlertPanelProps {
   recommendations: string[];
   acknowledgeRisks: boolean;
   onAcknowledgeChange: (value: boolean) => void;
+  profileRiskFactors?: string[];
 }
 
 const RISK_LEVEL_CONFIG = {
@@ -63,6 +64,7 @@ export const HealthAlertPanel = ({
   recommendations,
   acknowledgeRisks,
   onAcknowledgeChange,
+  profileRiskFactors = [],
 }: HealthAlertPanelProps) => {
   const config = RISK_LEVEL_CONFIG[riskLevel];
   const Icon = config.icon;
@@ -164,7 +166,7 @@ export const HealthAlertPanel = ({
       </AnimatePresence>
 
       <AnimatePresence>
-        {recommendations.length > 0 && (
+        {(recommendations.length > 0 || profileRiskFactors.length > 0) && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
@@ -186,6 +188,19 @@ export const HealthAlertPanel = ({
                   >
                     <span className="absolute left-0">•</span>
                     {rec}
+                  </motion.p>
+                ))}
+                {profileRiskFactors.slice(0, 2).map((factor, idx) => (
+                  <motion.p
+                    key={`profile-${factor}-${idx}`}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    transition={{ duration: 0.2, delay: (recommendations.length + idx) * 0.05 }}
+                    className="text-xs text-muted-foreground pl-4 relative"
+                  >
+                    <span className="absolute left-0">⚠️</span>
+                    <span className="ml-3">Perfil: {factor}</span>
                   </motion.p>
                 ))}
               </AnimatePresence>
