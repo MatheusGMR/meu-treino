@@ -18,36 +18,65 @@ export type Database = {
         Row: {
           activity_level: string | null
           age: number | null
+          alcool_cigarro: string | null
+          alimentacao: string | null
+          altura_cm: number | null
+          autoimagem: string | null
           calculated_profile: string | null
+          cirurgias: string | null
           client_id: string
+          comentarios_finais: string | null
           completed_at: string | null
+          consumo_agua: string | null
+          contato: string | null
           created_at: string | null
           current_body_type: number | null
           daily_sitting_hours: number | null
           desired_body_type: number | null
           dimension_scores: Json | null
           discipline_level: string | null
+          escala_dor: number | null
+          estresse: string | null
+          evento_especifico: string | null
+          frequencia_atual: string | null
           gender: string | null
           handles_challenges: string | null
           has_children: boolean | null
           has_injury_or_surgery: boolean | null
           has_joint_pain: boolean | null
+          horario_preferido: string | null
           id: string
           injury_details: string | null
           injury_type: string | null
+          lesoes: string | null
+          liberacao_medica: string | null
+          local_treino: string | null
           medical_restrictions: string[] | null
           medical_restrictions_details: string | null
+          motivacao: string | null
           nutrition_quality: string | null
+          objetivo_secundario: string | null
           pain_details: string | null
           pain_locations: string[] | null
+          peso_kg: number | null
+          prazo: string | null
+          preferencia_instrucao: string | null
           previous_weight_training: boolean | null
           primary_goal: string | null
+          prioridade: number | null
           profession: string | null
           profile_confidence_score: number | null
+          regioes_que_deseja_melhorar: string[] | null
+          restricao_medica: string | null
           secondary_goals: string[] | null
           sleep_quality: string | null
+          sono_horas: string | null
+          tempo_disponivel: string | null
           time_without_training: string | null
+          tipo_treino_preferido: string | null
+          tipos_de_treino_feitos: string[] | null
           training_location: string | null
+          treina_atualmente: boolean | null
           updated_at: string | null
           wants_personalized_plan: boolean | null
           water_intake: string | null
@@ -58,36 +87,65 @@ export type Database = {
         Insert: {
           activity_level?: string | null
           age?: number | null
+          alcool_cigarro?: string | null
+          alimentacao?: string | null
+          altura_cm?: number | null
+          autoimagem?: string | null
           calculated_profile?: string | null
+          cirurgias?: string | null
           client_id: string
+          comentarios_finais?: string | null
           completed_at?: string | null
+          consumo_agua?: string | null
+          contato?: string | null
           created_at?: string | null
           current_body_type?: number | null
           daily_sitting_hours?: number | null
           desired_body_type?: number | null
           dimension_scores?: Json | null
           discipline_level?: string | null
+          escala_dor?: number | null
+          estresse?: string | null
+          evento_especifico?: string | null
+          frequencia_atual?: string | null
           gender?: string | null
           handles_challenges?: string | null
           has_children?: boolean | null
           has_injury_or_surgery?: boolean | null
           has_joint_pain?: boolean | null
+          horario_preferido?: string | null
           id?: string
           injury_details?: string | null
           injury_type?: string | null
+          lesoes?: string | null
+          liberacao_medica?: string | null
+          local_treino?: string | null
           medical_restrictions?: string[] | null
           medical_restrictions_details?: string | null
+          motivacao?: string | null
           nutrition_quality?: string | null
+          objetivo_secundario?: string | null
           pain_details?: string | null
           pain_locations?: string[] | null
+          peso_kg?: number | null
+          prazo?: string | null
+          preferencia_instrucao?: string | null
           previous_weight_training?: boolean | null
           primary_goal?: string | null
+          prioridade?: number | null
           profession?: string | null
           profile_confidence_score?: number | null
+          regioes_que_deseja_melhorar?: string[] | null
+          restricao_medica?: string | null
           secondary_goals?: string[] | null
           sleep_quality?: string | null
+          sono_horas?: string | null
+          tempo_disponivel?: string | null
           time_without_training?: string | null
+          tipo_treino_preferido?: string | null
+          tipos_de_treino_feitos?: string[] | null
           training_location?: string | null
+          treina_atualmente?: boolean | null
           updated_at?: string | null
           wants_personalized_plan?: boolean | null
           water_intake?: string | null
@@ -98,36 +156,65 @@ export type Database = {
         Update: {
           activity_level?: string | null
           age?: number | null
+          alcool_cigarro?: string | null
+          alimentacao?: string | null
+          altura_cm?: number | null
+          autoimagem?: string | null
           calculated_profile?: string | null
+          cirurgias?: string | null
           client_id?: string
+          comentarios_finais?: string | null
           completed_at?: string | null
+          consumo_agua?: string | null
+          contato?: string | null
           created_at?: string | null
           current_body_type?: number | null
           daily_sitting_hours?: number | null
           desired_body_type?: number | null
           dimension_scores?: Json | null
           discipline_level?: string | null
+          escala_dor?: number | null
+          estresse?: string | null
+          evento_especifico?: string | null
+          frequencia_atual?: string | null
           gender?: string | null
           handles_challenges?: string | null
           has_children?: boolean | null
           has_injury_or_surgery?: boolean | null
           has_joint_pain?: boolean | null
+          horario_preferido?: string | null
           id?: string
           injury_details?: string | null
           injury_type?: string | null
+          lesoes?: string | null
+          liberacao_medica?: string | null
+          local_treino?: string | null
           medical_restrictions?: string[] | null
           medical_restrictions_details?: string | null
+          motivacao?: string | null
           nutrition_quality?: string | null
+          objetivo_secundario?: string | null
           pain_details?: string | null
           pain_locations?: string[] | null
+          peso_kg?: number | null
+          prazo?: string | null
+          preferencia_instrucao?: string | null
           previous_weight_training?: boolean | null
           primary_goal?: string | null
+          prioridade?: number | null
           profession?: string | null
           profile_confidence_score?: number | null
+          regioes_que_deseja_melhorar?: string[] | null
+          restricao_medica?: string | null
           secondary_goals?: string[] | null
           sleep_quality?: string | null
+          sono_horas?: string | null
+          tempo_disponivel?: string | null
           time_without_training?: string | null
+          tipo_treino_preferido?: string | null
+          tipos_de_treino_feitos?: string[] | null
           training_location?: string | null
+          treina_atualmente?: boolean | null
           updated_at?: string | null
           wants_personalized_plan?: boolean | null
           water_intake?: string | null
