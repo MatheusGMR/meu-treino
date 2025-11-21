@@ -75,8 +75,12 @@ export const WorkoutBuilder = ({
   };
 
   const handleSubmit = async () => {
-    await builder.submit();
-    onSuccess();
+    try {
+      await builder.submit();
+      onSuccess();
+    } catch (error) {
+      console.error("Erro ao criar treino:", error);
+    }
   };
 
   if (!currentSession) {

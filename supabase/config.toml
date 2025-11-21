@@ -1,5 +1,8 @@
 project_id = "halfhlgkutibalmuuohx"
 
+[functions.create-workout-and-assign]
+verify_jwt = true
+
 [functions.schedule-workout-sessions]
 verify_jwt = true
 
