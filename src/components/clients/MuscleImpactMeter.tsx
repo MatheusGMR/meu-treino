@@ -39,10 +39,20 @@ export const MuscleImpactMeter = ({
 }: MuscleImpactMeterProps) => {
   if (totalExercises === 0) {
     return (
-      <Card className="p-4">
-        <p className="text-sm text-muted-foreground text-center">
-          Adicione exercícios para ver o impacto muscular
-        </p>
+      <Card className="p-4 border-dashed">
+        <div className="text-center space-y-3 py-4">
+          <div className="flex justify-center">
+            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+              <AlertCircle className="w-6 h-6 text-muted-foreground" />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Nenhum exercício adicionado</p>
+            <p className="text-xs text-muted-foreground">
+              Adicione sessões e exercícios para ver a análise muscular em tempo real
+            </p>
+          </div>
+        </div>
       </Card>
     );
   }

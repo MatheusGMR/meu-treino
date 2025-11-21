@@ -29,9 +29,15 @@ export const ProfileAlignmentCard = ({
   if (!profileName) {
     return (
       <Card className="p-4">
-        <div className="flex items-center gap-2 text-muted-foreground text-sm">
-          <Info className="w-4 h-4" />
-          <p>Perfil de anamnese não disponível</p>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-amber-600">
+            <AlertTriangle className="w-4 h-4" />
+            <p className="text-sm font-medium">Perfil não calculado</p>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            O perfil de anamnese ainda não foi processado para este cliente. 
+            Entre em contato com o administrador para recalcular os perfis.
+          </p>
         </div>
       </Card>
     );

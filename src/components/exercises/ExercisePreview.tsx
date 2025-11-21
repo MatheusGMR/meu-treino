@@ -5,6 +5,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { AlertTriangle } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Exercise = Database["public"]["Tables"]["exercises"]["Row"];
@@ -104,6 +105,31 @@ export const ExercisePreview = ({
             </div>
           )}
 
+          {/* Status Badges */}
+          <div className="flex gap-2 flex-wrap">
+            {exercise.is_new && (
+              <Badge variant="secondary" className="text-xs">✨ Novo</Badge>
+            )}
+            {exercise.confidence_score && (
+              <Badge variant="outline" className="text-xs">
+                Confiança: {(exercise.confidence_score * 100).toFixed(0)}%
+              </Badge>
+            )}
+            {exercise.review_status === 'pending' && (
+              <Badge variant="destructive" className="text-xs">⏳ Pendente Revisão</Badge>
+            )}
+          </div>
+
+          {/* Descrição */}
+          {(exercise.short_description || exercise.long_description) && (
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">Descrição</p>
+              <p className="text-sm">
+                {exercise.short_description || exercise.long_description}
+              </p>
+            </div>
+          )}
+
           {exercise.equipment && exercise.equipment.length > 0 && (
             <div>
               <p className="text-sm text-muted-foreground mb-2">Equipamentos Necessários</p>
@@ -113,6 +139,56 @@ export const ExercisePreview = ({
                     {eq}
                   </Badge>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Dicas de Execução */}
+          {exercise.coaching_cues && exercise.coaching_cues.length > 0 && (
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">Dicas de Execução</p>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                {exercise.coaching_cues.map((cue: string, idx: number) => (
+                  <li key={idx} className="text-muted-foreground">{cue}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Erros Comuns */}
+          {exercise.common_mistakes && exercise.common_mistakes.length > 0 && (
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">Erros Comuns</p>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                {exercise.common_mistakes.map((mistake: string, idx: number) => (
+                  <li key={idx} className="text-amber-600 text-xs">{mistake}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Variações */}
+          {exercise.variations && exercise.variations.length > 0 && (
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">Variações</p>
+              <div className="flex gap-2 flex-wrap">
+                {exercise.variations.map((variation: string, idx: number) => (
+                  <Badge key={idx} variant="outline" className="text-xs">
+                    {variation}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Volume Sugerido */}
+          {exercise.suggested_volume && (
+            <div className="border-t pt-4">
+              <p className="text-sm font-semibold mb-2">Configuração Recomendada</p>
+              <div className="bg-muted p-3 rounded-lg">
+                <pre className="text-xs overflow-auto whitespace-pre-wrap">
+                  {JSON.stringify(exercise.suggested_volume, null, 2)}
+                </pre>
               </div>
             </div>
           )}
@@ -132,9 +208,18 @@ export const ExercisePreview = ({
           )}
 
           {exercise.contraindication && (
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">Contraindicação</p>
-              <p className="text-sm bg-destructive/10 p-3 rounded-lg">{exercise.contraindication}</p>
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-destructive mb-1">
+                    Contraindicação
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {exercise.contraindication}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </div>

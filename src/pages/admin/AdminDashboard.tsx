@@ -4,13 +4,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
-import { Users, UserPlus, BarChart3, Sparkles, Settings } from "lucide-react";
+import { Users, UserPlus, BarChart3, Sparkles, Settings, RefreshCw } from "lucide-react";
 import { usePendingUpdates } from "@/hooks/usePendingUpdates";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 export default function AdminDashboard() {
   const { data: pendingUpdates } = usePendingUpdates();
+  const [isRecalculating, setIsRecalculating] = useState(false);
   
   const { data: newItemsCount } = useQuery({
     queryKey: ["new-items-count"],
@@ -29,6 +32,71 @@ export default function AdminDashboard() {
       };
     },
   });
+
+  const recalculateAnamnesisProfiles = async () => {
+    setIsRecalculating(true);
+    
+    try {
+      // Buscar todos os clientes com anamnese concluída
+      const { data: clients, error: clientsError } = await supabase
+        .from("anamnesis")
+        .select("client_id")
+        .not("completed_at", "is", null);
+
+      if (clientsError) throw clientsError;
+
+      if (!clients || clients.length === 0) {
+        toast({
+          title: "Nenhum cliente para recalcular",
+          description: "Não há clientes com anamnese concluída",
+        });
+        return;
+      }
+
+      toast({
+        title: "Iniciando recálculo",
+        description: `Processando ${clients.length} cliente(s)...`,
+      });
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      // Processar cada cliente
+      for (const client of clients) {
+        try {
+          const { error } = await supabase.functions.invoke('calculate-anamnesis-profile', {
+            body: { clientId: client.client_id },
+          });
+
+          if (error) {
+            console.error(`Erro ao calcular perfil do cliente ${client.client_id}:`, error);
+            errorCount++;
+          } else {
+            successCount++;
+          }
+        } catch (error) {
+          console.error(`Erro ao processar cliente ${client.client_id}:`, error);
+          errorCount++;
+        }
+      }
+
+      toast({
+        title: "Recálculo concluído",
+        description: `✅ ${successCount} perfis calculados com sucesso. ${errorCount > 0 ? `❌ ${errorCount} erros.` : ''}`,
+        variant: errorCount > 0 ? "destructive" : "default",
+      });
+
+    } catch (error) {
+      console.error("Erro ao recalcular perfis:", error);
+      toast({
+        title: "Erro ao recalcular",
+        description: error instanceof Error ? error.message : "Erro desconhecido",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRecalculating(false);
+    }
+  };
 
   return (
     <AppLayout>
@@ -146,6 +214,14 @@ export default function AdminDashboard() {
             <CardDescription>Acesso rápido às funcionalidades mais utilizadas</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
+            <Button 
+              variant="outline" 
+              onClick={recalculateAnamnesisProfiles}
+              disabled={isRecalculating}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isRecalculating ? 'animate-spin' : ''}`} />
+              {isRecalculating ? 'Recalculando...' : 'Recalcular Perfis de Anamnese'}
+            </Button>
             <Button variant="outline" asChild>
               <Link to="/admin/users">
                 <Settings className="mr-2 h-4 w-4" />

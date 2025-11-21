@@ -67,7 +67,12 @@ export const useClientWorkoutBuilder = (clientId: string) => {
 
   // Análise muscular para treino temporário
   const muscleAnalysis = useMemo(() => {
-    if (tempWorkout.sessions.length === 0 || !exercisesData) {
+    // DEBUG: Log para troubleshooting
+    console.log('🔍 [Muscle Analysis] tempWorkout:', tempWorkout);
+    console.log('🔍 [Muscle Analysis] exercisesData:', exercisesData);
+    
+    if (tempWorkout.sessions.length === 0 || !exercisesData || exercisesData.length === 0) {
+      console.log('⚠️ [Muscle Analysis] Returning empty - no sessions or exercises data');
       return {
         muscleGroups: [],
         totalExercises: 0,
@@ -111,6 +116,9 @@ export const useClientWorkoutBuilder = (clientId: string) => {
       percentage: totalExercises > 0 ? (data.count / totalExercises) * 100 : 0,
       exercises: data.exercises,
     }));
+
+    // DEBUG: Log final result
+    console.log('✅ [Muscle Analysis] Result:', { totalExercises, muscleGroupsCount: muscleGroups.length });
 
     const warnings: string[] = [];
     
