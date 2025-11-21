@@ -31,12 +31,10 @@ export const SessionEditorInline = ({
   onRemove,
 }: SessionEditorInlineProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isAddingExercise, setIsAddingExercise] = useState(false);
 
   const handleAddExercise = (newExercise: SessionExerciseData) => {
     const updatedExercises = [...session.exercises, newExercise];
     onUpdate({ ...session, exercises: updatedExercises });
-    setIsAddingExercise(false);
   };
 
   const handleRemoveExercise = (index: number) => {
@@ -115,49 +113,33 @@ export const SessionEditorInline = ({
 
                   {/* Exercise Rows */}
                   <div className="space-y-1">
-                    {session.exercises.length === 0 ? (
-                      <p className="text-xs text-muted-foreground italic py-4 text-center">
-                        Nenhum exercício adicionado ainda
+                    {session.exercises.map((exercise, idx) => (
+                      exercise.exercise_id && exercise.volume_id && exercise.method_id && (
+                        <InlineExerciseRow
+                          key={idx}
+                          exercise={{
+                            exercise_id: exercise.exercise_id,
+                            volume_id: exercise.volume_id,
+                            method_id: exercise.method_id,
+                            order_index: exercise.order_index || idx
+                          }}
+                          onRemove={() => handleRemoveExercise(idx)}
+                        />
+                      )
+                    ))}
+
+                    {session.exercises.length === 0 && (
+                      <p className="text-xs text-muted-foreground italic py-2 px-2">
+                        Use os campos abaixo para adicionar exercícios
                       </p>
-                    ) : (
-                      session.exercises.map((exercise, idx) => (
-                        exercise.exercise_id && exercise.volume_id && exercise.method_id && (
-                          <InlineExerciseRow
-                            key={idx}
-                            exercise={{
-                              exercise_id: exercise.exercise_id,
-                              volume_id: exercise.volume_id,
-                              method_id: exercise.method_id,
-                              order_index: exercise.order_index || idx
-                            }}
-                            onRemove={() => handleRemoveExercise(idx)}
-                          />
-                        )
-                      ))
                     )}
 
-                    {/* Adding New Exercise */}
-                    {isAddingExercise && (
-                      <InlineExerciseAdder
-                        onSave={handleAddExercise}
-                        onCancel={() => setIsAddingExercise(false)}
-                        orderIndex={session.exercises.length}
-                      />
-                    )}
+                    <InlineExerciseAdder
+                      onSave={handleAddExercise}
+                      onCancel={() => {}}
+                      orderIndex={session.exercises.length}
+                    />
                   </div>
-
-                  {/* Add Exercise Button */}
-                  {!isAddingExercise && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsAddingExercise(true)}
-                      className="w-full mt-2"
-                    >
-                      <Plus className="w-4 h-4 mr-1" />
-                      Adicionar Exercício
-                    </Button>
-                  )}
                 </div>
 
                 {/* Analysis Panel - Side by side */}

@@ -50,10 +50,21 @@ export function InlineExerciseAdder({ onSave, onCancel, orderIndex }: InlineExer
   });
 
   const canSelectSubcategory = !!exerciseType;
-  const canSelectExercise = !!subcategory && !!filteredExercises && filteredExercises.length > 0;
+  const canSelectExercise = !!subcategory;
+  const hasExerciseOptions = filteredExercises && filteredExercises.length > 0;
   const canSelectVolume = !!exerciseId;
   const canSelectMethod = !!volumeId;
   const isComplete = !!methodId;
+
+  useEffect(() => {
+    if (exerciseType && subcategory && (!filteredExercises || filteredExercises.length === 0)) {
+      console.log('Nenhum exercício encontrado para:', {
+        tipo: exerciseType,
+        grupo: subcategory,
+        totalExercicios: allExercises?.length
+      });
+    }
+  }, [exerciseType, subcategory, filteredExercises, allExercises]);
 
   const getSubcategoryOptions = () => {
     switch (exerciseType) {
@@ -104,7 +115,21 @@ export function InlineExerciseAdder({ onSave, onCancel, orderIndex }: InlineExer
         method_id: methodId,
         order_index: orderIndex,
       });
+      // Limpar os campos para próxima adição
+      setExerciseType("");
+      setSubcategory("");
+      setExerciseId("");
+      setVolumeId("");
+      setMethodId("");
     }
+  };
+
+  const handleCancel = () => {
+    setExerciseType("");
+    setSubcategory("");
+    setExerciseId("");
+    setVolumeId("");
+    setMethodId("");
   };
 
   return (
@@ -158,14 +183,24 @@ export function InlineExerciseAdder({ onSave, onCancel, orderIndex }: InlineExer
           disabled={!canSelectExercise}
         >
           <SelectTrigger className="h-8 text-xs" disabled={!canSelectExercise}>
-            <SelectValue placeholder="Exercício" />
+            <SelectValue placeholder={
+              !subcategory ? "Exercício" : 
+              !hasExerciseOptions ? "Sem exercícios" : 
+              "Exercício"
+            } />
           </SelectTrigger>
           <SelectContent>
-            {filteredExercises?.map(ex => (
-              <SelectItem key={ex.id} value={ex.id}>
-                {ex.name}
-              </SelectItem>
-            ))}
+            {!hasExerciseOptions ? (
+              <div className="p-2 text-xs text-muted-foreground">
+                Nenhum exercício encontrado para {exerciseType} - {subcategory}
+              </div>
+            ) : (
+              filteredExercises?.map(ex => (
+                <SelectItem key={ex.id} value={ex.id}>
+                  {ex.name}
+                </SelectItem>
+              ))
+            )}
           </SelectContent>
         </Select>
       </div>
@@ -217,7 +252,7 @@ export function InlineExerciseAdder({ onSave, onCancel, orderIndex }: InlineExer
             <Check className="w-4 h-4 text-green-600" />
           </Button>
         ) : (
-          <Button onClick={onCancel} size="icon" variant="ghost" className="h-7 w-7">
+          <Button onClick={handleCancel} size="icon" variant="ghost" className="h-7 w-7">
             <X className="w-4 h-4 text-muted-foreground" />
           </Button>
         )}
