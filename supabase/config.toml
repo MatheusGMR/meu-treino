@@ -26,3 +26,6 @@ verify_jwt = true
 
 [functions.research-updates]
 verify_jwt = false
+
+[functions.import-exercises-csv]
+verify_jwt = true
