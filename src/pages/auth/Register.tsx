@@ -33,32 +33,15 @@ const Register = () => {
       return;
     }
 
-    // Aguardar a sessão ser estabelecida
-    const maxAttempts = 10;
-    let attempts = 0;
+    setLoading(false);
     
-    const waitForSession = setInterval(async () => {
-      attempts++;
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        clearInterval(waitForSession);
-        setLoading(false);
-        
-        if (role === "client") {
-          toast.success("Cadastro realizado! Agora queremos conhecer você melhor 😊");
-          navigate("/client/anamnesis");
-        } else {
-          toast.success("Cadastro realizado com sucesso!");
-          navigate("/dashboard");
-        }
-      } else if (attempts >= maxAttempts) {
-        clearInterval(waitForSession);
-        setLoading(false);
-        toast.error("Erro ao estabelecer sessão. Tente fazer login.");
-        navigate("/auth/login");
-      }
-    }, 500);
+    if (role === "client") {
+      toast.success("Cadastro realizado! Agora queremos conhecer você melhor 😊");
+      navigate("/client/anamnesis");
+    } else {
+      toast.success("Cadastro realizado com sucesso!");
+      navigate("/dashboard");
+    }
   };
 
   return (

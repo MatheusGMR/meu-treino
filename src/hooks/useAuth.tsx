@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signUp = async (email: string, password: string, fullName: string, role: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -60,13 +60,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         },
       },
     });
-
-    if (!error && data.user) {
-      await supabase.from("user_roles").insert([{
-        user_id: data.user.id,
-        role: role as "admin" | "personal" | "client",
-      }]);
-    }
 
     return { error };
   };
