@@ -9,7 +9,7 @@ import { SolidBackgroundWrapper } from "@/components/SolidBackgroundWrapper";
 import { WelcomeSplash } from "@/components/client/WelcomeSplash";
 import { AnamnesisNotification } from "@/components/client/AnamnesisNotification";
 import { DayCarousel } from "@/components/client/DayCarousel";
-import { InfoCard } from "@/components/client/InfoCard";
+import { GoalsDisplay } from "@/components/client/GoalsDisplay";
 import { WorkoutCard } from "@/components/client/WorkoutCard";
 import { BottomNavigation } from "@/components/client/BottomNavigation";
 import { MessageCircle, User } from "lucide-react";
@@ -123,21 +123,14 @@ const ClientDashboard = () => {
           onSelectDay={setSelectedDay}
         />
 
-        {/* Info Cards Grid */}
-        <div className="grid grid-cols-2 gap-4 px-5 mb-6">
-          <InfoCard 
-            title="Objetivo principal" 
-            value={clientGoals?.goal || 'Não definido'} 
-          />
-          <InfoCard 
-            title="Meta de peso" 
-            value={clientGoals?.targetWeight || '0'} 
-            unit="kg" 
-          />
-        </div>
+        {/* Goals */}
+        <GoalsDisplay
+          mainGoal={clientGoals?.goal || 'Não definido'}
+          targetWeight={clientGoals?.targetWeight || '0'}
+        />
 
         {/* Progress Info */}
-        <div className="px-5 mb-4">
+        <div className="px-5 mb-3">
           <p className="text-sm text-muted-foreground">
             <span className="font-bold text-foreground">{completedSessions}</span> de{' '}
             <span className="font-bold text-foreground">{totalSessions}</span> treinos

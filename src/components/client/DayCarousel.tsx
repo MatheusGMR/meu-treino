@@ -34,7 +34,7 @@ export const DayCarousel = ({ days, selectedDay, onSelectDay }: DayCarouselProps
                   ${isActive ? 'ring-4 ring-success shadow-lg scale-105' : 'shadow-md'}
                   ${isLocked ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95'}
                 `}
-                style={{ width: '120px', height: '140px' }}
+                style={{ width: '80px', height: '100px' }}
               >
                 {/* Thumbnail */}
                 <div className="absolute inset-0 bg-gradient-to-br from-muted to-muted/50">
@@ -52,14 +52,14 @@ export const DayCarousel = ({ days, selectedDay, onSelectDay }: DayCarouselProps
                   {/* Locked overlay */}
                   {isLocked && (
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center">
-                      <Lock className="w-8 h-8 text-white" />
+                      <Lock className="w-6 h-6 text-white" />
                     </div>
                   )}
                 </div>
 
                 {/* Day label */}
-                <div className="absolute bottom-3 left-0 right-0 text-center">
-                  <span className="text-white font-bold text-sm drop-shadow-lg">
+                <div className="absolute bottom-2 left-0 right-0 text-center">
+                  <span className="text-white font-bold text-xs drop-shadow-lg">
                     Dia {day.dayNumber}
                   </span>
                 </div>
@@ -67,7 +67,7 @@ export const DayCarousel = ({ days, selectedDay, onSelectDay }: DayCarouselProps
                 {/* Completed indicator */}
                 {isCompleted && !isLocked && (
                   <div className="absolute top-2 right-2 bg-success rounded-full p-1">
-                    <CheckCircle2 className="w-5 h-5 text-white" />
+                    <CheckCircle2 className="w-4 h-4 text-white" />
                   </div>
                 )}
               </button>
