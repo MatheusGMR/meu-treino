@@ -585,6 +585,257 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     };
   }, [anamnesisProfile]);
 
+  // ==================== NOVOS CÁLCULOS PARA COCKPIT ====================
+
+  // 1. Alerta de Fadiga
+  const fatigueAlert = useMemo(() => {
+    if (!anamnesisData?.anamnesis) return null;
+    
+    const sono = anamnesisData.anamnesis.sono_horas;
+    const estresse = anamnesisData.anamnesis.estresse;
+    const volume = weeklyVolume.totalSets;
+    
+    let score = 0;
+    
+    // Pontuação de sono (0-3)
+    if (sono === 'Menos de 5 horas') score += 3;
+    else if (sono === '5 a 6 horas') score += 2;
+    else if (sono === '6 a 7 horas') score += 1;
+    
+    // Pontuação de estresse (0-2)
+    if (estresse === 'Alto') score += 2;
+    else if (estresse === 'Moderado') score += 1;
+    
+    // Pontuação de volume (0-2)
+    if (volume > 70) score += 2;
+    else if (volume > 50) score += 1;
+    
+    // Determinar nível de risco
+    if (score >= 5) {
+      return {
+        level: 'high' as const,
+        message: '⚠️ Risco de fadiga elevado. Ajuste intensidade e volume.',
+        recommendations: [
+          'Reduzir volume de treino em 20-30%',
+          'Priorizar exercícios de baixo impacto',
+          'Incluir mais dias de descanso'
+        ]
+      };
+    } else if (score >= 3) {
+      return {
+        level: 'moderate' as const,
+        message: '⚡ Atenção à recuperação. Monitore sinais de fadiga.',
+        recommendations: [
+          'Manter volume controlado',
+          'Garantir aquecimento adequado',
+          'Incluir alongamentos ao final'
+        ]
+      };
+    }
+    
+    return null;
+  }, [anamnesisData, weeklyVolume]);
+
+  // 2. Progresso da Sessão
+  const sessionProgress = useMemo(() => {
+    const totalSessions = tempWorkout.sessions.length;
+    const sessionsWithExercises = tempWorkout.sessions.filter(s => s.exercises.length > 0).length;
+    const completionPercentage = totalSessions > 0 ? (sessionsWithExercises / totalSessions) * 100 : 0;
+    
+    return {
+      totalSessions,
+      sessionsWithExercises,
+      completionPercentage,
+      isEmpty: totalSessions === 0,
+      isComplete: sessionsWithExercises === totalSessions && totalSessions > 0
+    };
+  }, [tempWorkout]);
+
+  // 3. Tempo Semanal Estimado
+  const weeklyTimeEstimate = useMemo(() => {
+    const tempoDisponivel = anamnesisData?.anamnesis?.tempo_disponivel;
+    const totalMinutes = muscleAnalysis.totalExercises * 4; // 4 min por exercício
+    
+    let recommended = { min: 90, max: 150 }; // Padrão
+    
+    if (tempoDisponivel === '30 minutos') {
+      recommended = { min: 60, max: 90 };
+    } else if (tempoDisponivel === '45 minutos') {
+      recommended = { min: 90, max: 135 };
+    } else if (tempoDisponivel === '60 minutos') {
+      recommended = { min: 120, max: 180 };
+    } else if (tempoDisponivel === 'Mais de 60 minutos') {
+      recommended = { min: 150, max: 240 };
+    }
+    
+    const status = totalMinutes < recommended.min ? 'below' :
+                   totalMinutes > recommended.max ? 'above' : 'optimal';
+    
+    return {
+      totalMinutes,
+      recommended,
+      status,
+      sessionsPerWeek: anamnesisData?.anamnesis?.frequencia_atual || 'Não definido'
+    };
+  }, [muscleAnalysis, anamnesisData]);
+
+  // 4. Distribuição Muscular com Metas
+  const muscleDistributionGoals = useMemo(() => {
+    const primaryGoal = anamnesisData?.anamnesis?.primary_goal;
+    const regioesDesejadas = anamnesisData?.anamnesis?.regioes_que_deseja_melhorar || [];
+    const painLocations = anamnesisData?.anamnesis?.pain_locations || [];
+    
+    // Mapeamento de objetivos para distribuição ideal
+    const goalMuscleMap: Record<string, Record<string, { min: number; max: number }>> = {
+      'Emagrecimento': {
+        'Pernas': { min: 12, max: 18 },
+        'Glúteos': { min: 10, max: 15 },
+        'Core': { min: 6, max: 10 },
+        'Costas': { min: 8, max: 12 },
+        'Peito': { min: 6, max: 10 }
+      },
+      'Hipertrofia': {
+        'Pernas': { min: 15, max: 20 },
+        'Costas': { min: 12, max: 16 },
+        'Peito': { min: 10, max: 14 },
+        'Ombros': { min: 8, max: 12 },
+        'Bíceps': { min: 8, max: 12 },
+        'Tríceps': { min: 8, max: 12 }
+      },
+      'Condicionamento': {
+        'Pernas': { min: 10, max: 15 },
+        'Core': { min: 8, max: 12 },
+        'Superior': { min: 8, max: 12 }
+      }
+    };
+    
+    const idealDistribution = goalMuscleMap[primaryGoal || 'Hipertrofia'] || {};
+    
+    return muscleAnalysis.muscleGroups.map(mg => {
+      const ideal = idealDistribution[mg.group];
+      const current = Math.round((mg.percentage / 100) * weeklyVolume.totalSets);
+      
+      let status: 'optimal' | 'below' | 'above' | 'restricted' = 'optimal';
+      
+      // Verificar restrições por dor
+      const isRestricted = painLocations.some(p => 
+        (p === 'Ombro' && mg.group === 'Ombros') ||
+        (p === 'Lombar' && mg.group === 'Costas') ||
+        (p === 'Joelho' && (mg.group === 'Pernas' || mg.group === 'Quadríceps'))
+      );
+      
+      if (isRestricted) {
+        status = 'restricted';
+      } else if (ideal) {
+        if (current < ideal.min) status = 'below';
+        else if (current > ideal.max) status = 'above';
+      }
+      
+      return {
+        group: mg.group,
+        current,
+        ideal,
+        status,
+        isPriority: regioesDesejadas.includes(mg.group),
+        isRestricted
+      };
+    });
+  }, [muscleAnalysis, anamnesisData, weeklyVolume]);
+
+  // 5. Exercícios Bloqueados/Permitidos
+  const exerciseRecommendations = useMemo(() => {
+    if (!exercisesData) return { blocked: [], recommended: [], warnings: [] };
+    
+    const painLocations = anamnesisData?.anamnesis?.pain_locations || [];
+    const medicalRestrictions = anamnesisData?.anamnesis?.medical_restrictions || [];
+    
+    const blocked: string[] = [];
+    const recommended: string[] = [];
+    const warnings: string[] = [];
+    
+    // Lógica de bloqueio baseada em condições
+    if (painLocations.includes('Ombro') || medicalRestrictions.some(r => r.toLowerCase().includes('ombro'))) {
+      blocked.push('Desenvolvimento militar', 'Press militar', 'Elevação frontal');
+      warnings.push('⚠️ Ombro: Evitar pressão overhead e elevações frontais');
+      recommended.push('✔ Elevações laterais leves', '✔ Rotação externa com elástico');
+    }
+    
+    if (painLocations.includes('Lombar') || medicalRestrictions.some(r => r.toLowerCase().includes('lombar'))) {
+      blocked.push('Remada curvada', 'Levantamento terra', 'Good morning');
+      warnings.push('⚠️ Lombar: Evitar flexão de tronco com carga');
+      recommended.push('✔ Remada apoiada', '✔ Puxada alta', '✔ Remada baixa sentado');
+    }
+    
+    if (painLocations.includes('Joelho') || medicalRestrictions.some(r => r.toLowerCase().includes('joelho'))) {
+      blocked.push('Agachamento profundo', 'Leg press 45°', 'Saltos');
+      warnings.push('⚠️ Joelho: Limitar amplitude e carga em exercícios de pernas');
+      recommended.push('✔ Agachamento parcial', '✔ Cadeira extensora', '✔ Mesa flexora');
+    }
+    
+    return { blocked, recommended, warnings };
+  }, [exercisesData, anamnesisData]);
+
+  // 6. Indicadores de Qualidade em Escala 0-100
+  const qualityScores = useMemo(() => {
+    // Volume Score (0-100)
+    const volumeScore = weeklyVolume.status === 'optimal' ? 100 :
+                        weeklyVolume.status === 'below' ? Math.min((weeklyVolume.percentage || 0), 100) :
+                        Math.max(100 - ((weeklyVolume.percentage || 100) - 100), 0);
+    
+    // Variety Score (0-100)
+    const varietyScore = Math.min((muscleAnalysis.muscleGroups.length / 8) * 100, 100);
+    
+    // Balance Score (0-100)
+    const balanceScore = muscleAnalysis.isBalanced ? 100 : 
+                         Math.max(100 - (muscleAnalysis.warnings.length * 20), 0);
+    
+    // Intensity Score (0-100)
+    const intensityScore = intensityCheck?.aligned ? 100 : 60;
+    
+    // Goal Alignment Score (0-100)
+    const goalScore = goalAlignment?.percentage || 0;
+    
+    // Overall Score
+    const overallScore = Math.round(
+      (volumeScore + varietyScore + balanceScore + intensityScore + goalScore) / 5
+    );
+    
+    return {
+      volume: Math.round(volumeScore),
+      variety: Math.round(varietyScore),
+      balance: Math.round(balanceScore),
+      intensity: Math.round(intensityScore),
+      goalAlignment: Math.round(goalScore),
+      overall: overallScore
+    };
+  }, [weeklyVolume, muscleAnalysis, intensityCheck, goalAlignment]);
+
+  // 7. Progresso do Treino Atual
+  const workoutProgress = useMemo(() => {
+    const targetSessions = parseInt(anamnesisData?.anamnesis?.frequencia_atual?.match(/\d+/)?.[0] || '3');
+    const currentSessions = tempWorkout.sessions.length;
+    
+    const targetSets = weeklyVolume.benchmark?.optimal || 50;
+    const currentSets = weeklyVolume.totalSets;
+    
+    const targetTime = weeklyTimeEstimate.recommended.min;
+    const currentTime = weeklyTimeEstimate.totalMinutes;
+    
+    const completionPercentage = Math.round(
+      ((currentSessions / targetSessions) * 0.3 +
+       (currentSets / targetSets) * 0.5 +
+       (currentTime / targetTime) * 0.2) * 100
+    );
+    
+    return {
+      sessions: { current: currentSessions, target: targetSessions },
+      sets: { current: currentSets, target: targetSets },
+      time: { current: currentTime, target: targetTime },
+      daysScheduled: currentSessions,
+      completionPercentage: Math.min(completionPercentage, 100)
+    };
+  }, [tempWorkout, anamnesisData, weeklyVolume, weeklyTimeEstimate]);
+
   return {
     tempWorkout,
     setTempWorkout,
@@ -611,5 +862,13 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     clientProfile: clientDetails?.profile,
     clientAnamnesis: anamnesisData?.anamnesis,
     anamnesisProfile,
+    // Novos exports do cockpit
+    fatigueAlert,
+    sessionProgress,
+    weeklyTimeEstimate,
+    muscleDistributionGoals,
+    exerciseRecommendations,
+    qualityScores,
+    workoutProgress,
   };
 };
