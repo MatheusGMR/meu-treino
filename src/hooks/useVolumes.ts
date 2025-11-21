@@ -10,6 +10,8 @@ export const useVolumes = (search?: string, goalFilter?: string) => {
       let query = supabase
         .from("volumes")
         .select("*")
+        .order("num_series", { ascending: true })
+        .order("num_exercises", { ascending: true })
         .order("goal", { ascending: true, nullsFirst: false })
         .order("name", { ascending: true });
 

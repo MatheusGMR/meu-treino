@@ -18,7 +18,8 @@ export const useExercises = (filters?: ExerciseFilters) => {
       let query = supabase
         .from("exercises")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("level", { ascending: true, nullsFirst: false })
+        .order("name", { ascending: true });
 
       if (filters?.type) {
         query = query.eq("exercise_type", filters.type as any);

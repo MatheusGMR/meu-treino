@@ -7,8 +7,11 @@ import { SelectionCard } from "./SelectionCard";
 import { useExercises } from "@/hooks/useExercises";
 import { useVolumes } from "@/hooks/useVolumes";
 import { useMethods } from "@/hooks/useMethods";
+import { ExercisePreview } from "@/components/exercises/ExercisePreview";
 import type { SessionExerciseData } from "@/lib/schemas/sessionSchema";
-import type { Enums } from "@/integrations/supabase/types";
+import type { Enums, Database } from "@/integrations/supabase/types";
+
+type Exercise = Database["public"]["Tables"]["exercises"]["Row"];
 
 interface KanbanExerciseSelectorProps {
   onSave: (exercise: SessionExerciseData) => void;
@@ -49,6 +52,8 @@ export function KanbanExerciseSelector({
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
   const [selectedVolume, setSelectedVolume] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+  const [previewExercise, setPreviewExercise] = useState<Exercise | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const { data: allExercises } = useExercises();
   const { data: volumes } = useVolumes();
@@ -216,10 +221,14 @@ export function KanbanExerciseSelector({
                   <SelectionCard
                     key={ex.id}
                     title={ex.name}
-                    subtitle={ex.level || undefined}
-                    isSelected={selectedExercise === ex.id}
-                    onClick={() => handleExerciseSelect(ex.id)}
-                  />
+                  subtitle={ex.level || undefined}
+                  isSelected={selectedExercise === ex.id}
+                  onClick={() => handleExerciseSelect(ex.id)}
+                  onPreview={() => {
+                    setPreviewExercise(ex);
+                    setShowPreview(true);
+                  }}
+                />
                 ))}
               </div>
             )}
@@ -314,10 +323,16 @@ export function KanbanExerciseSelector({
             className="gap-2"
           >
             <Plus className="w-4 h-4" />
-            Adicionar Outro Exercício
+          Adicionar Outro Exercício
           </Button>
         </div>
       )}
+
+      <ExercisePreview
+        exercise={previewExercise}
+        open={showPreview}
+        onOpenChange={setShowPreview}
+      />
     </div>
   );
 }
