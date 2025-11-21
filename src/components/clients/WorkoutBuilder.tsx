@@ -141,18 +141,7 @@ export const WorkoutBuilder = ({
     }
   };
 
-  // Criar sessão padrão ao montar se não houver nenhuma
-  useEffect(() => {
-    if (builder.tempWorkout.sessions.length === 0) {
-      builder.addNewSession({
-        name: "Sessão 1",
-        description: "",
-        exercises: [],
-        isNew: true,
-      });
-      setExpandedSessionIndex(0);
-    }
-  }, []);
+  // Session creation is now explicit - no auto-creation
 
   const handleAddNewSession = () => {
     const sessionNumber = builder.tempWorkout.sessions.length + 1;
@@ -289,12 +278,22 @@ export const WorkoutBuilder = ({
                 collisionDetection={closestCenter}
                 onDragEnd={handleSessionDragEnd}
               >
-                <SortableContext
-                  items={builder.tempWorkout.sessions.map((_, i) => `session-${i}`)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <div className="space-y-4">
-                    {builder.tempWorkout.sessions.map((session, index) => (
+              <SortableContext
+                items={builder.tempWorkout.sessions.map((_, i) => `session-${i}`)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-4">
+                  {builder.tempWorkout.sessions.length === 0 ? (
+                    <Card className="p-8 text-center border-dashed">
+                      <p className="text-muted-foreground mb-2">
+                        Nenhuma sessão adicionada ao treino
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Clique em "Nova Sessão" ou "Adicionar Sessão Existente" para começar
+                      </p>
+                    </Card>
+                  ) : (
+                    builder.tempWorkout.sessions.map((session, index) => (
                       <SortableSession
                         key={`session-${index}`}
                         session={session}
@@ -310,9 +309,10 @@ export const WorkoutBuilder = ({
                           builder.reorderExercisesInSession(index, startIndex, endIndex);
                         }}
                       />
-                    ))}
-                  </div>
-                </SortableContext>
+                    ))
+                  )}
+                </div>
+              </SortableContext>
               </DndContext>
             </div>
           </div>
@@ -323,6 +323,14 @@ export const WorkoutBuilder = ({
         <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
           {/* Coluna Direita: Análise em Tempo Real */}
           <div className="space-y-4 pl-3">
+            <ClientHealthSummary
+              medicalConditions={builder.clientProfile?.medical_conditions}
+              goals={builder.clientProfile?.goals}
+              primaryGoal={builder.clientAnamnesis?.primary_goal}
+              secondaryGoals={builder.clientAnamnesis?.secondary_goals}
+              activityLevel={builder.clientAnamnesis?.activity_level}
+            />
+
             <MuscleImpactMeter
               muscleGroups={builder.muscleAnalysis.muscleGroups}
               totalExercises={builder.muscleAnalysis.totalExercises}
@@ -395,14 +403,6 @@ export const WorkoutBuilder = ({
                 </div>
               </div>
             </Card>
-
-            <ClientHealthSummary
-              medicalConditions={builder.clientProfile?.medical_conditions}
-              goals={builder.clientProfile?.goals}
-              primaryGoal={builder.clientAnamnesis?.primary_goal}
-              secondaryGoals={builder.clientAnamnesis?.secondary_goals}
-              activityLevel={builder.clientAnamnesis?.activity_level}
-            />
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
