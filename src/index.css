@@ -148,7 +148,17 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground;
-  }
+body {
+  @apply bg-background text-foreground;
+}
+
+/* Ocultar scrollbar mas manter scroll funcional */
+.scrollarea-hidden {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.scrollarea-hidden::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Opera */
+}
 }
