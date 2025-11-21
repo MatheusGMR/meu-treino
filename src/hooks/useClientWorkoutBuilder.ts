@@ -6,6 +6,7 @@ import { useAssignWorkout } from "./useClientWorkouts";
 import { useClientDetails } from "./useClients";
 import { useClientAnamnesis } from "./useAnamnesis";
 import { useExercises } from "./useExercises";
+import { useSessions } from "./useSessions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import type { SessionExerciseData } from "@/lib/schemas/sessionSchema";
@@ -164,6 +165,76 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     }));
   }, []);
 
+  // Adicionar sessão existente
+  const addExistingSession = useCallback(async (sessionId: string) => {
+    try {
+      // Buscar detalhes completos da sessão
+      const { data: fullSession, error } = await supabase
+        .from("sessions")
+        .select(`
+          *,
+          session_exercises (
+            *,
+            exercises (*),
+            volumes (*),
+            methods (*)
+          )
+        `)
+        .eq("id", sessionId)
+        .single();
+
+      if (error || !fullSession) {
+        console.error("Erro ao buscar sessão:", error);
+        toast({
+          title: "Erro ao adicionar sessão",
+          description: "Não foi possível carregar os detalhes da sessão",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Adicionar ao tempWorkout
+      setTempWorkout((prev) => ({
+        ...prev,
+        sessions: [
+          ...prev.sessions,
+          {
+            id: fullSession.id,
+            name: fullSession.name,
+            description: fullSession.description,
+            exercises: fullSession.session_exercises.map((se: any) => ({
+              exercise_id: se.exercise_id,
+              volume_id: se.volume_id,
+              method_id: se.method_id,
+              order_index: se.order_index,
+            })),
+            isNew: false,
+          },
+        ],
+      }));
+
+      toast({
+        title: "Sessão adicionada",
+        description: `${fullSession.name} foi adicionada ao treino`,
+      });
+    } catch (error) {
+      console.error("Erro ao adicionar sessão:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível adicionar a sessão",
+        variant: "destructive",
+      });
+    }
+  }, []);
+
+  // Helper para obter IDs de sessões existentes
+  const getExistingSessionIds = useCallback(() => {
+    return tempWorkout.sessions
+      .filter((s) => !s.isNew && s.id)
+      .map((s) => s.id!)
+      .filter(Boolean);
+  }, [tempWorkout]);
+
   // Validação para submit
   const canSubmit = useMemo(() => {
     if (!tempWorkout.name.trim()) return false;
@@ -180,11 +251,18 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     setIsSubmitting(true);
     
     try {
+      // Separar sessões novas das existentes
+      const newSessions = tempWorkout.sessions.filter((s) => s.isNew);
+      const existingSessionIds = tempWorkout.sessions
+        .filter((s) => !s.isNew && s.id)
+        .map((s) => s.id!);
+
       const { data, error } = await supabase.functions.invoke('create-workout-and-assign', {
         body: {
           clientId,
           workoutName: tempWorkout.name,
-          session: tempWorkout.sessions[0],
+          newSessions,
+          existingSessionIds,
           trainingType: tempWorkout.training_type,
           level: tempWorkout.level,
           gender: tempWorkout.gender,
@@ -260,6 +338,8 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     addNewSession,
     removeSession,
     updateSession,
+    addExistingSession,
+    getExistingSessionIds,
     canSubmit,
     submit,
     isSubmitting,
