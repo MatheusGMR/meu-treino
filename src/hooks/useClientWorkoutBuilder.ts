@@ -1,10 +1,13 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useWorkoutMuscleAnalysis, useSessionMuscleAnalysis } from "./useWorkoutMuscleAnalysis";
 import { useHealthCompatibilityCheck } from "./useHealthCompatibilityCheck";
 import { useAssignWorkout } from "./useClientWorkouts";
 import { useClientDetails } from "./useClients";
 import { useClientAnamnesis } from "./useAnamnesis";
 import { useExercises } from "./useExercises";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 import type { SessionExerciseData } from "@/lib/schemas/sessionSchema";
 
 interface TempSession {
@@ -30,7 +33,9 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     sessions: [],
   });
   const [acknowledgeRisks, setAcknowledgeRisks] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const queryClient = useQueryClient();
   const assignWorkoutMutation = useAssignWorkout();
   
   // Buscar dados do cliente
@@ -172,9 +177,54 @@ export const useClientWorkoutBuilder = (clientId: string) => {
   const submit = useCallback(async () => {
     if (!canSubmit) return;
     
-    // TODO: Implementar criação de workout+session via edge function
-    console.log("Criar treino:", tempWorkout);
-  }, [canSubmit, tempWorkout]);
+    setIsSubmitting(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('create-workout-and-assign', {
+        body: {
+          clientId,
+          workoutName: tempWorkout.name,
+          session: tempWorkout.sessions[0],
+          trainingType: tempWorkout.training_type,
+          level: tempWorkout.level,
+          gender: tempWorkout.gender,
+          startDate: new Date().toISOString().split('T')[0],
+        },
+      });
+
+      if (error) {
+        console.error("Erro ao criar treino:", error);
+        toast({
+          title: "Erro ao criar treino",
+          description: error.message || "Não foi possível criar o treino",
+          variant: "destructive",
+        });
+        throw error;
+      }
+
+      console.log("Treino criado com sucesso:", data);
+      
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ["client-workouts", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["client-details", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["today-workout", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["client-active-workouts", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["workouts"] });
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      
+      toast({
+        title: "Treino criado e atribuído!",
+        description: "O treino foi criado e atribuído ao cliente com sucesso.",
+      });
+      
+      return data;
+    } catch (error) {
+      console.error("Erro ao criar treino:", error);
+      throw error;
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [canSubmit, tempWorkout, clientId, queryClient]);
 
   // Calcular tempo estimado
   const estimatedTime = useMemo(() => {
@@ -212,7 +262,7 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     updateSession,
     canSubmit,
     submit,
-    isSubmitting: assignWorkoutMutation.isPending,
+    isSubmitting,
     clientProfile: clientDetails?.profile,
     clientAnamnesis: anamnesisData?.anamnesis,
   };
