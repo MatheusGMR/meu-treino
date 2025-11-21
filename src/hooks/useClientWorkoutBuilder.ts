@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useWorkoutMuscleAnalysis, useSessionMuscleAnalysis } from "./useWorkoutMuscleAnalysis";
 import { useHealthCompatibilityCheck } from "./useHealthCompatibilityCheck";
+import { useRealtimeHealthCheck } from "./useRealtimeHealthCheck";
 import { useAssignWorkout } from "./useClientWorkouts";
 import { useClientDetails } from "./useClients";
 import { useClientAnamnesis } from "./useAnamnesis";
@@ -48,8 +49,21 @@ export const useClientWorkoutBuilder = (clientId: string) => {
   // Buscar dados dos exercícios para análise correta
   const { data: exercisesData } = useExercises();
 
-  // Análise de saúde em tempo real
-  const healthCheck = useHealthCompatibilityCheck(clientId, undefined);
+  // Extrair IDs de exercícios do treino temporário para análise em tempo real
+  const exerciseIds = useMemo(() => {
+    const ids: string[] = [];
+    tempWorkout.sessions.forEach((session) => {
+      session.exercises.forEach((ex) => {
+        if (!ids.includes(ex.exercise_id)) {
+          ids.push(ex.exercise_id);
+        }
+      });
+    });
+    return ids;
+  }, [tempWorkout]);
+
+  // Análise de saúde em tempo real usando novo hook
+  const realtimeHealthCheck = useRealtimeHealthCheck(clientId, exerciseIds);
 
   // Análise muscular para treino temporário
   const muscleAnalysis = useMemo(() => {
@@ -218,12 +232,13 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     };
   }, [tempWorkout, exercisesData, anamnesisData]);
 
-  const compatibility = healthCheck.data || {
-    compatible: true,
-    warnings: [],
-    criticalIssues: [],
-    recommendations: [],
-    riskLevel: "safe" as const,
+  // Usar resultado do realtime health check
+  const compatibility = {
+    compatible: !realtimeHealthCheck.hasIssues,
+    warnings: realtimeHealthCheck.warnings,
+    criticalIssues: realtimeHealthCheck.criticalIssues,
+    recommendations: realtimeHealthCheck.recommendations,
+    riskLevel: realtimeHealthCheck.riskLevel,
   };
 
 
