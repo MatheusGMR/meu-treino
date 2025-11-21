@@ -4,14 +4,10 @@ import { useExercises } from "@/hooks/useExercises";
 import { useVolumes } from "@/hooks/useVolumes";
 import { useMethods } from "@/hooks/useMethods";
 import { Badge } from "@/components/ui/badge";
+import type { SessionExerciseData } from "@/lib/schemas/sessionSchema";
 
 interface InlineExerciseRowProps {
-  exercise: {
-    exercise_id: string;
-    volume_id: string;
-    method_id: string;
-    order_index: number;
-  };
+  exercise: SessionExerciseData;
   onRemove: () => void;
 }
 

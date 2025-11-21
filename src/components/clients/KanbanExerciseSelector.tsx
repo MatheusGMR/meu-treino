@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Check, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SelectionCard } from "./SelectionCard";
 import { useExercises } from "@/hooks/useExercises";
@@ -113,12 +113,14 @@ export function KanbanExerciseSelector({
   const handleAddAnother = () => {
     if (!isComplete) return;
     
-    onSave({
+    const exerciseData: SessionExerciseData = {
       exercise_id: selectedExercise!,
       volume_id: selectedVolume!,
       method_id: selectedMethod!,
       order_index: orderIndex,
-    });
+    };
+    
+    onSave(exerciseData);
 
     setSelectedType(null);
     setSelectedGroup(null);
@@ -130,12 +132,14 @@ export function KanbanExerciseSelector({
   const handleComplete = () => {
     if (!isComplete) return;
     
-    onSave({
+    const exerciseData: SessionExerciseData = {
       exercise_id: selectedExercise!,
       volume_id: selectedVolume!,
       method_id: selectedMethod!,
       order_index: orderIndex,
-    });
+    };
+    
+    onSave(exerciseData);
 
     onComplete?.();
   };
@@ -302,23 +306,15 @@ export function KanbanExerciseSelector({
         ))}
       </div>
 
-      {/* Botões de Ação */}
+      {/* Botão de Ação - Aparece quando linha completa */}
       {isComplete && (
-        <div className="flex gap-3 justify-center pt-2 border-t animate-in fade-in duration-300">
+        <div className="flex justify-center pt-4 border-t animate-in fade-in duration-300">
           <Button
             onClick={handleAddAnother}
-            variant="outline"
             className="gap-2"
           >
             <Plus className="w-4 h-4" />
             Adicionar Outro Exercício
-          </Button>
-          <Button
-            onClick={handleComplete}
-            className="gap-2"
-          >
-            <Check className="w-4 h-4" />
-            Concluir Sessão
           </Button>
         </div>
       )}

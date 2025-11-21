@@ -11,7 +11,17 @@ interface WorkoutsTabProps {
 
 export const WorkoutsTab = ({ clientId }: WorkoutsTabProps) => {
   const { data: workouts = [], isLoading } = useClientWorkouts(clientId);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [showBuilder, setShowBuilder] = useState(false);
+
+  if (showBuilder) {
+    return (
+      <WorkoutBuilder
+        clientId={clientId}
+        onCancel={() => setShowBuilder(false)}
+        onSuccess={() => setShowBuilder(false)}
+      />
+    );
+  }
 
   if (isLoading) {
     return <div className="animate-pulse space-y-4">
@@ -27,15 +37,10 @@ export const WorkoutsTab = ({ clientId }: WorkoutsTabProps) => {
         <Dumbbell className="h-16 w-16 text-muted-foreground mb-4" />
         <h3 className="text-lg font-semibold mb-2">Nenhum treino atribuído</h3>
         <p className="text-muted-foreground mb-4">Atribua o primeiro treino para este cliente</p>
-        <Button onClick={() => setDialogOpen(true)}>
+        <Button onClick={() => setShowBuilder(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Atribuir Treino
         </Button>
-        <WorkoutBuilder
-          clientId={clientId}
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-        />
       </div>
     );
   }
@@ -44,7 +49,7 @@ export const WorkoutsTab = ({ clientId }: WorkoutsTabProps) => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Treinos Atribuídos</h3>
-        <Button onClick={() => setDialogOpen(true)}>
+        <Button onClick={() => setShowBuilder(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Atribuir Treino
         </Button>
@@ -55,12 +60,6 @@ export const WorkoutsTab = ({ clientId }: WorkoutsTabProps) => {
           <ClientWorkoutCard key={workout.id} workout={workout} />
         ))}
       </div>
-
-      <WorkoutBuilder
-        clientId={clientId}
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-      />
     </div>
   );
 };
