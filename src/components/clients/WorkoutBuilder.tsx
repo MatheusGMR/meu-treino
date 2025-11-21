@@ -5,15 +5,16 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Plus, GripVertical } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { useClientWorkoutBuilder } from "@/hooks/useClientWorkoutBuilder";
-import { MuscleImpactMeter } from "./MuscleImpactMeter";
-import { ImpactAnalysisMeter } from "./ImpactAnalysisMeter";
 import { HealthAlertPanel } from "./HealthAlertPanel";
-import { ClientHealthSummary } from "./ClientHealthSummary";
-import { WorkoutQualityIndicators } from "./WorkoutQualityIndicators";
-import { ProfileAlignmentCard } from "./ProfileAlignmentCard";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SessionCard } from "./SessionCard";
+import { ClientProfileCard } from "./cockpit/ClientProfileCard";
+import { WeeklyVolumeCard } from "./cockpit/WeeklyVolumeCard";
+import { MuscleDistributionCard } from "./cockpit/MuscleDistributionCard";
+import { RestrictionsCard } from "./cockpit/RestrictionsCard";
+import { QualityScoresCard } from "./cockpit/QualityScoresCard";
+import { WorkoutProgressCard } from "./cockpit/WorkoutProgressCard";
 import {
   Dialog,
   DialogContent,
@@ -327,180 +328,66 @@ export const WorkoutBuilder = ({
         <ResizableHandle withHandle />
 
         <ResizablePanel defaultSize={30} minSize={20} maxSize={45}>
-          {/* Coluna Direita: Análise em Tempo Real */}
+          {/* Coluna Direita: Cockpit Revisado com 7 Blocos */}
           <div className="space-y-4 pl-3">
-            <ClientHealthSummary
-              medicalConditions={builder.clientProfile?.medical_conditions}
-              goals={builder.clientProfile?.goals}
-              primaryGoal={builder.clientAnamnesis?.primary_goal}
-              secondaryGoals={builder.clientAnamnesis?.secondary_goals}
-              activityLevel={builder.clientAnamnesis?.activity_level}
+            {/* BLOCO 1: Perfil do Cliente */}
+            <ClientProfileCard
+              primaryGoal={builder.clientAnamnesis?.primary_goal || null}
+              secondaryGoal={builder.clientAnamnesis?.secondary_goals?.[0] || null}
+              level={builder.clientAnamnesis?.activity_level || 'Não definido'}
+              timeAvailable={builder.clientAnamnesis?.tempo_disponivel || 'Não definido'}
+              suggestedFrequency={builder.clientAnamnesis?.frequencia_atual || '3-4 sessões'}
+              pains={[
+                ...(builder.clientAnamnesis?.pain_locations || []),
+              ]}
+              restrictions={builder.clientAnamnesis?.medical_restrictions_details || builder.clientProfile?.medical_conditions}
+              stress={builder.clientAnamnesis?.estresse || null}
+              sleep={builder.clientAnamnesis?.sono_horas || null}
+              fatigueAlert={builder.fatigueAlert}
             />
 
-            <ProfileAlignmentCard
-              profileName={builder.anamnesisProfile?.name || null}
-              volumeStatus={builder.weeklyVolume.status}
-              volumePercentage={builder.weeklyVolume.percentage}
-              intensityAligned={builder.intensityCheck?.aligned || false}
-              currentIntensity={
-                builder.impactAnalysis.overallIntensity === 'light' ? 'Leve' :
-                builder.impactAnalysis.overallIntensity === 'balanced' ? 'Balanceado' :
-                'Intenso'
-              }
-              recommendedIntensity={builder.intensityCheck?.recommended || null}
-              goalAlignment={builder.goalAlignment?.percentage || 0}
-              primaryGoal={builder.goalAlignment?.primaryGoal || null}
-              riskFactors={builder.profileRisks.factors}
+            {/* BLOCO 2: Volume Semanal */}
+            <WeeklyVolumeCard
+              currentSets={builder.weeklyVolume.totalSets}
+              recommendedSets={{
+                min: builder.weeklyVolume.benchmark?.min || 40,
+                max: builder.weeklyVolume.benchmark?.max || 60,
+                optimal: builder.weeklyVolume.benchmark?.optimal || 50
+              }}
+              currentSessions={builder.tempWorkout.sessions.length}
+              recommendedSessions={builder.clientAnamnesis?.frequencia_atual || '3-4'}
+              currentTime={builder.weeklyTimeEstimate.totalMinutes}
+              recommendedTime={builder.weeklyTimeEstimate.recommended}
             />
 
-            <MuscleImpactMeter
-              muscleGroups={builder.muscleAnalysis.muscleGroups}
-              totalExercises={builder.muscleAnalysis.totalExercises}
-              warnings={builder.muscleAnalysis.warnings}
-              isBalanced={builder.muscleAnalysis.isBalanced}
+            {/* BLOCO 3: Distribuição Muscular */}
+            <MuscleDistributionCard goals={builder.muscleDistributionGoals} />
+
+            {/* BLOCO 4: Riscos e Restrições */}
+            <RestrictionsCard
+              blocked={builder.exerciseRecommendations.blocked}
+              recommended={builder.exerciseRecommendations.recommended}
+              warnings={builder.exerciseRecommendations.warnings}
             />
 
-            <ImpactAnalysisMeter
-              distribution={builder.impactAnalysis.distribution}
-              overallIntensity={builder.impactAnalysis.overallIntensity}
-              warnings={builder.impactAnalysis.warnings}
-              score={builder.impactAnalysis.score}
-              totalExercises={builder.impactAnalysis.totalExercises}
-            />
+            {/* BLOCO 6: Indicadores de Qualidade */}
+            <QualityScoresCard scores={builder.qualityScores} />
 
-            <HealthAlertPanel
-              riskLevel={builder.compatibility.riskLevel}
-              warnings={builder.compatibility.warnings}
-              criticalIssues={builder.compatibility.criticalIssues}
-              recommendations={builder.compatibility.recommendations}
-              acknowledgeRisks={builder.acknowledgeRisks}
-              onAcknowledgeChange={builder.setAcknowledgeRisks}
-              profileRiskFactors={builder.profileRisks.factors}
-            />
+            {/* BLOCO 7: Progresso do Treino */}
+            <WorkoutProgressCard progress={builder.workoutProgress} />
 
-            <WorkoutQualityIndicators
-              totalExercises={builder.muscleAnalysis.totalExercises}
-              muscleGroupsCount={builder.muscleAnalysis.muscleGroups.length}
-              isBalanced={builder.muscleAnalysis.isBalanced}
-              overallIntensity={builder.impactAnalysis.overallIntensity}
-              profileAligned={
-                builder.weeklyVolume.status === 'optimal' &&
-                (builder.intensityCheck?.aligned || false) &&
-                (builder.goalAlignment?.aligned || false)
-              }
-              profileName={builder.anamnesisProfile?.name}
-            />
-
-            {/* Volume Semanal com Benchmark */}
-            <Card className="p-4">
-              <h4 className="font-semibold text-sm mb-3">Volume Semanal</h4>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Total de séries:</span>
-                  <span className="font-medium">{builder.weeklyVolume.totalSets}</span>
-                </div>
-                
-                {builder.weeklyVolume.benchmark && builder.weeklyVolume.status && (
-                  <div className="space-y-2 pt-2 border-t">
-                    <div className="h-2 bg-muted rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full transition-all ${
-                          builder.weeklyVolume.status === 'optimal' ? 'bg-green-500' :
-                          builder.weeklyVolume.status === 'below' ? 'bg-blue-500' :
-                          builder.weeklyVolume.status === 'above' ? 'bg-yellow-500' :
-                          'bg-red-500'
-                        }`}
-                        style={{ 
-                          width: `${Math.min((builder.weeklyVolume.percentage || 0), 150)}%` 
-                        }}
-                      />
-                    </div>
-                    <p className={`text-xs ${
-                      builder.weeklyVolume.status === 'optimal' ? 'text-green-600' :
-                      builder.weeklyVolume.status === 'below' ? 'text-blue-600' :
-                      builder.weeklyVolume.status === 'above' ? 'text-yellow-600' :
-                      'text-red-600'
-                    }`}>
-                      {builder.weeklyVolume.message}
-                    </p>
-                    <div className="text-xs text-muted-foreground">
-                      Recomendado: {builder.weeklyVolume.benchmark.min}-{builder.weeklyVolume.benchmark.max} séries
-                      {' | '}
-                      Ótimo: {builder.weeklyVolume.benchmark.optimal} séries
-                    </div>
-                  </div>
-                )}
-
-                {builder.weeklyVolume.setsPerMuscle.length > 0 && (
-                  <div className="space-y-1 pt-2 border-t">
-                    <p className="text-xs text-muted-foreground mb-1">Por grupo muscular:</p>
-                    {builder.weeklyVolume.setsPerMuscle.map((item) => (
-                      <div key={item.group} className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">{item.group}:</span>
-                        <span>{item.sets} séries</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </Card>
-
-            {/* Resumo Enriquecido */}
-            <Card className="p-4">
-              <h4 className="font-semibold text-sm mb-3">Resumo do Treino</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Sessões:</span>
-                  <span className="font-medium">{builder.tempWorkout.sessions.length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Exercícios:</span>
-                  <span className="font-medium">{builder.muscleAnalysis.totalExercises}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Grupos musculares:</span>
-                  <span className="font-medium">{builder.muscleAnalysis.muscleGroups.length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tempo estimado:</span>
-                  <span className="font-medium">{builder.estimatedTime}</span>
-                </div>
-                {builder.goalAlignment && (
-                  <div className="flex justify-between items-center pt-1 border-t">
-                    <span className="text-muted-foreground">Objetivo principal:</span>
-                    <Badge variant={builder.goalAlignment.aligned ? "default" : "destructive"}>
-                      {builder.goalAlignment.primaryGoal}
-                    </Badge>
-                  </div>
-                )}
-                {builder.goalAlignment && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Alinhamento:</span>
-                    <span className="font-medium">{builder.goalAlignment.percentage.toFixed(0)}%</span>
-                  </div>
-                )}
-                <div className="flex justify-between pt-1 border-t">
-                  <span className="text-muted-foreground">Equilíbrio:</span>
-                  <Badge variant={builder.muscleAnalysis.isBalanced ? "default" : "destructive"}>
-                    {builder.muscleAnalysis.isBalanced ? "Balanceado" : "Requer atenção"}
-                  </Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Intensidade:</span>
-                  <Badge 
-                    variant={
-                      builder.impactAnalysis.overallIntensity === 'balanced' ? 'default' :
-                      builder.impactAnalysis.overallIntensity === 'light' ? 'secondary' :
-                      'destructive'
-                    }
-                  >
-                    {builder.impactAnalysis.overallIntensity === 'light' ? '💤 Leve' :
-                     builder.impactAnalysis.overallIntensity === 'balanced' ? '✓ Balanceado' :
-                     '⚡ Intenso'}
-                  </Badge>
-                </div>
-              </div>
-            </Card>
+            {/* Manter HealthAlertPanel se houver riscos críticos */}
+            {builder.compatibility.riskLevel === 'critical' && (
+              <HealthAlertPanel
+                riskLevel={builder.compatibility.riskLevel}
+                warnings={builder.compatibility.warnings}
+                criticalIssues={builder.compatibility.criticalIssues}
+                recommendations={builder.compatibility.recommendations}
+                acknowledgeRisks={builder.acknowledgeRisks}
+                onAcknowledgeChange={builder.setAcknowledgeRisks}
+                profileRiskFactors={builder.profileRisks.factors}
+              />
+            )}
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
