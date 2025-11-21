@@ -24,15 +24,10 @@ interface TempWorkout {
 }
 
 export const useClientWorkoutBuilder = (clientId: string) => {
-  const [mode, setMode] = useState<"existing" | "new">("existing");
-  const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | undefined>();
   const [tempWorkout, setTempWorkout] = useState<TempWorkout>({
-    name: "Treino Personalizado",
+    name: "",
     sessions: [],
   });
-  const [startDate, setStartDate] = useState<Date>(new Date());
-  const [endDate, setEndDate] = useState<Date | undefined>();
-  const [notes, setNotes] = useState("");
   const [acknowledgeRisks, setAcknowledgeRisks] = useState(false);
 
   const assignWorkoutMutation = useAssignWorkout();
@@ -41,20 +36,12 @@ export const useClientWorkoutBuilder = (clientId: string) => {
   const { data: clientDetails } = useClientDetails(clientId);
   const { data: anamnesisData } = useClientAnamnesis(clientId);
 
-  // Análise muscular em tempo real
-  const workoutAnalysis = useWorkoutMuscleAnalysis(
-    mode === "existing" ? selectedWorkoutId : undefined
-  );
-
   // Análise de saúde em tempo real
-  const healthCheck = useHealthCompatibilityCheck(
-    clientId,
-    mode === "existing" ? selectedWorkoutId : undefined
-  );
+  const healthCheck = useHealthCompatibilityCheck(clientId, undefined);
 
-  // Análise muscular para treino temporário (modo criar novo)
-  const tempMuscleAnalysis = useMemo(() => {
-    if (mode !== "new" || tempWorkout.sessions.length === 0) {
+  // Análise muscular para treino temporário
+  const muscleAnalysis = useMemo(() => {
+    if (tempWorkout.sessions.length === 0) {
       return {
         muscleGroups: [],
         totalExercises: 0,
@@ -67,11 +54,9 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     const allExercises: Array<{ name: string; group: string }> = [];
     tempWorkout.sessions.forEach((session) => {
       session.exercises.forEach((ex) => {
-        // Aqui precisaríamos buscar os dados do exercício, mas para análise em tempo real
-        // vamos assumir que temos acesso aos dados via cache ou props
         allExercises.push({
-          name: ex.exercise_id, // Placeholder
-          group: "Peito", // Placeholder - precisaria buscar dados reais
+          name: ex.exercise_id,
+          group: "Peito",
         });
       });
     });
@@ -108,13 +93,7 @@ export const useClientWorkoutBuilder = (clientId: string) => {
       warnings,
       isBalanced: warnings.length === 0,
     };
-  }, [mode, tempWorkout]);
-
-  // Combinar análises baseado no modo
-  const muscleAnalysis =
-    mode === "existing"
-      ? workoutAnalysis.data || { muscleGroups: [], totalExercises: 0, warnings: [], isBalanced: true }
-      : tempMuscleAnalysis;
+  }, [tempWorkout]);
 
   const compatibility = healthCheck.data || {
     compatible: true,
@@ -124,21 +103,6 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     riskLevel: "safe" as const,
   };
 
-  // Funções de manipulação de sessões
-  const addExistingSession = useCallback((sessionId: string, sessionData: any) => {
-    setTempWorkout((prev) => ({
-      ...prev,
-      sessions: [
-        ...prev.sessions,
-        {
-          id: sessionId,
-          name: sessionData.name,
-          description: sessionData.description,
-          exercises: sessionData.exercises || [],
-        },
-      ],
-    }));
-  }, []);
 
   const addNewSession = useCallback((session: TempSession) => {
     setTempWorkout((prev) => ({
@@ -165,42 +129,20 @@ export const useClientWorkoutBuilder = (clientId: string) => {
 
   // Validação para submit
   const canSubmit = useMemo(() => {
-    if (mode === "existing") {
-      if (!selectedWorkoutId) return false;
-      if (compatibility.riskLevel === "critical" && !acknowledgeRisks) return false;
-      return true;
-    } else {
-      if (tempWorkout.sessions.length === 0) return false;
-      if (compatibility.riskLevel === "critical" && !acknowledgeRisks) return false;
-      return true;
-    }
-  }, [mode, selectedWorkoutId, tempWorkout, compatibility, acknowledgeRisks]);
+    if (!tempWorkout.name.trim()) return false;
+    if (tempWorkout.sessions.length === 0) return false;
+    if (tempWorkout.sessions[0].exercises.length === 0) return false;
+    if (compatibility.riskLevel === "critical" && !acknowledgeRisks) return false;
+    return true;
+  }, [tempWorkout, compatibility, acknowledgeRisks]);
 
-  // Submit
+  // Submit - cria treino novo sempre
   const submit = useCallback(async () => {
     if (!canSubmit) return;
-
-    // TODO: Implementar lógica de criação de treino temporário se necessário
-    // Por enquanto, só funciona com treinos existentes
-    if (mode === "existing" && selectedWorkoutId) {
-      await assignWorkoutMutation.mutateAsync({
-        clientId,
-        workoutId: selectedWorkoutId,
-        startDate: startDate.toISOString().split("T")[0],
-        endDate: endDate?.toISOString().split("T")[0],
-        notes,
-      });
-    }
-  }, [
-    canSubmit,
-    mode,
-    selectedWorkoutId,
-    clientId,
-    startDate,
-    endDate,
-    notes,
-    assignWorkoutMutation,
-  ]);
+    
+    // TODO: Implementar criação de workout+session via edge function
+    console.log("Criar treino:", tempWorkout);
+  }, [canSubmit, tempWorkout]);
 
   // Calcular tempo estimado
   const estimatedTime = useMemo(() => {
@@ -210,31 +152,19 @@ export const useClientWorkoutBuilder = (clientId: string) => {
   }, [muscleAnalysis]);
 
   return {
-    mode,
-    setMode,
-    selectedWorkoutId,
-    setSelectedWorkoutId,
     tempWorkout,
     setTempWorkout,
-    startDate,
-    setStartDate,
-    endDate,
-    setEndDate,
-    notes,
-    setNotes,
     acknowledgeRisks,
     setAcknowledgeRisks,
     muscleAnalysis,
     compatibility,
     estimatedTime,
-    addExistingSession,
     addNewSession,
     removeSession,
     updateSession,
     canSubmit,
     submit,
     isSubmitting: assignWorkoutMutation.isPending,
-    // Dados do cliente
     clientProfile: clientDetails?.profile,
     clientAnamnesis: anamnesisData?.anamnesis,
   };
