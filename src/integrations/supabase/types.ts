@@ -645,9 +645,11 @@ export type Database = {
       }
       exercises: {
         Row: {
+          added_at: string | null
           biomechanical_class: string | null
           coaching_cues: string[] | null
           common_mistakes: string[] | null
+          confidence_score: number | null
           contraindication: string | null
           created_at: string | null
           created_by: string | null
@@ -659,13 +661,17 @@ export type Database = {
           exercise_type: Database["public"]["Enums"]["exercise_type_enum"]
           id: string
           impact_level: string | null
+          is_new: boolean | null
+          last_updated_at: string | null
           level: string | null
           long_description: string | null
           name: string
           primary_muscle: string | null
+          review_status: string | null
           secondary_muscle: string | null
           short_description: string | null
           slug: string | null
+          source_reference: string | null
           suggested_methods: string[] | null
           suggested_volume: Json | null
           tags: string[] | null
@@ -676,9 +682,11 @@ export type Database = {
           video_url: string | null
         }
         Insert: {
+          added_at?: string | null
           biomechanical_class?: string | null
           coaching_cues?: string[] | null
           common_mistakes?: string[] | null
+          confidence_score?: number | null
           contraindication?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -690,13 +698,17 @@ export type Database = {
           exercise_type?: Database["public"]["Enums"]["exercise_type_enum"]
           id?: string
           impact_level?: string | null
+          is_new?: boolean | null
+          last_updated_at?: string | null
           level?: string | null
           long_description?: string | null
           name: string
           primary_muscle?: string | null
+          review_status?: string | null
           secondary_muscle?: string | null
           short_description?: string | null
           slug?: string | null
+          source_reference?: string | null
           suggested_methods?: string[] | null
           suggested_volume?: Json | null
           tags?: string[] | null
@@ -707,9 +719,11 @@ export type Database = {
           video_url?: string | null
         }
         Update: {
+          added_at?: string | null
           biomechanical_class?: string | null
           coaching_cues?: string[] | null
           common_mistakes?: string[] | null
+          confidence_score?: number | null
           contraindication?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -721,13 +735,17 @@ export type Database = {
           exercise_type?: Database["public"]["Enums"]["exercise_type_enum"]
           id?: string
           impact_level?: string | null
+          is_new?: boolean | null
+          last_updated_at?: string | null
           level?: string | null
           long_description?: string | null
           name?: string
           primary_muscle?: string | null
+          review_status?: string | null
           secondary_muscle?: string | null
           short_description?: string | null
           slug?: string | null
+          source_reference?: string | null
           suggested_methods?: string[] | null
           suggested_volume?: Json | null
           tags?: string[] | null
@@ -768,13 +786,17 @@ export type Database = {
       }
       methods: {
         Row: {
+          added_at: string | null
           cadence_contraction: number
           cadence_pause: number
           cadence_stretch: number
+          confidence_score: number | null
           created_at: string | null
           created_by: string | null
           energy_cost: Database["public"]["Enums"]["method_energy_cost"]
           id: string
+          is_new: boolean | null
+          last_updated_at: string | null
           load_level: string
           name: string | null
           objective: Database["public"]["Enums"]["method_objective"] | null
@@ -783,18 +805,24 @@ export type Database = {
           reps_max: number
           reps_min: number
           rest_seconds: number
+          review_status: string | null
           risk_level: Database["public"]["Enums"]["method_risk_level"]
+          source_reference: string | null
           updated_at: string | null
           video_url: string | null
         }
         Insert: {
+          added_at?: string | null
           cadence_contraction: number
           cadence_pause: number
           cadence_stretch: number
+          confidence_score?: number | null
           created_at?: string | null
           created_by?: string | null
           energy_cost?: Database["public"]["Enums"]["method_energy_cost"]
           id?: string
+          is_new?: boolean | null
+          last_updated_at?: string | null
           load_level: string
           name?: string | null
           objective?: Database["public"]["Enums"]["method_objective"] | null
@@ -803,18 +831,24 @@ export type Database = {
           reps_max: number
           reps_min: number
           rest_seconds: number
+          review_status?: string | null
           risk_level?: Database["public"]["Enums"]["method_risk_level"]
+          source_reference?: string | null
           updated_at?: string | null
           video_url?: string | null
         }
         Update: {
+          added_at?: string | null
           cadence_contraction?: number
           cadence_pause?: number
           cadence_stretch?: number
+          confidence_score?: number | null
           created_at?: string | null
           created_by?: string | null
           energy_cost?: Database["public"]["Enums"]["method_energy_cost"]
           id?: string
+          is_new?: boolean | null
+          last_updated_at?: string | null
           load_level?: string
           name?: string | null
           objective?: Database["public"]["Enums"]["method_objective"] | null
@@ -823,7 +857,9 @@ export type Database = {
           reps_max?: number
           reps_min?: number
           rest_seconds?: number
+          review_status?: string | null
           risk_level?: Database["public"]["Enums"]["method_risk_level"]
+          source_reference?: string | null
           updated_at?: string | null
           video_url?: string | null
         }
@@ -883,6 +919,57 @@ export type Database = {
           {
             foreignKeyName: "payment_history_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pending_updates: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          entity_data: Json
+          entity_type: string
+          id: string
+          review_status: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source_reference: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          entity_data: Json
+          entity_type: string
+          id?: string
+          review_status?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_reference?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          entity_data?: Json
+          entity_type?: string
+          id?: string
+          review_status?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_updates_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "admin_clients_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pending_updates_reviewed_by_fkey"
+            columns: ["reviewed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1322,12 +1409,16 @@ export type Database = {
       }
       volumes: {
         Row: {
+          added_at: string | null
+          confidence_score: number | null
           created_at: string | null
           created_by: string | null
           exercise_max: number | null
           exercise_min: number | null
           goal: string | null
           id: string
+          is_new: boolean | null
+          last_updated_at: string | null
           max_weekly_sets: number | null
           min_weekly_sets: number | null
           movement_pattern: string | null
@@ -1335,18 +1426,24 @@ export type Database = {
           num_exercises: number
           num_series: number
           optimal_weekly_sets: number | null
+          review_status: string | null
           series_max: number | null
           series_min: number | null
+          source_reference: string | null
           updated_at: string | null
           weekly_volume_description: string | null
         }
         Insert: {
+          added_at?: string | null
+          confidence_score?: number | null
           created_at?: string | null
           created_by?: string | null
           exercise_max?: number | null
           exercise_min?: number | null
           goal?: string | null
           id?: string
+          is_new?: boolean | null
+          last_updated_at?: string | null
           max_weekly_sets?: number | null
           min_weekly_sets?: number | null
           movement_pattern?: string | null
@@ -1354,18 +1451,24 @@ export type Database = {
           num_exercises: number
           num_series: number
           optimal_weekly_sets?: number | null
+          review_status?: string | null
           series_max?: number | null
           series_min?: number | null
+          source_reference?: string | null
           updated_at?: string | null
           weekly_volume_description?: string | null
         }
         Update: {
+          added_at?: string | null
+          confidence_score?: number | null
           created_at?: string | null
           created_by?: string | null
           exercise_max?: number | null
           exercise_min?: number | null
           goal?: string | null
           id?: string
+          is_new?: boolean | null
+          last_updated_at?: string | null
           max_weekly_sets?: number | null
           min_weekly_sets?: number | null
           movement_pattern?: string | null
@@ -1373,8 +1476,10 @@ export type Database = {
           num_exercises?: number
           num_series?: number
           optimal_weekly_sets?: number | null
+          review_status?: string | null
           series_max?: number | null
           series_min?: number | null
+          source_reference?: string | null
           updated_at?: string | null
           weekly_volume_description?: string | null
         }
@@ -1552,6 +1657,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      remove_new_badge_after_30_days: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "personal" | "client"
