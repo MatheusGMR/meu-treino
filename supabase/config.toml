@@ -23,3 +23,6 @@ verify_jwt = true
 
 [functions.generate-and-upload-body-types]
 verify_jwt = true
+
+[functions.research-updates]
+verify_jwt = false
