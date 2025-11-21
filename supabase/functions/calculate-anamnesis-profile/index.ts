@@ -40,12 +40,51 @@ function calcularIMC(peso: number | null, altura: number | null): IMC | null {
 }
 
 /**
- * Infere nível de experiência baseado no histórico
+ * Infere nível de experiência baseado em múltiplos fatores
  */
-function inferirExperiencia(tipos: string[] | null, frequencia: string | null): string {
+function inferirExperiencia(
+  tipos: string[] | null, 
+  frequencia: string | null,
+  tempoParado: string | null = null
+): string {
+  // Sem histórico = Iniciante
   if (!tipos || tipos.length === 0) return 'Iniciante';
-  if (tipos.includes('Musculação') || tipos.includes('Crossfit')) return 'Intermediário';
-  if (tipos.includes('Pilates') || tipos.includes('Yoga')) return 'Iniciante+';
+  
+  // Calcular pontuação baseada em múltiplos fatores
+  let score = 0;
+  
+  // Pontos por tipos de treino (0-4)
+  if (tipos.includes('Musculação')) score += 3;
+  if (tipos.includes('Crossfit')) score += 4;
+  if (tipos.includes('Funcional')) score += 2;
+  if (tipos.includes('HIIT')) score += 2;
+  if (tipos.includes('Lutas')) score += 2;
+  if (tipos.includes('Corrida')) score += 1;
+  if (tipos.includes('Esportes coletivos')) score += 1;
+  if (tipos.includes('Pilates') || tipos.includes('Yoga')) score += 1;
+  
+  // Pontos por frequência (0-3)
+  if (frequencia === '6+ vezes/semana') score += 3;
+  else if (frequencia === '5 vezes/semana') score += 3;
+  else if (frequencia === '4 vezes/semana') score += 2;
+  else if (frequencia === '3 vezes/semana') score += 1;
+  
+  // Pontos por diversidade (0-2)
+  if (tipos.length >= 3) score += 2;
+  else if (tipos.length === 2) score += 1;
+  
+  // Penalizar por tempo parado
+  if (tempoParado === 'Mais de 1 ano') score -= 3;
+  else if (tempoParado === '6 a 12 meses') score -= 2;
+  else if (tempoParado === '3 a 6 meses') score -= 1;
+  
+  // Evitar pontuação negativa
+  score = Math.max(0, score);
+  
+  // Classificação final baseada na pontuação
+  if (score >= 7) return 'Avançado';
+  if (score >= 4) return 'Intermediário';
+  if (score >= 2) return 'Iniciante+';
   return 'Iniciante';
 }
 
@@ -135,7 +174,11 @@ function calculateDimensionScores(anamnesis: any): DimensionScore {
 
   // MOBILIDADE (0-10): experiência + frequência + tempo parado
   let mobility = 5;
-  const experiencia = inferirExperiencia(anamnesis.tipos_de_treino_feitos, anamnesis.frequencia_atual);
+  const experiencia = inferirExperiencia(
+    anamnesis.tipos_de_treino_feitos, 
+    anamnesis.frequencia_atual,
+    anamnesis.time_without_training
+  );
   
   if (experiencia === 'Intermediário') mobility += 3;
   else if (experiencia === 'Iniciante+') mobility += 2;
@@ -242,7 +285,11 @@ serve(async (req) => {
 
     // 5. Calcular IMC e nível de experiência
     const imc = calcularIMC(anamnesis.peso_kg, anamnesis.altura_cm);
-    const nivelExperiencia = inferirExperiencia(anamnesis.tipos_de_treino_feitos, anamnesis.frequencia_atual);
+    const nivelExperiencia = inferirExperiencia(
+      anamnesis.tipos_de_treino_feitos, 
+      anamnesis.frequencia_atual,
+      anamnesis.time_without_training
+    );
     console.log('IMC:', imc);
     console.log('Nível Experiência:', nivelExperiencia);
 
