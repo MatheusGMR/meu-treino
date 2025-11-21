@@ -182,8 +182,8 @@ export function KanbanExerciseSelector({
           <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
             Tipo
           </h4>
-            <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] pr-4 scrollarea-hidden">
-            <div className="space-y-2 pr-2">
+          <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px]">
+            <div className="space-y-2 pr-1">
               {EXERCISE_TYPES.map(type => (
                 <SelectionCard
                   key={type.value}
@@ -201,7 +201,7 @@ export function KanbanExerciseSelector({
           <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
             Grupo Muscular
           </h4>
-          <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] pr-4 scrollarea-hidden">
+          <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px]">
             {!selectedType ? (
               <p className="text-xs text-muted-foreground p-3">
                 Selecione um tipo primeiro
@@ -211,7 +211,7 @@ export function KanbanExerciseSelector({
                 Nenhum grupo disponível
               </p>
             ) : (
-              <div className="space-y-2 pr-2">
+              <div className="space-y-2 pr-1">
                 {availableGroups.map(group => (
                   <SelectionCard
                     key={group.value}
@@ -230,7 +230,7 @@ export function KanbanExerciseSelector({
           <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
             Exercício
           </h4>
-          <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] pr-4 scrollarea-hidden">
+          <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px]">
             {!selectedGroup ? (
               <p className="text-xs text-muted-foreground p-3">
                 Selecione um grupo primeiro
@@ -240,7 +240,7 @@ export function KanbanExerciseSelector({
                 Nenhum exercício encontrado
               </p>
             ) : (
-              <div className="space-y-2 pr-2">
+              <div className="space-y-2 pr-1">
                 {availableExercises.map(ex => {
                   const contraindicationCheck = contraindicationResults.get(ex.id);
                   return (
@@ -270,7 +270,7 @@ export function KanbanExerciseSelector({
           <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
             Volume
           </h4>
-          <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] pr-6 scrollarea-hidden">
+          <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px]">
             {!selectedExercise ? (
               <p className="text-xs text-muted-foreground p-3">
                 Selecione um exercício primeiro
@@ -280,7 +280,7 @@ export function KanbanExerciseSelector({
                 Nenhum volume cadastrado
               </p>
             ) : (
-              <div className="space-y-2 pr-2">
+              <div className="space-y-2 pr-1">
                 {volumes.map(vol => (
                   <SelectionCard
                     key={vol.id}
@@ -300,7 +300,7 @@ export function KanbanExerciseSelector({
           <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
             Método
           </h4>
-          <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] pr-6 scrollarea-hidden">
+          <ScrollArea className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px]">
             {!selectedVolume ? (
               <p className="text-xs text-muted-foreground p-3">
                 Selecione um volume primeiro
@@ -310,7 +310,7 @@ export function KanbanExerciseSelector({
                 Nenhum método cadastrado
               </p>
             ) : (
-              <div className="space-y-2 pr-2">
+              <div className="space-y-2 pr-1">
                 {methods.map(method => (
                   <SelectionCard
                     key={method.id}
