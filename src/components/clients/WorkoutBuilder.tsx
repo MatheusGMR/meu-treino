@@ -2,13 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Plus, GripVertical, AlertCircle, Check, X } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { ArrowLeft, Plus, GripVertical } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { useClientWorkoutBuilder } from "@/hooks/useClientWorkoutBuilder";
 import { MuscleImpactMeter } from "./MuscleImpactMeter";
@@ -63,8 +57,6 @@ interface SortableSessionProps {
   onRemoveExercise: (exerciseIndex: number) => void;
   onReorderExercises: (startIndex: number, endIndex: number) => void;
   clientMedicalConditions?: string | null;
-  showValidation?: boolean;
-  isFirstSession?: boolean;
 }
 
 const SortableSession = ({
@@ -77,8 +69,6 @@ const SortableSession = ({
   onRemoveExercise,
   onReorderExercises,
   clientMedicalConditions,
-  showValidation,
-  isFirstSession,
 }: SortableSessionProps) => {
   const {
     attributes,
@@ -112,8 +102,6 @@ const SortableSession = ({
         dragHandleAttributes={attributes}
         dragHandleListeners={listeners}
         clientMedicalConditions={clientMedicalConditions}
-        showValidation={showValidation}
-        isFirstSession={isFirstSession}
       />
     </div>
   );
@@ -127,7 +115,6 @@ export const WorkoutBuilder = ({
   const builder = useClientWorkoutBuilder(clientId);
   const [showExistingSelector, setShowExistingSelector] = useState(false);
   const [expandedSessionIndex, setExpandedSessionIndex] = useState<number | null>(null);
-  const [nameFieldTouched, setNameFieldTouched] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -223,8 +210,6 @@ export const WorkoutBuilder = ({
     setExpandedSessionIndex(expandedSessionIndex === index ? null : index);
   };
 
-  const isNameInvalid = nameFieldTouched && !builder.tempWorkout.name.trim();
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -247,9 +232,7 @@ export const WorkoutBuilder = ({
           <div className="space-y-6 pr-3">
             {/* Nome do Treino - SEMPRE VISÍVEL */}
             <div className="space-y-2">
-              <Label htmlFor="workout-name" className={cn(isNameInvalid && "text-destructive")}>
-                Nome do Treino *
-              </Label>
+              <Label htmlFor="workout-name">Nome do Treino</Label>
               <Input
                 id="workout-name"
                 value={builder.tempWorkout.name}
@@ -259,35 +242,17 @@ export const WorkoutBuilder = ({
                     name: e.target.value,
                   })
                 }
-                onBlur={() => setNameFieldTouched(true)}
                 placeholder="Ex: Treino ABC, Hipertrofia Completo..."
-                className={cn(
-                  "text-lg",
-                  isNameInvalid && "border-destructive focus-visible:ring-destructive"
-                )}
+                className="text-lg"
                 autoFocus
               />
-              {isNameInvalid && (
-                <p className="text-sm text-destructive flex items-center gap-1">
-                  <AlertCircle className="w-4 h-4" />
-                  O nome do treino é obrigatório
-                </p>
-              )}
             </div>
 
             {/* Sessões do Treino */}
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-lg">Sessões do Treino</h3>
-                    {builder.tempWorkout.sessions.length === 0 && (
-                      <Badge variant="destructive" className="animate-pulse">
-                        <AlertCircle className="w-3 h-3 mr-1" />
-                        Obrigatório
-                      </Badge>
-                    )}
-                  </div>
+                  <h3 className="font-semibold text-lg mb-1">Sessões do Treino</h3>
                   <p className="text-sm text-muted-foreground">
                     Crie novas sessões ou adicione sessões existentes
                   </p>
@@ -323,24 +288,13 @@ export const WorkoutBuilder = ({
               >
                 <div className="space-y-4">
                   {builder.tempWorkout.sessions.length === 0 ? (
-                    <Card className="p-8 text-center border-dashed border-2 border-destructive/50 bg-destructive/5">
-                      <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-3" />
-                      <p className="text-destructive font-semibold mb-2">
+                    <Card className="p-8 text-center border-dashed">
+                      <p className="text-muted-foreground mb-2">
                         Nenhuma sessão adicionada ao treino
                       </p>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Adicione pelo menos uma sessão para continuar
+                      <p className="text-sm text-muted-foreground">
+                        Clique em "Nova Sessão" ou "Adicionar Sessão Existente" para começar
                       </p>
-                      <div className="flex gap-2 justify-center">
-                        <Button variant="destructive" size="sm" onClick={handleAddNewSession}>
-                          <Plus className="w-4 h-4 mr-2" />
-                          Nova Sessão
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => setShowExistingSelector(true)}>
-                          <Plus className="w-4 h-4 mr-2" />
-                          Adicionar Sessão Existente
-                        </Button>
-                      </div>
                     </Card>
                   ) : (
                     builder.tempWorkout.sessions.map((session, index) => (
@@ -359,8 +313,6 @@ export const WorkoutBuilder = ({
                           builder.reorderExercisesInSession(index, startIndex, endIndex);
                         }}
                         clientMedicalConditions={builder.clientProfile?.medical_conditions}
-                        showValidation={true}
-                        isFirstSession={index === 0}
                       />
                     ))
                   )}
@@ -483,118 +435,17 @@ export const WorkoutBuilder = ({
         </ResizablePanel>
       </ResizablePanelGroup>
 
-      {/* Resumo de Validação */}
-      {!builder.canSubmit && (
-        <Card className="p-4 border-destructive/50 bg-destructive/5">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <h4 className="font-semibold text-destructive mb-2">
-                Complete os campos obrigatórios para atribuir o treino
-              </h4>
-              <ul className="space-y-1.5 text-sm">
-                {!builder.tempWorkout.name.trim() ? (
-                  <li className="flex items-center gap-2 text-destructive">
-                    <X className="w-4 h-4" />
-                    <span>Preencha o nome do treino</span>
-                  </li>
-                ) : (
-                  <li className="flex items-center gap-2 text-muted-foreground">
-                    <Check className="w-4 h-4 text-green-600" />
-                    <span className="line-through">Nome do treino</span>
-                  </li>
-                )}
-                
-                {builder.tempWorkout.sessions.length === 0 ? (
-                  <li className="flex items-center gap-2 text-destructive">
-                    <X className="w-4 h-4" />
-                    <span>Adicione pelo menos uma sessão</span>
-                  </li>
-                ) : (
-                  <li className="flex items-center gap-2 text-muted-foreground">
-                    <Check className="w-4 h-4 text-green-600" />
-                    <span className="line-through">Sessões adicionadas ({builder.tempWorkout.sessions.length})</span>
-                  </li>
-                )}
-                
-                {builder.tempWorkout.sessions.length > 0 && builder.tempWorkout.sessions[0].exercises.length === 0 ? (
-                  <li className="flex items-center gap-2 text-destructive">
-                    <X className="w-4 h-4" />
-                    <span>Adicione exercícios à primeira sessão</span>
-                  </li>
-                ) : builder.tempWorkout.sessions.length > 0 ? (
-                  <li className="flex items-center gap-2 text-muted-foreground">
-                    <Check className="w-4 h-4 text-green-600" />
-                    <span className="line-through">Exercícios na primeira sessão ({builder.tempWorkout.sessions[0]?.exercises.length || 0})</span>
-                  </li>
-                ) : null}
-                
-                {builder.compatibility.riskLevel === "critical" && (
-                  builder.acknowledgeRisks ? (
-                    <li className="flex items-center gap-2 text-muted-foreground">
-                      <Check className="w-4 h-4 text-green-600" />
-                      <span className="line-through">Riscos de saúde reconhecidos</span>
-                    </li>
-                  ) : (
-                    <li className="flex items-center gap-2 text-destructive">
-                      <X className="w-4 h-4" />
-                      <span>Reconheça os riscos de saúde no painel de alertas</span>
-                    </li>
-                  )
-                )}
-              </ul>
-            </div>
-          </div>
-        </Card>
-      )}
-
       {/* Footer com ações */}
       <div className="flex justify-end gap-3 pt-6 border-t">
         <Button variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span>
-                <Button
-                  onClick={handleSubmit}
-                  disabled={!builder.canSubmit || builder.isSubmitting}
-                >
-                  {builder.isSubmitting ? "Atribuindo..." : "Atribuir Treino"}
-                </Button>
-              </span>
-            </TooltipTrigger>
-            {!builder.canSubmit && (
-              <TooltipContent side="top" className="max-w-xs">
-                <p className="font-semibold mb-2">Requisitos pendentes:</p>
-                <ul className="text-sm space-y-1">
-                  {!builder.tempWorkout.name.trim() && (
-                    <li className="flex items-center gap-1">
-                      <X className="w-3 h-3 text-destructive" /> Nome do treino
-                    </li>
-                  )}
-                  {builder.tempWorkout.sessions.length === 0 && (
-                    <li className="flex items-center gap-1">
-                      <X className="w-3 h-3 text-destructive" /> Adicionar pelo menos uma sessão
-                    </li>
-                  )}
-                  {builder.tempWorkout.sessions.length > 0 && 
-                   builder.tempWorkout.sessions[0].exercises.length === 0 && (
-                    <li className="flex items-center gap-1">
-                      <X className="w-3 h-3 text-destructive" /> Adicionar exercícios à primeira sessão
-                    </li>
-                  )}
-                  {builder.compatibility.riskLevel === "critical" && !builder.acknowledgeRisks && (
-                    <li className="flex items-center gap-1">
-                      <X className="w-3 h-3 text-destructive" /> Reconhecer riscos de saúde
-                    </li>
-                  )}
-                </ul>
-              </TooltipContent>
-            )}
-          </Tooltip>
-        </TooltipProvider>
+        <Button
+          onClick={handleSubmit}
+          disabled={!builder.canSubmit || builder.isSubmitting}
+        >
+          {builder.isSubmitting ? "Atribuindo..." : "Atribuir Treino"}
+        </Button>
       </div>
 
       {/* Dialog de Seleção de Sessões Existentes */}

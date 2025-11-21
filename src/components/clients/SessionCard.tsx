@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Edit, Trash2, GripVertical, AlertCircle } from "lucide-react";
+import { ChevronDown, ChevronRight, Edit, Trash2, GripVertical } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -45,8 +45,6 @@ interface SessionCardProps {
   dragHandleAttributes?: any;
   dragHandleListeners?: any;
   clientMedicalConditions?: string | null;
-  showValidation?: boolean;
-  isFirstSession?: boolean;
 }
 
 // Componente sortable para exercício individual
@@ -106,8 +104,6 @@ export const SessionCard = ({
   dragHandleAttributes,
   dragHandleListeners,
   clientMedicalConditions,
-  showValidation,
-  isFirstSession,
 }: SessionCardProps) => {
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -127,10 +123,8 @@ export const SessionCard = ({
     onReorderExercises(oldIndex, newIndex);
   };
 
-  const needsExercises = isFirstSession && session.exercises.length === 0 && showValidation;
-
   return (
-    <Card className={cn(needsExercises && "border-destructive border-2")}>
+    <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1">
@@ -164,12 +158,6 @@ export const SessionCard = ({
                 <Badge variant="outline">
                   {session.exercises.length} exercício{session.exercises.length !== 1 ? 's' : ''}
                 </Badge>
-                {needsExercises && (
-                  <Badge variant="destructive" className="animate-pulse">
-                    <AlertCircle className="w-3 h-3 mr-1" />
-                    Adicione exercícios
-                  </Badge>
-                )}
               </div>
               {session.description && (
                 <p className="text-sm text-muted-foreground truncate">
@@ -191,20 +179,6 @@ export const SessionCard = ({
 
       {isExpanded && (
         <CardContent className="space-y-6">
-          {needsExercises && (
-            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-semibold text-destructive">
-                  A primeira sessão precisa ter pelo menos um exercício
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Adicione exercícios usando o seletor abaixo
-                </p>
-              </div>
-            </div>
-          )}
-          
           {/* Kanban para adicionar mais exercícios - no topo */}
           <div className="space-y-3">
             <h5 className="text-sm font-semibold text-foreground">
