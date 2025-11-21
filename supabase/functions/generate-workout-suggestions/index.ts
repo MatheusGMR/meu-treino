@@ -43,48 +43,21 @@ serve(async (req) => {
       );
     }
 
-    // Montar prompt estruturado
+    // Montar prompt estruturado e conciso
     const prompt = `
-Você é um personal trainer especializado. Analise a anamnese e sugira um plano de treino:
+Analise a anamnese e forneça sugestões de treino:
 
-PERFIL DO CLIENTE:
-- Objetivo Principal: ${anamnesis.primary_goal || 'Não especificado'}
-- Objetivos Secundários: ${anamnesis.secondary_goals?.join(', ') || 'Nenhum'}
-- Nível de Atividade: ${anamnesis.activity_level || 'Não especificado'}
-- Tempo Disponível por Sessão: ${anamnesis.tempo_disponivel || 'Não especificado'}
-- Frequência Atual: ${anamnesis.frequencia_atual || 'Não especificado'}
+CLIENTE:
+• Objetivo: ${anamnesis.primary_goal || 'Não especificado'}
+• Tempo/Sessão: ${anamnesis.tempo_disponivel || 'Não especificado'}
+• Dores: ${anamnesis.pain_details || anamnesis.pain_locations?.join(', ') || 'Nenhuma'}
+• Restrições: ${anamnesis.medical_restrictions?.join(', ') || 'Nenhuma'}
+• Regiões prioritárias: ${anamnesis.regioes_que_deseja_melhorar?.join(', ') || 'Não especificado'}
 
-RESTRIÇÕES E CONDIÇÕES:
-- Dores/Desconfortos: ${anamnesis.pain_locations?.join(', ') || 'Nenhuma'}
-- Detalhes das Dores: ${anamnesis.pain_details || 'Nenhum'}
-- Problemas Articulares: ${anamnesis.has_joint_pain ? 'Sim' : 'Não'}
-- Lesões ou Cirurgias: ${anamnesis.injury_details || 'Nenhuma'}
-- Restrições Médicas: ${anamnesis.medical_restrictions?.join(', ') || 'Nenhuma'}
-- Detalhes Restrições: ${anamnesis.medical_restrictions_details || 'Nenhum'}
-
-ESTILO DE VIDA:
-- Horas de Sono: ${anamnesis.sono_horas || 'Não especificado'}
-- Nível de Estresse: ${anamnesis.estresse || 'Não especificado'}
-- Regiões Prioritárias: ${anamnesis.regioes_que_deseja_melhorar?.join(', ') || 'Não especificado'}
-- Tipo de Trabalho: ${anamnesis.work_type || 'Não especificado'}
-- Horas Sentado/Dia: ${anamnesis.daily_sitting_hours || 'Não especificado'}
-
-TAREFA:
-Forneça um parecer estruturado:
-
-0. ANÁLISE DO PERFIL (2-3 frases):
-   - Resuma o objetivo principal e nível de atividade do cliente
-   - Mencione aspectos relevantes identificados (dores, restrições, estilo de vida)
-   - Indique que as recomendações a seguir SERÃO USADAS NA MONTAGEM DO TREINO
-
-1. FREQUÊNCIA E DURAÇÃO: Indique quantas sessões por semana e duração de cada uma
-2. RECOMENDAÇÕES (máximo 5 itens priorizados):
-   - Use 🔥 para exercícios ou grupos musculares obrigatórios
-   - Use ⚡ para ajustes de intensidade/volume
-   - Use ⚠️ para cuidados com restrições/dores
-   - Use 💡 para sugestões gerais de montagem
-
-Seja direto e prático. Priorize o mais importante.
+FORNEÇA:
+1. Overview: Resuma perfil e mencione que as recomendações serão usadas no treino
+2. Frequência: Quantas sessões/semana e duração
+3. Recomendações (max 5): Use 🔥⚡⚠️💡 como ícones
 `;
 
     // Tool calling para JSON estruturado
@@ -137,11 +110,11 @@ Seja direto e prático. Priorize o mais importante.
       },
       body: JSON.stringify({
         model: 'gpt-5-mini-2025-08-07',
-        max_completion_tokens: 1000,
+        max_completion_tokens: 2500,
         messages: [
           { 
             role: 'system', 
-            content: 'Você é um personal trainer certificado com 10 anos de experiência em prescrição de exercícios personalizados.' 
+            content: 'Você é personal trainer experiente. Seja direto e objetivo.' 
           },
           { role: 'user', content: prompt }
         ],
@@ -178,11 +151,22 @@ Seja direto e prático. Priorize o mais importante.
     const data = await response.json();
     console.log('Resposta da OpenAI recebida:', JSON.stringify(data).substring(0, 500));
 
+    // Verificar finish_reason
+    const finishReason = data.choices?.[0]?.finish_reason;
+    if (finishReason === 'length') {
+      console.error('Modelo atingiu limite de tokens. Usage:', data.usage);
+      return new Response(
+        JSON.stringify({ error: 'IA precisou de mais tokens. Tente novamente ou simplifique a solicitação.' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Extrair JSON do tool call
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     
     if (!toolCall) {
-      console.error('Tool call não encontrado. Estrutura da resposta:', JSON.stringify(data.choices?.[0]?.message || {}).substring(0, 300));
+      console.error('Tool call não encontrado. Finish reason:', finishReason);
+      console.error('Estrutura da mensagem:', JSON.stringify(data.choices?.[0]?.message || {}).substring(0, 300));
       
       // Fallback: tentar extrair do content se disponível
       const content = data.choices?.[0]?.message?.content;
@@ -190,7 +174,7 @@ Seja direto e prático. Priorize o mais importante.
         try {
           // Tentar parsear JSON do content
           const parsed = JSON.parse(content);
-          if (parsed.sessions && parsed.recommendations) {
+          if (parsed.overview && parsed.sessions && parsed.recommendations) {
             console.log('Sugestões extraídas do content com sucesso');
             return new Response(
               JSON.stringify(parsed),
@@ -203,7 +187,7 @@ Seja direto e prático. Priorize o mais importante.
       }
       
       return new Response(
-        JSON.stringify({ error: 'Formato de resposta inválido da IA' }),
+        JSON.stringify({ error: 'IA não retornou formato esperado. Tente novamente.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
