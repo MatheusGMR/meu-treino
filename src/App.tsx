@@ -22,6 +22,9 @@ import ClientDetails from "./pages/personal/ClientDetails";
 import Subscription from "./pages/personal/Subscription";
 import ClientDashboard from "./pages/client/ClientDashboard";
 import ClientAnamnesis from "./pages/client/ClientAnamnesis";
+import ClientProgress from "./pages/client/ClientProgress";
+import ClientProfile from "./pages/client/ClientProfile";
+import WorkoutDetails from "./pages/client/WorkoutDetails";
 import WorkoutSessionExecution from "./pages/client/WorkoutSessionExecution";
 import ClientHistory from "./pages/client/ClientHistory";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -184,6 +187,36 @@ const App = () => (
                 <AuthGuard>
                   <RoleGuard allowedRoles={["client"]}>
                     <ClientDashboard />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/client/progress"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["client"]}>
+                    <ClientProgress />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/client/profile"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["client"]}>
+                    <ClientProfile />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/client/workout/details/:workoutId"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["client"]}>
+                    <WorkoutDetails />
                   </RoleGuard>
                 </AuthGuard>
               }
