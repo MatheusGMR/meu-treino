@@ -170,6 +170,20 @@ const ClientAnamnesis = () => {
 
       if (profileError) throw profileError;
 
+      // Chamar edge function para calcular perfil da anamnese
+      console.log("Calculando perfil da anamnese...");
+      const { data: profileData, error: profileCalcError } = await supabase.functions.invoke(
+        'calculate-anamnesis-profile',
+        { body: { clientId: user.id } }
+      );
+
+      if (profileCalcError) {
+        console.error("Erro ao calcular perfil:", profileCalcError);
+        // Não bloquear o fluxo, apenas logar o erro
+      } else {
+        console.log("Perfil calculado com sucesso:", profileData);
+      }
+
       toast({
         title: "Anamnese concluída!",
         description: "Suas informações foram salvas com sucesso.",
