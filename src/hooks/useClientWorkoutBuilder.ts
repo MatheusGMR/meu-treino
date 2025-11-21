@@ -165,6 +165,38 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     }));
   }, []);
 
+  const reorderSessions = useCallback((startIndex: number, endIndex: number) => {
+    setTempWorkout((prev) => {
+      const sessions = [...prev.sessions];
+      const [removed] = sessions.splice(startIndex, 1);
+      sessions.splice(endIndex, 0, removed);
+      return { ...prev, sessions };
+    });
+  }, []);
+
+  const reorderExercisesInSession = useCallback((sessionIndex: number, startIndex: number, endIndex: number) => {
+    setTempWorkout((prev) => {
+      const session = prev.sessions[sessionIndex];
+      if (!session) return prev;
+
+      const exercises = [...session.exercises];
+      const [removed] = exercises.splice(startIndex, 1);
+      exercises.splice(endIndex, 0, removed);
+
+      // Reordenar order_index
+      const reorderedExercises = exercises.map((ex, idx) => ({
+        ...ex,
+        order_index: idx,
+      }));
+
+      const updatedSessions = prev.sessions.map((s, i) =>
+        i === sessionIndex ? { ...s, exercises: reorderedExercises, isEdited: true } : s
+      );
+
+      return { ...prev, sessions: updatedSessions };
+    });
+  }, []);
+
   // Adicionar sessão existente
   const addExistingSession = useCallback(async (sessionId: string) => {
     try {
@@ -338,6 +370,8 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     addNewSession,
     removeSession,
     updateSession,
+    reorderSessions,
+    reorderExercisesInSession,
     addExistingSession,
     getExistingSessionIds,
     canSubmit,
