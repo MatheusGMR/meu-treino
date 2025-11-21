@@ -7,6 +7,35 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface IMC {
+  valor: string;
+  categoria: string;
+}
+
+/**
+ * Calcula IMC e categoria
+ */
+function calcularIMC(peso: number | null, altura: number | null): IMC | null {
+  if (!peso || !altura || altura <= 0) return null;
+  const imc = peso / Math.pow(altura / 100, 2);
+  const categoria = 
+    imc < 18.5 ? 'Abaixo do peso' :
+    imc < 25 ? 'Peso normal' :
+    imc < 30 ? 'Sobrepeso' :
+    'Obesidade';
+  return { valor: imc.toFixed(1), categoria };
+}
+
+/**
+ * Infere nível de experiência baseado no histórico
+ */
+function inferirExperiencia(tipos: string[] | null, frequencia: string | null): string {
+  if (!tipos || tipos.length === 0) return 'Iniciante';
+  if (tipos.includes('Musculação') || tipos.includes('Crossfit')) return 'Intermediário';
+  if (tipos.includes('Pilates') || tipos.includes('Yoga')) return 'Iniciante+';
+  return 'Iniciante';
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -43,21 +72,87 @@ serve(async (req) => {
       );
     }
 
-    // Montar prompt estruturado e conciso
+    console.log('Anamnese encontrada:', {
+      hasProfile: !!anamnesis.calculated_profile,
+      primaryGoal: anamnesis.primary_goal,
+      hasIMC: !!anamnesis.imc_calculado,
+      hasExperiencia: !!anamnesis.nivel_experiencia,
+    });
+
+    // Usar dados persistidos ou calcular
+    const imc = anamnesis.imc_calculado && anamnesis.imc_categoria
+      ? { valor: anamnesis.imc_calculado.toFixed(1), categoria: anamnesis.imc_categoria }
+      : calcularIMC(anamnesis.peso_kg, anamnesis.altura_cm);
+
+    const nivelExperiencia = anamnesis.nivel_experiencia || 
+      inferirExperiencia(anamnesis.tipos_de_treino_feitos, anamnesis.frequencia_atual);
+
+    // Montar prompt ENRIQUECIDO
     const prompt = `
-Analise a anamnese e forneça sugestões de treino:
+Analise esta anamnese completa e forneça sugestões personalizadas:
 
-CLIENTE:
-• Objetivo: ${anamnesis.primary_goal || 'Não especificado'}
-• Tempo/Sessão: ${anamnesis.tempo_disponivel || 'Não especificado'}
-• Dores: ${anamnesis.pain_details || anamnesis.pain_locations?.join(', ') || 'Nenhuma'}
-• Restrições: ${anamnesis.medical_restrictions?.join(', ') || 'Nenhuma'}
+COMPOSIÇÃO E SAÚDE:
+• IMC: ${imc ? `${imc.valor} (${imc.categoria})` : 'Não calculado'}
+• Peso: ${anamnesis.peso_kg ? `${anamnesis.peso_kg}kg` : 'Não informado'}
+• Altura: ${anamnesis.altura_cm ? `${anamnesis.altura_cm}cm` : 'Não informado'}
+• Autoimagem: ${anamnesis.autoimagem || 'Não informado'}
+• Dores: ${anamnesis.pain_details || 'Nenhuma'} (escala ${anamnesis.escala_dor || 0}/10)
+${anamnesis.pain_locations?.length ? `• Locais de dor: ${anamnesis.pain_locations.join(', ')}` : ''}
+• Restrições médicas: ${anamnesis.restricao_medica === 'Sim' ? 'SIM' : 'Não'}
+${anamnesis.lesoes ? `• Lesões: ${anamnesis.lesoes}` : ''}
+${anamnesis.cirurgias ? `• Cirurgias: ${anamnesis.cirurgias}` : ''}
+
+EXPERIÊNCIA E HISTÓRICO:
+• Nível estimado: ${nivelExperiencia}
+• Histórico de treinos: ${anamnesis.tipos_de_treino_feitos?.join(', ') || 'Sem histórico'}
+• Frequência atual: ${anamnesis.frequencia_atual || '0x/semana'}
+• Tempo sem treinar: ${anamnesis.time_without_training || 'Não informado'}
+• Treina atualmente: ${anamnesis.treina_atualmente ? 'Sim' : 'Não'}
+
+OBJETIVOS:
+• Principal: ${anamnesis.primary_goal || 'Não especificado'}
+• Secundário: ${anamnesis.objetivo_secundario || 'Nenhum'}
+• Prazo: ${anamnesis.prazo || 'Não definido'}
+• Prioridade (1-5): ${anamnesis.prioridade || 'Não definida'}
 • Regiões prioritárias: ${anamnesis.regioes_que_deseja_melhorar?.join(', ') || 'Não especificado'}
+${anamnesis.evento_especifico ? `• Evento específico: ${anamnesis.evento_especifico}` : ''}
 
-FORNEÇA:
-1. Overview: Resuma perfil e mencione que as recomendações serão usadas no treino
-2. Frequência: Quantas sessões/semana e duração
-3. Recomendações (max 5): Use 🔥⚡⚠️💡 como ícones
+ESTILO DE VIDA:
+• Sono: ${anamnesis.sono_horas || 'Não informado'}
+• Estresse: ${anamnesis.estresse || 'Não informado'}
+• Alimentação: ${anamnesis.alimentacao || 'Não informado'}
+• Hidratação: ${anamnesis.consumo_agua || 'Não informado'}
+${anamnesis.alcool_cigarro ? `• Álcool/Cigarro: ${anamnesis.alcool_cigarro}` : ''}
+• Horas sentado/dia: ${anamnesis.daily_sitting_hours || 'Não informado'}
+
+LOGÍSTICA E PREFERÊNCIAS:
+• Tempo disponível: ${anamnesis.tempo_disponivel || 'Não especificado'}
+• Horário preferido: ${anamnesis.horario_preferido || 'Não especificado'}
+• Local de treino: ${anamnesis.local_treino || 'Não especificado'}
+• Tipo de treino preferido: ${anamnesis.tipo_treino_preferido || 'Não especificado'}
+• Preferência de instrução: ${anamnesis.preferencia_instrucao || 'Não especificado'}
+
+PERFIL CALCULADO:
+• Perfil de anamnese: ${anamnesis.calculated_profile || 'Não calculado'}
+
+FORNEÇA (seja direto e específico):
+
+1. Overview (2-3 frases): 
+   - Resuma o perfil considerando IMC, experiência, objetivos e restrições
+   - Mencione que as recomendações abaixo serão aplicadas na montagem do treino personalizado
+
+2. Frequência: 
+   - Sessões/semana e duração estimada
+   - Considere experiência, tempo disponível e objetivos
+
+3. Recomendações (máx 5 itens práticos):
+   🔥 Exercícios/grupos musculares OBRIGATÓRIOS (considere histórico + regiões prioritárias + objetivo)
+   ⚡ Ajustes de intensidade/volume (considere IMC + experiência + tempo parado)
+   ⚠️ Cuidados com dores/restrições (considere escala de dor + locais + lesões)
+   💡 Sugestões gerais (considere estilo de vida + preferências + histórico de treinos)
+   
+   IMPORTANTE: Se o cliente já praticou algum tipo de treino (Pilates, Yoga, Musculação, etc.), 
+   mencione isso nas recomendações e sugira como aproveitar essa experiência!
 `;
 
     // Tool calling para JSON estruturado

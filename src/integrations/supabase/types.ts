@@ -22,6 +22,7 @@ export type Database = {
           alimentacao: string | null
           altura_cm: number | null
           autoimagem: string | null
+          calculated_at: string | null
           calculated_profile: string | null
           cirurgias: string | null
           client_id: string
@@ -46,6 +47,8 @@ export type Database = {
           has_joint_pain: boolean | null
           horario_preferido: string | null
           id: string
+          imc_calculado: number | null
+          imc_categoria: string | null
           injury_details: string | null
           injury_type: string | null
           lesoes: string | null
@@ -54,6 +57,7 @@ export type Database = {
           medical_restrictions: string[] | null
           medical_restrictions_details: string | null
           motivacao: string | null
+          nivel_experiencia: string | null
           nutrition_quality: string | null
           objetivo_secundario: string | null
           pain_details: string | null
@@ -91,6 +95,7 @@ export type Database = {
           alimentacao?: string | null
           altura_cm?: number | null
           autoimagem?: string | null
+          calculated_at?: string | null
           calculated_profile?: string | null
           cirurgias?: string | null
           client_id: string
@@ -115,6 +120,8 @@ export type Database = {
           has_joint_pain?: boolean | null
           horario_preferido?: string | null
           id?: string
+          imc_calculado?: number | null
+          imc_categoria?: string | null
           injury_details?: string | null
           injury_type?: string | null
           lesoes?: string | null
@@ -123,6 +130,7 @@ export type Database = {
           medical_restrictions?: string[] | null
           medical_restrictions_details?: string | null
           motivacao?: string | null
+          nivel_experiencia?: string | null
           nutrition_quality?: string | null
           objetivo_secundario?: string | null
           pain_details?: string | null
@@ -160,6 +168,7 @@ export type Database = {
           alimentacao?: string | null
           altura_cm?: number | null
           autoimagem?: string | null
+          calculated_at?: string | null
           calculated_profile?: string | null
           cirurgias?: string | null
           client_id?: string
@@ -184,6 +193,8 @@ export type Database = {
           has_joint_pain?: boolean | null
           horario_preferido?: string | null
           id?: string
+          imc_calculado?: number | null
+          imc_categoria?: string | null
           injury_details?: string | null
           injury_type?: string | null
           lesoes?: string | null
@@ -192,6 +203,7 @@ export type Database = {
           medical_restrictions?: string[] | null
           medical_restrictions_details?: string | null
           motivacao?: string | null
+          nivel_experiencia?: string | null
           nutrition_quality?: string | null
           objetivo_secundario?: string | null
           pain_details?: string | null

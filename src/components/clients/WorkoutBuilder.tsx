@@ -345,6 +345,7 @@ export const WorkoutBuilder = ({
               stress={builder.clientAnamnesis?.estresse || null}
               sleep={builder.clientAnamnesis?.sono_horas || null}
               fatigueAlert={builder.fatigueAlert}
+              clientAnamnesis={builder.clientAnamnesis}
             />
 
             {/* BLOCO 2: Volume Semanal */}
