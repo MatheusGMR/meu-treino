@@ -84,7 +84,12 @@ const ClientDashboard = () => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-primary-glow to-accent">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-background border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-background">Carregando...</p>
+          <p className="text-background text-lg font-semibold">
+            {anamnesisLoading ? "Carregando perfil..." : "Verificando treinos..."}
+          </p>
+          <p className="text-background/80 text-sm mt-2">
+            Aguarde alguns instantes
+          </p>
         </div>
       </div>
     );

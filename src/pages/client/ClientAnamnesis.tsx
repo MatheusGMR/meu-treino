@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 const ClientAnamnesis = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const totalSteps = 8;
@@ -170,6 +172,12 @@ const ClientAnamnesis = () => {
 
       if (profileError) throw profileError;
 
+      // Mostrar loading state para o usuário
+      toast({
+        title: "Processando...",
+        description: "Estamos analisando suas informações. Aguarde alguns instantes...",
+      });
+
       // Chamar edge function para calcular perfil da anamnese
       console.log("Calculando perfil da anamnese...");
       const { data: profileData, error: profileCalcError } = await supabase.functions.invoke(
@@ -184,12 +192,17 @@ const ClientAnamnesis = () => {
         console.log("Perfil calculado com sucesso:", profileData);
       }
 
+      // Invalidar cache para forçar reload
+      await queryClient.invalidateQueries({ queryKey: ["has-workout", user.id] });
+      await queryClient.invalidateQueries({ queryKey: ["anamnesis-status", user.id] });
+
       toast({
         title: "Anamnese concluída!",
         description: "Suas informações foram salvas com sucesso.",
       });
 
-      navigate("/dashboard");
+      // Redirecionar DIRETAMENTE para o dashboard do cliente
+      navigate("/client/dashboard", { replace: true });
     } catch (error: any) {
       console.error("Error submitting anamnesis:", error);
       toast({
