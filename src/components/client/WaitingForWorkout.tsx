@@ -21,8 +21,9 @@ export const WaitingForWorkout = () => {
             </div>
           </div>
 
-          <h1 className="text-3xl font-bold text-foreground mb-4">
-            Ótimo! 🎉
+          <h1 className="text-3xl font-bold text-foreground mb-4 flex items-center justify-center gap-2">
+            <span className="inline-block animate-spin-slow">🎉</span>
+            <span>Ótimo!</span>
           </h1>
           
           <p className="text-xl text-muted-foreground mb-6">
