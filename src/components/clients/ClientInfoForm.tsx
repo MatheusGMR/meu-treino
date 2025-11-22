@@ -114,8 +114,8 @@ export const ClientInfoForm = ({ clientId, profile }: ClientInfoFormProps) => {
         gender: (profile.gender || anamnesis.gender) as any,
         emergency_contact: profile.emergency_contact || "",
         emergency_phone: profile.emergency_phone || "",
-        medical_conditions: profile.medical_conditions || formatMedicalConditions(anamnesis) || "",
-        goals: profile.goals || formatGoals(anamnesis) || "",
+        medical_conditions: (profile.medical_conditions?.trim() || formatMedicalConditions(anamnesis) || ""),
+        goals: (profile.goals?.trim() || formatGoals(anamnesis) || ""),
         notes: profile.notes || "",
       });
     }
