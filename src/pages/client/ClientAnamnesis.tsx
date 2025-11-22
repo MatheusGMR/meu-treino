@@ -268,17 +268,14 @@ const ClientAnamnesis = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="tempo_sentado">Tempo sentado por dia</Label>
-              <Select value={formData.tempo_sentado_dia} onValueChange={(value) => updateField("tempo_sentado_dia", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["Menos de 2 horas", "2 a 4 horas", "4 a 6 horas", "6 a 8 horas", "Mais de 8 horas"].map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Tempo sentado por dia</Label>
+              <RadioCardGroup value={formData.tempo_sentado_dia} onValueChange={(value) => updateField("tempo_sentado_dia", value)}>
+                {["Menos de 2 horas", "2 a 4 horas", "4 a 6 horas", "6 a 8 horas", "Mais de 8 horas"].map((option) => (
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
+                ))}
+              </RadioCardGroup>
             </div>
           </div>
         );
@@ -366,16 +363,13 @@ const ClientAnamnesis = () => {
 
             <div className="space-y-2">
               <Label>Frequência atual</Label>
-              <Select value={formData.frequencia_atual} onValueChange={(value) => updateField("frequencia_atual", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["0 vezes/semana", "1 vez/semana", "2 vezes/semana", "3 vezes/semana", "4 vezes/semana", "5 vezes/semana", "6+ vezes/semana"].map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <RadioCardGroup value={formData.frequencia_atual} onValueChange={(value) => updateField("frequencia_atual", value)}>
+                {["0 vezes/semana", "1 vez/semana", "2 vezes/semana", "3 vezes/semana", "4 vezes/semana", "5 vezes/semana", "6+ vezes/semana"].map((option) => (
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
+                ))}
+              </RadioCardGroup>
             </div>
 
             <div className="space-y-2">
@@ -396,16 +390,13 @@ const ClientAnamnesis = () => {
 
             <div className="space-y-2">
               <Label>Caso esteja parado, há quanto tempo?</Label>
-              <Select value={formData.tempo_parado} onValueChange={(value) => updateField("tempo_parado", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["Não estou parado", "Menos de 1 mês", "1 a 3 meses", "3 a 6 meses", "6 a 12 meses", "Mais de 1 ano"].map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <RadioCardGroup value={formData.tempo_parado} onValueChange={(value) => updateField("tempo_parado", value)}>
+                {["Não estou parado", "Menos de 1 mês", "1 a 3 meses", "3 a 6 meses", "6 a 12 meses", "Mais de 1 ano"].map((option) => (
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
+                ))}
+              </RadioCardGroup>
             </div>
           </div>
         );
@@ -523,45 +514,36 @@ const ClientAnamnesis = () => {
 
             <div className="space-y-2">
               <Label>Objetivo secundário</Label>
-              <Select value={formData.objetivo_secundario} onValueChange={(value) => updateField("objetivo_secundario", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["Nenhum", "Emagrecimento", "Hipertrofia", "Condicionamento", "Saúde", "Performance", "Mobilidade"].map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <RadioCardGroup value={formData.objetivo_secundario} onValueChange={(value) => updateField("objetivo_secundario", value)}>
+                {["Nenhum", "Emagrecimento", "Hipertrofia", "Condicionamento", "Saúde", "Performance", "Mobilidade"].map((option) => (
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
+                ))}
+              </RadioCardGroup>
             </div>
 
             <div className="space-y-2">
               <Label>Prazo desejado</Label>
-              <Select value={formData.prazo} onValueChange={(value) => updateField("prazo", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["30 dias", "3 meses", "6 meses", "1 ano", "Sem prazo"].map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <RadioCardGroup value={formData.prazo} onValueChange={(value) => updateField("prazo", value)}>
+                {["30 dias", "3 meses", "6 meses", "1 ano", "Sem prazo"].map((option) => (
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
+                ))}
+              </RadioCardGroup>
             </div>
 
             <div className="space-y-2">
               <Label>Prioridade (1 a 5)</Label>
               <p className="text-sm text-muted-foreground">Quanto isso é prioritário para você?</p>
-              <Select value={formData.prioridade} onValueChange={(value) => updateField("prioridade", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["1", "2", "3", "4", "5"].map((option) => (
-                    <SelectItem key={option} value={option}>{option} {option === "5" ? "(Máxima)" : option === "1" ? "(Mínima)" : ""}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <RadioCardGroup value={formData.prioridade} onValueChange={(value) => updateField("prioridade", value)}>
+                {["1", "2", "3", "4", "5"].map((option) => (
+                  <RadioCardItem key={option} value={option}>
+                    {option} {option === "5" ? "(Máxima)" : option === "1" ? "(Mínima)" : ""}
+                  </RadioCardItem>
+                ))}
+              </RadioCardGroup>
             </div>
 
             <div className="space-y-2">
@@ -586,16 +568,13 @@ const ClientAnamnesis = () => {
 
             <div className="space-y-2">
               <Label>Horas de sono por noite</Label>
-              <Select value={formData.sono_horas} onValueChange={(value) => updateField("sono_horas", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["Menos de 5 horas", "5 a 6 horas", "6 a 7 horas", "7 a 8 horas", "Mais de 8 horas"].map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <RadioCardGroup value={formData.sono_horas} onValueChange={(value) => updateField("sono_horas", value)}>
+                {["Menos de 5 horas", "5 a 6 horas", "6 a 7 horas", "7 a 8 horas", "Mais de 8 horas"].map((option) => (
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
+                ))}
+              </RadioCardGroup>
             </div>
 
             <div className="space-y-2">
@@ -611,16 +590,13 @@ const ClientAnamnesis = () => {
 
             <div className="space-y-2">
               <Label>Consumo diário de água</Label>
-              <Select value={formData.consumo_agua} onValueChange={(value) => updateField("consumo_agua", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["Menos de 1 litro", "1 a 2 litros", "2 a 3 litros", "Mais de 3 litros"].map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <RadioCardGroup value={formData.consumo_agua} onValueChange={(value) => updateField("consumo_agua", value)}>
+                {["Menos de 1 litro", "1 a 2 litros", "2 a 3 litros", "Mais de 3 litros"].map((option) => (
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
+                ))}
+              </RadioCardGroup>
             </div>
 
             <div className="space-y-2">
@@ -636,30 +612,24 @@ const ClientAnamnesis = () => {
 
             <div className="space-y-2">
               <Label>Consumo de álcool / cigarro</Label>
-              <Select value={formData.alcool_cigarro} onValueChange={(value) => updateField("alcool_cigarro", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["Não consumo", "Álcool ocasional", "Álcool frequente", "Cigarro", "Álcool e cigarro"].map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <RadioCardGroup value={formData.alcool_cigarro} onValueChange={(value) => updateField("alcool_cigarro", value)}>
+                {["Não consumo", "Álcool ocasional", "Álcool frequente", "Cigarro", "Álcool e cigarro"].map((option) => (
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
+                ))}
+              </RadioCardGroup>
             </div>
 
             <div className="space-y-2">
               <Label>O que mais te motiva?</Label>
-              <Select value={formData.motivacao} onValueChange={(value) => updateField("motivacao", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["Resultados", "Saúde", "Estética", "Disciplina", "Bem-estar", "Performance"].map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <RadioCardGroup value={formData.motivacao} onValueChange={(value) => updateField("motivacao", value)}>
+                {["Resultados", "Saúde", "Estética", "Disciplina", "Bem-estar", "Performance"].map((option) => (
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
+                ))}
+              </RadioCardGroup>
             </div>
 
             <div className="space-y-2">
@@ -685,58 +655,46 @@ const ClientAnamnesis = () => {
 
             <div className="space-y-2">
               <Label>Onde pretende treinar?</Label>
-              <Select value={formData.local_treino} onValueChange={(value) => updateField("local_treino", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["Academia", "Condomínio", "Casa", "Estúdio", "Ar livre"].map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <RadioCardGroup value={formData.local_treino} onValueChange={(value) => updateField("local_treino", value)}>
+                {["Academia", "Condomínio", "Casa", "Estúdio", "Ar livre"].map((option) => (
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
+                ))}
+              </RadioCardGroup>
             </div>
 
             <div className="space-y-2">
               <Label>Tempo disponível por sessão</Label>
-              <Select value={formData.tempo_disponivel} onValueChange={(value) => updateField("tempo_disponivel", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["30 minutos", "45 minutos", "60 minutos", "Mais de 60 minutos"].map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <RadioCardGroup value={formData.tempo_disponivel} onValueChange={(value) => updateField("tempo_disponivel", value)}>
+                {["30 minutos", "45 minutos", "60 minutos", "Mais de 60 minutos"].map((option) => (
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
+                ))}
+              </RadioCardGroup>
             </div>
 
             <div className="space-y-2">
               <Label>Horário preferido</Label>
-              <Select value={formData.horario_preferido} onValueChange={(value) => updateField("horario_preferido", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["Manhã", "Tarde", "Noite", "Horários flexíveis"].map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <RadioCardGroup value={formData.horario_preferido} onValueChange={(value) => updateField("horario_preferido", value)}>
+                {["Manhã", "Tarde", "Noite", "Horários flexíveis"].map((option) => (
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
+                ))}
+              </RadioCardGroup>
             </div>
 
             <div className="space-y-2">
               <Label>Tipo de treino preferido</Label>
-              <Select value={formData.tipo_treino_preferido} onValueChange={(value) => updateField("tipo_treino_preferido", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["Musculação", "Funcional", "Cardio", "Mobilidade", "HIIT", "Mix combinado"].map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <RadioCardGroup value={formData.tipo_treino_preferido} onValueChange={(value) => updateField("tipo_treino_preferido", value)}>
+                {["Musculação", "Funcional", "Cardio", "Mobilidade", "HIIT", "Mix combinado"].map((option) => (
+                  <RadioCardItem key={option} value={option}>
+                    {option}
+                  </RadioCardItem>
+                ))}
+              </RadioCardGroup>
             </div>
           </div>
         );
@@ -777,9 +735,6 @@ const ClientAnamnesis = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary via-primary-glow to-accent flex items-center justify-center p-2 sm:p-4 md:p-6">
       <Card className="w-full max-w-4xl shadow-2xl">
         <CardHeader className="text-center px-4 sm:px-6 py-6">
-          <div className="flex justify-center mb-4">
-            <img src={logoJmFull} alt="JM" className="h-10 sm:h-12" />
-          </div>
           <CardTitle className="text-2xl sm:text-3xl">Queremos conhecer você melhor</CardTitle>
           <CardDescription className="text-sm sm:text-base mt-2">
             Responda algumas perguntas para personalizarmos seu treino
