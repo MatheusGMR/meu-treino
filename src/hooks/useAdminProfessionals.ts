@@ -55,43 +55,25 @@ export const useAddProfessional = () => {
 
   return useMutation({
     mutationFn: async (data: AddProfessional) => {
-      // 1. Criar usuário
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          data: {
-            full_name: data.full_name,
+      // Obter token de autenticação
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Usuário não autenticado");
+
+      // Chamar edge function
+      const { data: result, error } = await supabase.functions.invoke(
+        'create-professional',
+        {
+          body: data,
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
           },
-        },
-      });
+        }
+      );
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("Falha ao criar usuário");
+      if (error) throw error;
+      if (!result?.success) throw new Error(result?.error || "Erro ao criar profissional");
 
-      // 2. Atualizar perfil
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({
-          full_name: data.full_name,
-          phone: data.phone,
-          birth_date: data.birth_date,
-          gender: data.gender,
-          notes: data.specializations,
-        })
-        .eq("id", authData.user.id);
-
-      if (profileError) throw profileError;
-
-      // 3. Adicionar role 'personal'
-      const { error: roleError } = await supabase.from("user_roles").insert({
-        user_id: authData.user.id,
-        role: "personal",
-      });
-
-      if (roleError) throw roleError;
-
-      return authData.user;
+      return result;
     },
     onSuccess: () => {
       toast({
