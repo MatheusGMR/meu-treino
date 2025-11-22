@@ -178,18 +178,39 @@ const ClientAnamnesis = () => {
         description: "Estamos analisando suas informações. Aguarde alguns instantes...",
       });
 
-      // Chamar edge function para calcular perfil da anamnese
-      console.log("Calculando perfil da anamnese...");
-      const { data: profileData, error: profileCalcError } = await supabase.functions.invoke(
-        'calculate-anamnesis-profile',
-        { body: { clientId: user.id } }
-      );
+      // Chamar edge function para calcular perfil da anamnese com retry automático
+      let retries = 3;
+      let profileCalculated = false;
 
-      if (profileCalcError) {
-        console.error("Erro ao calcular perfil:", profileCalcError);
-        // Não bloquear o fluxo, apenas logar o erro
-      } else {
-        console.log("Perfil calculado com sucesso:", profileData);
+      while (retries > 0 && !profileCalculated) {
+        console.log(`🔄 Calculando perfil (tentativa ${4 - retries}/3)...`);
+        
+        const { data: profileData, error: profileCalcError } = await supabase.functions.invoke(
+          'calculate-anamnesis-profile',
+          { body: { clientId: user.id } }
+        );
+
+        if (profileCalcError) {
+          console.error(`❌ Tentativa ${4 - retries} falhou:`, profileCalcError);
+          retries--;
+          
+          if (retries === 0) {
+            // ÚLTIMA tentativa falhou - BLOQUEAR progressão
+            toast({
+              title: "Erro ao processar anamnese",
+              description: "Não foi possível calcular seu perfil. Entre em contato com seu personal.",
+              variant: "destructive",
+            });
+            setLoading(false);
+            return; // ✅ Bloquear fluxo
+          }
+          
+          // Aguardar 2s antes de tentar novamente
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        } else {
+          console.log("✅ Perfil calculado com sucesso:", profileData);
+          profileCalculated = true;
+        }
       }
 
       // Invalidar cache para forçar reload

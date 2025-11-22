@@ -266,6 +266,17 @@ serve(async (req) => {
       throw new Error('Anamnese não encontrada para este cliente');
     }
 
+    // Log dados encontrados
+    console.log(`✅ Anamnese encontrada:`, {
+      client_id: clientId,
+      has_pain: anamnesis.has_joint_pain,
+      has_injury: anamnesis.has_injury_or_surgery,
+      primary_goal: anamnesis.primary_goal,
+      peso_kg: anamnesis.peso_kg,
+      altura_cm: anamnesis.altura_cm,
+      frequencia_atual: anamnesis.frequencia_atual,
+    });
+
     // 2. Buscar perfis disponíveis
     const { data: profiles, error: profilesError } = await supabase
       .from('anamnesis_profiles')
@@ -290,8 +301,13 @@ serve(async (req) => {
       anamnesis.frequencia_atual,
       anamnesis.time_without_training
     );
-    console.log('IMC:', imc);
-    console.log('Nível Experiência:', nivelExperiencia);
+    
+    console.log(`📊 Cálculos realizados:`, {
+      imc: imc,
+      nivel_experiencia: nivelExperiencia,
+      calculated_profile: profileMatch.profileName,
+      confidence: profileMatch.confidence,
+    });
 
     // 6. Atualizar anamnese com perfil calculado + dados persistidos
     const { error: updateError } = await supabase
@@ -324,6 +340,8 @@ serve(async (req) => {
     if (profileUpdateError) {
       console.error('Erro ao atualizar profile:', profileUpdateError);
       // Não falhar a operação por isso
+    } else {
+      console.log(`✅ Profile atualizado com anamnesis_profile:`, profileMatch.profileName);
     }
 
     return new Response(
