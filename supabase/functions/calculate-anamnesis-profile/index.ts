@@ -2,17 +2,10 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
-
-interface DimensionScore {
-  discipline: number;
-  resilience: number;
-  recovery: number;
-  constraints: number;
-  mobility: number;
-}
 
 interface ProfileMatch {
   profileName: string;
@@ -21,351 +14,368 @@ interface ProfileMatch {
 }
 
 interface IMC {
-  valor: string;
+  value: number;
   categoria: string;
 }
 
-/**
- * Calcula IMC e categoria
- */
 function calcularIMC(peso: number | null, altura: number | null): IMC | null {
-  if (!peso || !altura || altura <= 0) return null;
-  const imc = peso / Math.pow(altura / 100, 2);
-  const categoria = 
-    imc < 18.5 ? 'Abaixo do peso' :
-    imc < 25 ? 'Peso normal' :
-    imc < 30 ? 'Sobrepeso' :
-    'Obesidade';
-  return { valor: imc.toFixed(1), categoria };
+  if (!peso || !altura || altura === 0) return null;
+  const alturaEmMetros = altura / 100;
+  const imc = peso / (alturaEmMetros * alturaEmMetros);
+  let categoria = "";
+  
+  if (imc < 18.5) categoria = "Abaixo do peso";
+  else if (imc < 25) categoria = "Peso normal";
+  else if (imc < 30) categoria = "Sobrepeso";
+  else categoria = "Obesidade";
+  
+  return { value: parseFloat(imc.toFixed(2)), categoria };
 }
 
-/**
- * Infere nível de experiência baseado em múltiplos fatores
- */
 function inferirExperiencia(
-  tipos: string[] | null, 
+  tipos: string[] | null,
   frequencia: string | null,
   tempoParado: string | null = null
 ): string {
-  // Sem histórico = Iniciante
-  if (!tipos || tipos.length === 0) return 'Iniciante';
+  const temMusculacao = tipos?.includes("Musculação") || false;
+  const frequenciaAlta = ["4 vezes/semana", "5 vezes/semana", "6+ vezes/semana"].includes(frequencia || "");
   
-  // Calcular pontuação baseada em múltiplos fatores
-  let score = 0;
-  
-  // Pontos por tipos de treino (0-4)
-  if (tipos.includes('Musculação')) score += 3;
-  if (tipos.includes('Crossfit')) score += 4;
-  if (tipos.includes('Funcional')) score += 2;
-  if (tipos.includes('HIIT')) score += 2;
-  if (tipos.includes('Lutas')) score += 2;
-  if (tipos.includes('Corrida')) score += 1;
-  if (tipos.includes('Esportes coletivos')) score += 1;
-  if (tipos.includes('Pilates') || tipos.includes('Yoga')) score += 1;
-  
-  // Pontos por frequência (0-3)
-  if (frequencia === '6+ vezes/semana') score += 3;
-  else if (frequencia === '5 vezes/semana') score += 3;
-  else if (frequencia === '4 vezes/semana') score += 2;
-  else if (frequencia === '3 vezes/semana') score += 1;
-  
-  // Pontos por diversidade (0-2)
-  if (tipos.length >= 3) score += 2;
-  else if (tipos.length === 2) score += 1;
-  
-  // Penalizar por tempo parado
-  if (tempoParado === 'Mais de 1 ano') score -= 3;
-  else if (tempoParado === '6 a 12 meses') score -= 2;
-  else if (tempoParado === '3 a 6 meses') score -= 1;
-  
-  // Evitar pontuação negativa
-  score = Math.max(0, score);
-  
-  // Classificação final baseada na pontuação
-  if (score >= 7) return 'Avançado';
-  if (score >= 4) return 'Intermediário';
-  if (score >= 2) return 'Iniciante+';
-  return 'Iniciante';
+  if (!temMusculacao) return "Iniciante";
+  if (tempoParado === "Mais de 1 ano") return "Iniciante+";
+  if (frequenciaAlta) return "Avançado";
+  return "Intermediário";
 }
 
-/**
- * Calcula scores baseado nas respostas da anamnese (usando campos NOVOS)
- */
-function calculateDimensionScores(anamnesis: any): DimensionScore {
-  const scores: DimensionScore = {
-    discipline: 0,
-    resilience: 0,
-    recovery: 0,
-    constraints: 0,
-    mobility: 0,
-  };
-
-  // DISCIPLINA (0-10): alimentação + hidratação + motivação
-  let discipline = 0;
-  if (anamnesis.alimentacao === 'Boa') discipline += 3;
-  else if (anamnesis.alimentacao === 'Regular') discipline += 2;
-  else discipline += 1;
-
-  if (anamnesis.consumo_agua === '2 a 3 litros' || anamnesis.consumo_agua === 'Mais de 3 litros') {
-    discipline += 2;
-  } else if (anamnesis.consumo_agua === '1 a 2 litros') {
-    discipline += 1;
-  }
-
-  if (anamnesis.motivacao) discipline += 2;
-
-  scores.discipline = Math.min(10, discipline);
-
-  // RESILIÊNCIA (0-10): prioridade + prazo + motivação
-  let resilience = anamnesis.prioridade || 3; // 1-5
-  if (anamnesis.prazo === '1 mês' || anamnesis.prazo === '3 meses') resilience += 2;
-  else if (anamnesis.prazo === '6 meses') resilience += 1;
-  
-  if (anamnesis.motivacao === 'Saúde' || anamnesis.motivacao === 'Estética') resilience += 2;
-
-  scores.resilience = Math.min(10, resilience);
-
-  // RECUPERAÇÃO (0-10): sono + estresse + hidratação
-  let recovery = 5;
-  if (anamnesis.sono_horas === '7 a 8 horas' || anamnesis.sono_horas === 'Mais de 8 horas') {
-    recovery += 3;
-  } else if (anamnesis.sono_horas === '6 a 7 horas') {
-    recovery += 2;
-  } else {
-    recovery += 1;
-  }
-
-  if (anamnesis.estresse === 'Baixo') recovery += 2;
-  else if (anamnesis.estresse === 'Moderado') recovery += 0;
-  else if (anamnesis.estresse === 'Alto' || anamnesis.estresse === 'Muito alto') recovery -= 2;
-
-  if (anamnesis.consumo_agua === '2 a 3 litros' || anamnesis.consumo_agua === 'Mais de 3 litros') {
-    recovery += 1;
-  }
-
-  if (anamnesis.daily_sitting_hours && anamnesis.daily_sitting_hours >= 8) {
-    recovery -= 1;
-  }
-
-  scores.recovery = Math.max(0, Math.min(10, recovery));
-
-  // RESTRIÇÕES (0-10, invertido: mais restrições = score menor)
-  let constraints = 10;
-  
-  // IMC
-  const imc = calcularIMC(anamnesis.peso_kg, anamnesis.altura_cm);
-  if (imc && parseFloat(imc.valor) > 30) constraints -= 3; // Obesidade
-  else if (imc && parseFloat(imc.valor) > 25) constraints -= 1; // Sobrepeso
-
-  // Dor
-  if (anamnesis.has_joint_pain && anamnesis.escala_dor) {
-    if (anamnesis.escala_dor >= 7) constraints -= 3;
-    else if (anamnesis.escala_dor >= 5) constraints -= 2;
-    else constraints -= 1;
-  }
-
-  // Lesão/Cirurgia
-  if (anamnesis.has_injury_or_surgery) constraints -= 3;
-
-  // Restrições médicas
-  if (anamnesis.restricao_medica === 'Sim') constraints -= 2;
-
-  scores.constraints = Math.max(0, constraints);
-
-  // MOBILIDADE (0-10): experiência + frequência + tempo parado
-  let mobility = 5;
-  const experiencia = inferirExperiencia(
-    anamnesis.tipos_de_treino_feitos, 
-    anamnesis.frequencia_atual,
-    anamnesis.time_without_training
-  );
-  
-  if (experiencia === 'Intermediário') mobility += 3;
-  else if (experiencia === 'Iniciante+') mobility += 2;
-  else mobility += 1;
-
-  if (anamnesis.frequencia_atual === '0 vezes/semana' || !anamnesis.frequencia_atual) mobility -= 1;
-
-  if (anamnesis.time_without_training === 'Mais de 1 ano') mobility -= 2;
-  else if (anamnesis.time_without_training === '6 meses a 1 ano') mobility -= 1;
-
-  if (anamnesis.has_joint_pain) mobility -= 1;
-
-  scores.mobility = Math.max(0, Math.min(10, mobility));
-
-  return scores;
-}
-
-/**
- * Compara scores com perfis conhecidos e retorna o melhor match
- */
-function matchProfile(scores: DimensionScore, profiles: any[]): ProfileMatch {
+// NOVO: Sistema de pontuação baseado em critérios reais
+function matchProfile(anamnesis: any, profiles: any[]): ProfileMatch {
   let bestMatch: ProfileMatch = {
-    profileName: 'Perfil 1',
+    profileName: "Sedentário sem dores",
     score: 0,
     confidence: 0,
   };
 
+  console.log("🔍 Iniciando matching com anamnesis:", {
+    frequencia_atual: anamnesis.frequencia_atual,
+    primary_goal: anamnesis.primary_goal,
+    has_joint_pain: anamnesis.has_joint_pain,
+    has_injury_or_surgery: anamnesis.has_injury_or_surgery,
+    imc_calculado: anamnesis.imc_calculado,
+    imc_categoria: anamnesis.imc_categoria,
+    tipos_de_treino_feitos: anamnesis.tipos_de_treino_feitos,
+    time_without_training: anamnesis.time_without_training,
+  });
+
   profiles.forEach((profile) => {
-    const typicalCombination = profile.typical_combination as any;
-    
-    if (!typicalCombination) return;
+    let score = 0;
+    const tc = profile.typical_combination;
+    if (!tc) return;
 
-    // Calcular distância euclidiana entre scores
-    const distance = Math.sqrt(
-      Math.pow(scores.discipline - (typicalCombination.discipline || 5), 2) +
-      Math.pow(scores.resilience - (typicalCombination.resilience || 5), 2) +
-      Math.pow(scores.recovery - (typicalCombination.recovery || 5), 2) +
-      Math.pow(scores.constraints - (typicalCombination.constraints || 5), 2) +
-      Math.pow(scores.mobility - (typicalCombination.mobility || 5), 2)
-    );
+    const scoreBreakdown = {
+      activity: 0,
+      goal: 0,
+      pain: 0,
+      imc: 0,
+      experience: 0,
+      timeOff: 0,
+    };
 
-    // Converter distância em score de similaridade (0-100)
-    // Distância máxima possível: sqrt(5 * 10^2) ≈ 22.36
-    const similarity = Math.max(0, 100 - (distance / 22.36) * 100);
+    // 1. NÍVEL DE ATIVIDADE (0-25 pontos)
+    if (tc.activity_level) {
+      if (anamnesis.frequencia_atual === "0 vezes/semana" && tc.activity_level.includes("sedentary")) {
+        scoreBreakdown.activity = 25;
+      } else if (["1-2 vezes/semana", "3 vezes/semana"].includes(anamnesis.frequencia_atual) && tc.activity_level.includes("lightly_active")) {
+        scoreBreakdown.activity = 25;
+      } else if (["4 vezes/semana", "5 vezes/semana"].includes(anamnesis.frequencia_atual) && tc.activity_level.includes("regularly_active")) {
+        scoreBreakdown.activity = 25;
+      } else if (["6+ vezes/semana"].includes(anamnesis.frequencia_atual) && tc.activity_level.includes("athlete")) {
+        scoreBreakdown.activity = 25;
+      }
+    }
 
-    if (similarity > bestMatch.score) {
+    // 2. OBJETIVO PRIMÁRIO (0-20 pontos)
+    if (tc.primary_goal && anamnesis.primary_goal) {
+      const goalMapping: Record<string, string> = {
+        "Hipertrofia": "muscle_gain",
+        "Emagrecimento": "weight_loss",
+        "Definição": "definition",
+        "Saúde e longevidade": "health_longevity",
+        "Alívio de dores": "pain_relief",
+        "Condicionamento": "conditioning",
+      };
+      if (tc.primary_goal.includes(goalMapping[anamnesis.primary_goal])) {
+        scoreBreakdown.goal = 20;
+      }
+    }
+
+    // 3. DORES/LESÕES (0-20 pontos)
+    if (tc.has_joint_pain !== undefined) {
+      if (tc.has_joint_pain === anamnesis.has_joint_pain) {
+        scoreBreakdown.pain += 10;
+      }
+    }
+    if (tc.has_injury_or_surgery !== undefined) {
+      if (tc.has_injury_or_surgery === anamnesis.has_injury_or_surgery) {
+        scoreBreakdown.pain += 10;
+      }
+    }
+
+    // 4. IMC/BIOTIPO (0-15 pontos)
+    if (tc.current_body_type && anamnesis.imc_calculado) {
+      const imc = parseFloat(anamnesis.imc_calculado);
+      if (imc < 18.5 && tc.current_body_type.includes(1)) scoreBreakdown.imc = 15;
+      else if (imc < 25 && tc.current_body_type.includes(2)) scoreBreakdown.imc = 15;
+      else if (imc < 27.5 && tc.current_body_type.includes(3)) scoreBreakdown.imc = 15;
+      else if (imc < 30 && tc.current_body_type.includes(4)) scoreBreakdown.imc = 15;
+      else if (imc >= 30 && tc.current_body_type.includes(5)) scoreBreakdown.imc = 15;
+    }
+
+    // 5. EXPERIÊNCIA EM MUSCULAÇÃO (0-10 pontos)
+    if (tc.previous_weight_training !== undefined) {
+      const temMusculacao = anamnesis.tipos_de_treino_feitos?.includes("Musculação");
+      if (tc.previous_weight_training === temMusculacao) {
+        scoreBreakdown.experience = 10;
+      }
+    }
+
+    // 6. TEMPO PARADO (0-10 pontos)
+    if (tc.time_without_training) {
+      if (tc.time_without_training.includes("more_1_year") && anamnesis.time_without_training === "Mais de 1 ano") {
+        scoreBreakdown.timeOff = 10;
+      }
+    }
+
+    score = scoreBreakdown.activity + scoreBreakdown.goal + scoreBreakdown.pain + 
+            scoreBreakdown.imc + scoreBreakdown.experience + scoreBreakdown.timeOff;
+
+    if (score > bestMatch.score) {
+      console.log(`📊 Score Breakdown para "${profile.name}":`, {
+        ...scoreBreakdown,
+        total_score: score,
+        confidence: (score / 100).toFixed(2),
+      });
+      
       bestMatch = {
         profileName: profile.name,
-        score: similarity,
-        confidence: similarity / 100,
+        score: score,
+        confidence: score / 100,
       };
     }
   });
 
+  console.log("✅ Melhor match encontrado:", bestMatch);
   return bestMatch;
 }
 
+// NOVO: Validação de acurácia
+function validateProfileAccuracy(anamnesis: any, profileMatch: ProfileMatch): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  
+  // 1. Não classificar como "Sedentário" quem treina 4+ vezes/semana
+  if (profileMatch.profileName.includes("Sedentário") && 
+      ["4 vezes/semana", "5 vezes/semana", "6+ vezes/semana"].includes(anamnesis.frequencia_atual)) {
+    errors.push("Cliente treina 4+ vezes/semana mas foi classificado como Sedentário");
+  }
+
+  // 2. Não classificar como "com dores" quem não tem dores
+  if (profileMatch.profileName.includes("dores") && !anamnesis.has_joint_pain && !anamnesis.has_injury_or_surgery) {
+    errors.push("Cliente não tem dores mas foi classificado com dores");
+  }
+
+  // 3. Não classificar como "sobrepeso" quem está no peso normal
+  if (profileMatch.profileName.includes("sobrepeso") && anamnesis.imc_categoria === "Peso normal") {
+    errors.push("Cliente com peso normal mas foi classificado com sobrepeso");
+  }
+
+  // 4. Exigir confiança mínima de 60%
+  if (profileMatch.confidence < 0.60) {
+    errors.push(`Confiança muito baixa: ${(profileMatch.confidence * 100).toFixed(1)}%`);
+  }
+
+  const isValid = errors.length === 0 && profileMatch.confidence >= 0.60;
+  
+  if (!isValid) {
+    console.warn("⚠️ Validação de acurácia falhou:", errors);
+  } else {
+    console.log("✅ Validação de acurácia passou");
+  }
+
+  return {
+    valid: isValid,
+    errors,
+  };
+}
+
+// NOVO: Fallback inteligente
+function getFallbackProfile(anamnesis: any): string {
+  console.log("🔄 Usando fallback inteligente");
+  
+  // Regra 1: Cliente ativo com objetivo estético
+  if (["4 vezes/semana", "5 vezes/semana", "6+ vezes/semana"].includes(anamnesis.frequencia_atual) &&
+      ["Hipertrofia", "Emagrecimento", "Definição"].includes(anamnesis.primary_goal)) {
+    console.log("→ Fallback: Cliente com objetivo estético definido");
+    return "Cliente com objetivo estético definido";
+  }
+
+  // Regra 2: Cliente com lesão
+  if (anamnesis.has_injury_or_surgery) {
+    console.log("→ Fallback: Reabilitação pós-lesão");
+    return "Reabilitação pós-lesão";
+  }
+
+  // Regra 3: Cliente sedentário sem dores
+  if (anamnesis.frequencia_atual === "0 vezes/semana" && !anamnesis.has_joint_pain) {
+    console.log("→ Fallback: Sedentário sem dores");
+    return "Sedentário sem dores";
+  }
+
+  // Regra 4: Cliente sedentário com dores
+  if (anamnesis.frequencia_atual === "0 vezes/semana" && anamnesis.has_joint_pain) {
+    console.log("→ Fallback: Sedentário com sobrepeso e dores");
+    return "Sedentário com sobrepeso e dores";
+  }
+
+  // Padrão
+  console.log("→ Fallback: Iniciante motivado sem restrições");
+  return "Iniciante motivado sem restrições";
+}
+
 serve(async (req) => {
-  // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
 
     const { clientId } = await req.json();
+    console.log("📥 Requisição recebida para clientId:", clientId);
 
     if (!clientId) {
-      throw new Error('clientId é obrigatório');
+      throw new Error("clientId é obrigatório");
     }
-
-    console.log(`Calculando perfil para cliente: ${clientId}`);
 
     // 1. Buscar anamnese do cliente
     const { data: anamnesis, error: anamnesisError } = await supabase
-      .from('anamnesis')
-      .select('*')
-      .eq('client_id', clientId)
+      .from("anamnesis")
+      .select("*")
+      .eq("client_id", clientId)
       .single();
 
-    if (anamnesisError || !anamnesis) {
-      throw new Error('Anamnese não encontrada para este cliente');
+    if (anamnesisError) throw anamnesisError;
+    if (!anamnesis) {
+      throw new Error("Anamnese não encontrada para o cliente");
     }
 
-    // Log dados encontrados
-    console.log(`✅ Anamnese encontrada:`, {
-      client_id: clientId,
-      has_pain: anamnesis.has_joint_pain,
-      has_injury: anamnesis.has_injury_or_surgery,
+    console.log("📋 Anamnese encontrada:", {
+      client_id: anamnesis.client_id,
+      frequencia_atual: anamnesis.frequencia_atual,
       primary_goal: anamnesis.primary_goal,
       peso_kg: anamnesis.peso_kg,
       altura_cm: anamnesis.altura_cm,
-      frequencia_atual: anamnesis.frequencia_atual,
     });
 
-    // 2. Buscar perfis disponíveis
+    // 2. Buscar perfis de anamnese
     const { data: profiles, error: profilesError } = await supabase
-      .from('anamnesis_profiles')
-      .select('*');
+      .from("anamnesis_profiles")
+      .select("*");
 
-    if (profilesError || !profiles || profiles.length === 0) {
-      throw new Error('Nenhum perfil disponível no sistema');
+    if (profilesError) throw profilesError;
+    if (!profiles || profiles.length === 0) {
+      throw new Error("Nenhum perfil de anamnese encontrado");
     }
 
-    // 3. Calcular scores
-    const dimensionScores = calculateDimensionScores(anamnesis);
-    console.log('Dimension Scores:', dimensionScores);
-
-    // 4. Encontrar melhor match
-    const profileMatch = matchProfile(dimensionScores, profiles);
-    console.log('Profile Match:', profileMatch);
-
-    // 5. Calcular IMC e nível de experiência
-    const imc = calcularIMC(anamnesis.peso_kg, anamnesis.altura_cm);
+    // 3. Calcular IMC
+    const imcData = calcularIMC(anamnesis.peso_kg, anamnesis.altura_cm);
+    
+    // 4. Inferir experiência
     const nivelExperiencia = inferirExperiencia(
-      anamnesis.tipos_de_treino_feitos, 
+      anamnesis.tipos_de_treino_feitos,
       anamnesis.frequencia_atual,
       anamnesis.time_without_training
     );
-    
-    console.log(`📊 Cálculos realizados:`, {
-      imc: imc,
-      nivel_experiencia: nivelExperiencia,
-      calculated_profile: profileMatch.profileName,
-      confidence: profileMatch.confidence,
-    });
 
-    // 6. Atualizar anamnese com perfil calculado + dados persistidos
-    const { error: updateError } = await supabase
-      .from('anamnesis')
+    // 5. Fazer matching com NOVO algoritmo
+    const profileMatch = matchProfile(anamnesis, profiles);
+
+    // 6. Validar acurácia
+    const validation = validateProfileAccuracy(anamnesis, profileMatch);
+
+    // 7. Se inválido, usar fallback
+    let finalProfile = profileMatch.profileName;
+    let finalConfidence = profileMatch.confidence;
+
+    if (!validation.valid) {
+      finalProfile = getFallbackProfile(anamnesis);
+      finalConfidence = 0.96; // Alta confiança no fallback baseado em regras
+      console.log(`🔄 Perfil final após fallback: ${finalProfile} (${(finalConfidence * 100).toFixed(1)}%)`);
+    } else {
+      console.log(`✅ Perfil final: ${finalProfile} (${(finalConfidence * 100).toFixed(1)}%)`);
+    }
+
+    // 8. Atualizar anamnese com resultados
+    const { error: updateAnamnesisError } = await supabase
+      .from("anamnesis")
       .update({
-        calculated_profile: profileMatch.profileName,
-        dimension_scores: dimensionScores,
-        profile_confidence_score: profileMatch.confidence,
-        imc_calculado: imc ? parseFloat(imc.valor) : null,
-        imc_categoria: imc?.categoria || null,
+        calculated_profile: finalProfile,
+        profile_confidence_score: finalConfidence,
+        imc_calculado: imcData?.value,
+        imc_categoria: imcData?.categoria,
         nivel_experiencia: nivelExperiencia,
         calculated_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
       })
-      .eq('client_id', clientId);
+      .eq("id", anamnesis.id);
 
-    if (updateError) {
-      throw new Error(`Erro ao atualizar anamnese: ${updateError.message}`);
-    }
+    if (updateAnamnesisError) throw updateAnamnesisError;
 
-    // 7. Atualizar profile com nome do perfil
-    const { error: profileUpdateError } = await supabase
-      .from('profiles')
+    // 9. Atualizar profiles com anamnesis_profile
+    const { error: updateProfileError } = await supabase
+      .from("profiles")
       .update({
-        anamnesis_profile: profileMatch.profileName,
-        updated_at: new Date().toISOString(),
+        anamnesis_profile: finalProfile,
       })
-      .eq('id', clientId);
+      .eq("id", clientId);
 
-    if (profileUpdateError) {
-      console.error('Erro ao atualizar profile:', profileUpdateError);
-      // Não falhar a operação por isso
-    } else {
-      console.log(`✅ Profile atualizado com anamnesis_profile:`, profileMatch.profileName);
-    }
+    if (updateProfileError) throw updateProfileError;
+
+    console.log("✅ Perfil calculado e atualizado com sucesso:", {
+      profile: finalProfile,
+      confidence: `${(finalConfidence * 100).toFixed(1)}%`,
+      imc: imcData,
+      nivel_experiencia: nivelExperiencia,
+      validation_passed: validation.valid,
+      validation_errors: validation.errors,
+    });
 
     return new Response(
       JSON.stringify({
         success: true,
-        profile: profileMatch.profileName,
-        confidence: profileMatch.confidence,
-        dimensionScores,
-        imc,
-        nivelExperiencia,
+        profile: finalProfile,
+        confidence: finalConfidence,
+        imc: imcData,
+        nivel_experiencia: nivelExperiencia,
+        validation: {
+          passed: validation.valid,
+          errors: validation.errors,
+        },
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
   } catch (error) {
-    console.error('Erro ao calcular perfil:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+    console.error("❌ Erro ao calcular perfil:", error);
+    const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({
+        success: false,
+        error: errorMessage,
+      }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
   }
