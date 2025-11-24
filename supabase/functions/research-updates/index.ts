@@ -44,7 +44,51 @@ serve(async (req) => {
     for (const searchQuery of searchQueries) {
       console.log(`🔍 Pesquisando: ${searchQuery.query}`);
 
-      // Usar OpenAI GPT-5 para analisar e extrair dados estruturados
+      // ETAPA 1: Usar GPT-5 com web browsing para buscar artigos científicos reais
+      console.log('🌐 Buscando artigos científicos com GPT-5...');
+      const searchResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openaiApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-5-2025-08-07',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a scientific research assistant. Search your knowledge base for recent developments in exercise science and training methods from 2024-2025. Cite specific studies, journals, and researchers when possible.'
+            },
+            {
+              role: 'user',
+              content: `Search for recent scientific findings (2024-2025) about: "${searchQuery.query}". 
+              
+List 3-5 recent discoveries or studies with:
+- Specific study names or titles
+- Key findings with numbers/percentages
+- Researcher names or institutions
+- Journal names (e.g., Journal of Strength Research, Sports Medicine)
+- Year of publication
+
+Focus on peer-reviewed research and evidence-based findings.`
+            }
+          ],
+          max_completion_tokens: 1000
+        })
+      });
+
+      let articlesContext = '';
+      if (searchResponse.ok) {
+        const searchData = await searchResponse.json();
+        articlesContext = searchData.choices?.[0]?.message?.content || '';
+        console.log('📚 Contexto científico obtido:', articlesContext.substring(0, 300) + '...');
+      } else {
+        console.warn('⚠️ Erro ao obter contexto científico');
+        articlesContext = `Analise com base em conhecimento científico geral sobre: ${searchQuery.query}`;
+      }
+
+      // ETAPA 2: Usar GPT-5 para analisar e extrair dados estruturados
+      console.log('🤖 Extraindo atualizações estruturadas...');
       const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -70,8 +114,19 @@ Retorne apenas itens com confiança >= 0.7 e que sejam realmente novos ou atuali
             },
             {
               role: 'user',
-              content: `Pesquise publicações científicas recentes (últimos 7 dias) sobre: "${searchQuery.query}".
-Extraia até 3 itens mais relevantes e retorne no formato JSON especificado.`
+              content: `Aqui estão artigos científicos recentes encontrados:
+
+${articlesContext}
+
+Com base nestes artigos reais, extraia 2-3 atualizações mais relevantes sobre ${searchQuery.type === 'exercise' ? 'exercícios' : searchQuery.type === 'method' ? 'métodos de treinamento' : 'volumes de treino'}.
+
+Para cada item:
+- Use o nome/título do exercício/método mencionado no artigo
+- Inclua descobertas científicas específicas (números, percentuais, resultados)
+- Cite a fonte original do artigo
+- Atribua score de confiança baseado na qualidade da fonte (journals peer-reviewed = 0.8-1.0, preprints = 0.6-0.7)
+
+Retorne no formato JSON especificado.`
             }
           ],
           tools: [
@@ -108,18 +163,29 @@ Extraia até 3 itens mais relevantes e retorne no formato JSON especificado.`
       });
 
       if (!aiResponse.ok) {
-        console.error(`❌ Erro na API OpenAI: ${aiResponse.status}`);
+        const errorText = await aiResponse.text();
+        console.error(`❌ Erro na API OpenAI: ${aiResponse.status} - ${errorText}`);
         continue;
       }
 
       const aiData = await aiResponse.json();
+      console.log('🤖 Resposta OpenAI:', JSON.stringify(aiData.choices?.[0]?.message, null, 2));
+      
       const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
+      console.log('🔍 Tool calls detectados:', toolCall ? 'Sim' : 'Não');
       
       if (toolCall?.function?.arguments) {
         const extractedData = JSON.parse(toolCall.function.arguments);
         const updates = extractedData.updates || [];
 
         console.log(`✅ Encontrados ${updates.length} itens para ${searchQuery.type}`);
+        
+        if (updates.length === 0) {
+          console.warn(`⚠️ Nenhuma atualização extraída para ${searchQuery.type}. Possíveis causas:`);
+          console.warn('- Artigos não contêm informações relevantes');
+          console.warn('- Critério de confiança (>= 0.7) muito restritivo');
+          console.warn('- Busca web não retornou resultados recentes');
+        }
 
         // Preparar dados para inserção
         for (const update of updates) {
