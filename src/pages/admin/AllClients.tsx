@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AppLayout } from "@/layouts/AppLayout";
 import { useAdminClients } from "@/hooks/useAdminClients";
+import { useAssignClientToSelf } from "@/hooks/useAssignClientToSelf";
 import { AdminClientCard } from "@/components/admin/AdminClientCard";
 import { ReassignClientDialog } from "@/components/admin/ReassignClientDialog";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AllClients() {
   const { data: clients, isLoading } = useAdminClients();
+  const assignToSelf = useAssignClientToSelf();
   const [reassignDialogOpen, setReassignDialogOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<{
     id: string;
@@ -26,6 +28,10 @@ export default function AllClients() {
       });
       setReassignDialogOpen(true);
     }
+  };
+
+  const handleAssignToSelf = async (clientId: string) => {
+    await assignToSelf.mutateAsync(clientId);
   };
 
   const activeClients = clients?.filter((c) => c.status === "Ativo") || [];
@@ -67,6 +73,7 @@ export default function AllClients() {
                     key={client.id}
                     client={client}
                     onReassign={handleReassign}
+                    onAssignToSelf={handleAssignToSelf}
                   />
                 ))}
               </div>
@@ -88,6 +95,7 @@ export default function AllClients() {
                   key={client.id}
                   client={client}
                   onReassign={handleReassign}
+                  onAssignToSelf={handleAssignToSelf}
                 />
               ))}
             </div>
@@ -100,6 +108,7 @@ export default function AllClients() {
                   key={client.id}
                   client={client}
                   onReassign={handleReassign}
+                  onAssignToSelf={handleAssignToSelf}
                 />
               ))}
             </div>
@@ -112,6 +121,7 @@ export default function AllClients() {
                   key={client.id}
                   client={client}
                   onReassign={handleReassign}
+                  onAssignToSelf={handleAssignToSelf}
                 />
               ))}
             </div>

@@ -2,7 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Dumbbell, Activity, UserX } from "lucide-react";
+import { User, Dumbbell, Activity, UserX, UserPlus, Crown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 interface AdminClientCardProps {
   client: {
@@ -11,13 +13,19 @@ interface AdminClientCardProps {
     avatar_url?: string;
     status?: string;
     personal_name?: string;
+    personal_id?: string;
     total_workouts?: number;
     completed_sessions?: number;
   };
   onReassign: (clientId: string) => void;
+  onAssignToSelf: (clientId: string) => void;
 }
 
-export const AdminClientCard = ({ client, onReassign }: AdminClientCardProps) => {
+export const AdminClientCard = ({ client, onReassign, onAssignToSelf }: AdminClientCardProps) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAssignedToMe = client.personal_id === user?.id;
+
   const initials = client.full_name
     .split(" ")
     .map((n) => n[0])
@@ -70,9 +78,47 @@ export const AdminClientCard = ({ client, onReassign }: AdminClientCardProps) =>
           </div>
         </div>
 
-        <Button variant="outline" size="sm" className="w-full" onClick={() => onReassign(client.id)}>
-          Reatribuir Profissional
-        </Button>
+        {isAssignedToMe && (
+          <Badge variant="secondary" className="w-fit">
+            <Crown className="h-3 w-3 mr-1" />
+            Você é o responsável
+          </Badge>
+        )}
+
+        <div className="flex gap-2">
+          {isAssignedToMe && (
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              className="flex-1"
+              onClick={() => navigate(`/personal/clients/${client.id}`)}
+            >
+              <Dumbbell className="h-4 w-4 mr-2" />
+              Montar Treino
+            </Button>
+          )}
+          
+          {!client.personal_id ? (
+            <Button 
+              variant="default" 
+              size="sm" 
+              className="flex-1" 
+              onClick={() => onAssignToSelf(client.id)}
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Assumir Cliente
+            </Button>
+          ) : (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1" 
+              onClick={() => onReassign(client.id)}
+            >
+              Reatribuir Profissional
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

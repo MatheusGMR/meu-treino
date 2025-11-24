@@ -28,6 +28,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { reassignClientSchema, type ReassignClient } from "@/lib/schemas/reassignmentSchema";
 import { useReassignClient } from "@/hooks/useReassignClient";
 import { useAdminProfessionals } from "@/hooks/useAdminProfessionals";
+import { useAuth } from "@/hooks/useAuth";
+import { Crown } from "lucide-react";
 
 interface ReassignClientDialogProps {
   open: boolean;
@@ -45,6 +47,7 @@ export const ReassignClientDialog = ({
   currentProfessionalId,
 }: ReassignClientDialogProps) => {
   const { data: professionals } = useAdminProfessionals();
+  const { user } = useAuth();
   const reassignMutation = useReassignClient();
 
   const form = useForm<ReassignClient>({
@@ -94,6 +97,14 @@ export const ReassignClientDialog = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
+                      {user && (
+                        <SelectItem value={user.id}>
+                          <div className="flex items-center gap-2">
+                            <Crown className="h-4 w-4" />
+                            Eu mesmo (Admin)
+                          </div>
+                        </SelectItem>
+                      )}
                       {availableProfessionals?.map((prof) => (
                         <SelectItem key={prof.id} value={prof.id}>
                           {prof.full_name} ({prof.active_clients_count} clientes)
