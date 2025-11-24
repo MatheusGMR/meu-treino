@@ -108,7 +108,7 @@ Extraia até 3 itens mais relevantes e retorne no formato JSON especificado.`
       });
 
       if (!aiResponse.ok) {
-        console.error(`❌ Erro na API Lovable AI: ${aiResponse.status}`);
+        console.error(`❌ Erro na API OpenAI: ${aiResponse.status}`);
         continue;
       }
 
