@@ -120,6 +120,8 @@ export const WorkoutBuilder = ({
   const builder = useClientWorkoutBuilder(clientId);
   const [showExistingSelector, setShowExistingSelector] = useState(false);
   const [expandedSessionIndex, setExpandedSessionIndex] = useState<number | null>(null);
+  const [showWorkoutNameDialog, setShowWorkoutNameDialog] = useState(false);
+  const [workoutNameInput, setWorkoutNameInput] = useState("");
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -203,8 +205,21 @@ export const WorkoutBuilder = ({
   };
 
   const handleSubmit = async () => {
+    setWorkoutNameInput(builder.tempWorkout.name);
+    setShowWorkoutNameDialog(true);
+  };
+
+  const handleConfirmSubmit = async () => {
+    if (!workoutNameInput.trim()) return;
+    
+    builder.setTempWorkout({
+      ...builder.tempWorkout,
+      name: workoutNameInput,
+    });
+    
     try {
       await builder.submit();
+      setShowWorkoutNameDialog(false);
       onSuccess();
     } catch (error) {
       console.error("Erro ao criar treino:", error);
@@ -231,29 +246,11 @@ export const WorkoutBuilder = ({
       </div>
 
       {/* Painel Redimensionável: Construtor (esquerda) + Análise (direita) */}
-      <ResizablePanelGroup direction="horizontal" className="gap-6 min-h-[600px]">
+      <ResizablePanelGroup direction="horizontal" className="gap-6 h-[calc(100vh-280px)]">
         <ResizablePanel defaultSize={70} minSize={55} maxSize={80}>
           {/* Coluna Esquerda: Construtor */}
           <div className="h-full overflow-y-auto scrollarea-hidden pr-3">
             <div className="space-y-6">
-            {/* Nome do Treino - SEMPRE VISÍVEL */}
-            <div className="space-y-2">
-              <Label htmlFor="workout-name">Nome do Treino</Label>
-              <Input
-                id="workout-name"
-                value={builder.tempWorkout.name}
-                onChange={(e) =>
-                  builder.setTempWorkout({
-                    ...builder.tempWorkout,
-                    name: e.target.value,
-                  })
-                }
-                placeholder="Ex: Treino ABC, Hipertrofia Completo..."
-                className="text-lg"
-                autoFocus
-              />
-            </div>
-
             {/* Sessões do Treino */}
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -333,8 +330,8 @@ export const WorkoutBuilder = ({
         <ResizableHandle withHandle />
 
         <ResizablePanel defaultSize={30} minSize={20} maxSize={45}>
-          {/* Coluna Direita: Cockpit Revisado com 7 Blocos */}
-          <div className="h-full overflow-y-auto scrollarea-hidden pl-3">
+          {/* Coluna Direita: Cockpit Sticky com Scroll Independente */}
+          <div className="sticky top-0 h-[calc(100vh-280px)] overflow-y-auto scrollarea-hidden pl-3">
             <div className="space-y-4">
             {/* BLOCO 1: Perfil do Cliente */}
             <ClientProfileCard
@@ -457,6 +454,41 @@ export const WorkoutBuilder = ({
           {builder.isSubmitting ? "Atribuindo..." : "Atribuir Treino"}
         </Button>
       </div>
+
+      {/* Dialog de Nome do Treino */}
+      <Dialog open={showWorkoutNameDialog} onOpenChange={setShowWorkoutNameDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nome do Treino</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="dialog-workout-name">
+                Digite o nome do treino antes de atribuir
+              </Label>
+              <Input
+                id="dialog-workout-name"
+                value={workoutNameInput}
+                onChange={(e) => setWorkoutNameInput(e.target.value)}
+                placeholder="Ex: Treino ABC, Hipertrofia Completo..."
+                className="text-lg"
+                autoFocus
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => setShowWorkoutNameDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirmSubmit}
+              disabled={!workoutNameInput.trim() || builder.isSubmitting}
+            >
+              {builder.isSubmitting ? "Atribuindo..." : "Confirmar e Atribuir"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog de Seleção de Sessões Existentes */}
       <Dialog open={showExistingSelector} onOpenChange={setShowExistingSelector}>

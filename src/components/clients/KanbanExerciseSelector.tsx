@@ -57,6 +57,8 @@ export function KanbanExerciseSelector({
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [previewExercise, setPreviewExercise] = useState<Exercise | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [activeColumnIndex, setActiveColumnIndex] = useState<number>(0);
+  const [hoverColumnIndex, setHoverColumnIndex] = useState<number | null>(null);
 
   const { data: allExercises } = useExercises();
   const { data: volumes } = useVolumes();
@@ -100,6 +102,7 @@ export function KanbanExerciseSelector({
     setSelectedExercise(null);
     setSelectedVolume(null);
     setSelectedMethod(null);
+    setActiveColumnIndex(1);
   };
 
   const handleGroupSelect = (group: string) => {
@@ -107,12 +110,14 @@ export function KanbanExerciseSelector({
     setSelectedExercise(null);
     setSelectedVolume(null);
     setSelectedMethod(null);
+    setActiveColumnIndex(2);
   };
 
   const handleExerciseSelect = (exerciseId: string) => {
     setSelectedExercise(exerciseId);
     setSelectedVolume(null);
     setSelectedMethod(null);
+    setActiveColumnIndex(3);
 
     // Verificar contraindicação e mostrar toast
     const contraindicationCheck = contraindicationResults.get(exerciseId);
@@ -132,6 +137,7 @@ export function KanbanExerciseSelector({
   const handleVolumeSelect = (volumeId: string) => {
     setSelectedVolume(volumeId);
     setSelectedMethod(null);
+    setActiveColumnIndex(4);
   };
 
   const handleMethodSelect = (methodId: string) => {
@@ -155,6 +161,7 @@ export function KanbanExerciseSelector({
     setSelectedExercise(null);
     setSelectedVolume(null);
     setSelectedMethod(null);
+    setActiveColumnIndex(0);
   };
 
   const handleComplete = () => {
@@ -172,31 +179,58 @@ export function KanbanExerciseSelector({
     onComplete?.();
   };
 
+  const getColumnFlexClass = (columnIndex: number) => {
+    const effectiveActiveIndex = hoverColumnIndex ?? activeColumnIndex;
+    if (columnIndex < effectiveActiveIndex) return "flex-[0.5]";
+    if (columnIndex === effectiveActiveIndex) return "flex-[3]";
+    return "flex-[1]";
+  };
+
+  const selectedValues = [selectedType, selectedGroup, selectedExercise, selectedVolume, selectedMethod];
+
   return (
     <div className="space-y-4">
-      {/* Grid de 5 colunas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6 auto-cols-fr">
+      {/* Grid de 5 colunas com efeito carta de baralho */}
+      <div className="flex gap-4 lg:gap-6 transition-all duration-300">
         {/* Coluna 1: Tipo */}
-        <div className="space-y-2 min-w-[140px]">
+        <div 
+          className={cn("space-y-2 min-w-[140px] transition-all duration-300", getColumnFlexClass(0))}
+          onMouseEnter={() => setHoverColumnIndex(0)}
+          onMouseLeave={() => setHoverColumnIndex(null)}
+        >
           <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
             Tipo
           </h4>
           <div className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] overflow-y-auto scrollarea-hidden">
-            <div className="space-y-2 pr-1">
-              {EXERCISE_TYPES.map(type => (
-                <SelectionCard
-                  key={type.value}
-                  title={type.label}
-                  isSelected={selectedType === type.value}
-                  onClick={() => handleTypeSelect(type.value)}
-                />
-              ))}
-            </div>
+            {selectedType && activeColumnIndex > 0 ? (
+              <SelectionCard
+                title={EXERCISE_TYPES.find(t => t.value === selectedType)?.label || selectedType}
+                isSelected={true}
+                onClick={() => handleTypeSelect(selectedType)}
+                compact={true}
+                onExpand={() => setActiveColumnIndex(0)}
+              />
+            ) : (
+              <div className="space-y-2 pr-1">
+                {EXERCISE_TYPES.map(type => (
+                  <SelectionCard
+                    key={type.value}
+                    title={type.label}
+                    isSelected={selectedType === type.value}
+                    onClick={() => handleTypeSelect(type.value)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
         {/* Coluna 2: Grupo */}
-        <div className="space-y-2 min-w-[140px]">
+        <div 
+          className={cn("space-y-2 min-w-[140px] transition-all duration-300", getColumnFlexClass(1))}
+          onMouseEnter={() => setHoverColumnIndex(1)}
+          onMouseLeave={() => setHoverColumnIndex(null)}
+        >
           <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
             Grupo Muscular
           </h4>
@@ -205,6 +239,14 @@ export function KanbanExerciseSelector({
               <p className="text-xs text-muted-foreground p-3">
                 Selecione um tipo primeiro
               </p>
+            ) : selectedGroup && activeColumnIndex > 1 ? (
+              <SelectionCard
+                title={EXERCISE_GROUPS.find(g => g.value === selectedGroup)?.label || selectedGroup}
+                isSelected={true}
+                onClick={() => handleGroupSelect(selectedGroup)}
+                compact={true}
+                onExpand={() => setActiveColumnIndex(1)}
+              />
             ) : availableGroups.length === 0 ? (
               <p className="text-xs text-muted-foreground p-3">
                 Nenhum grupo disponível
@@ -225,7 +267,11 @@ export function KanbanExerciseSelector({
         </div>
 
         {/* Coluna 3: Exercício */}
-        <div className="space-y-2 min-w-[140px]">
+        <div 
+          className={cn("space-y-2 min-w-[140px] transition-all duration-300", getColumnFlexClass(2))}
+          onMouseEnter={() => setHoverColumnIndex(2)}
+          onMouseLeave={() => setHoverColumnIndex(null)}
+        >
           <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
             Exercício
           </h4>
@@ -234,6 +280,14 @@ export function KanbanExerciseSelector({
               <p className="text-xs text-muted-foreground p-3">
                 Selecione um grupo primeiro
               </p>
+            ) : selectedExercise && activeColumnIndex > 2 ? (
+              <SelectionCard
+                title={availableExercises.find(ex => ex.id === selectedExercise)?.name || selectedExercise}
+                isSelected={true}
+                onClick={() => handleExerciseSelect(selectedExercise)}
+                compact={true}
+                onExpand={() => setActiveColumnIndex(2)}
+              />
             ) : availableExercises.length === 0 ? (
               <p className="text-xs text-muted-foreground p-3">
                 Nenhum exercício encontrado
@@ -265,7 +319,11 @@ export function KanbanExerciseSelector({
         </div>
 
         {/* Coluna 4: Volume */}
-        <div className="space-y-2 min-w-[140px]">
+        <div 
+          className={cn("space-y-2 min-w-[140px] transition-all duration-300", getColumnFlexClass(3))}
+          onMouseEnter={() => setHoverColumnIndex(3)}
+          onMouseLeave={() => setHoverColumnIndex(null)}
+        >
           <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
             Volume
           </h4>
@@ -274,6 +332,14 @@ export function KanbanExerciseSelector({
               <p className="text-xs text-muted-foreground p-3">
                 Selecione um exercício primeiro
               </p>
+            ) : selectedVolume && activeColumnIndex > 3 ? (
+              <SelectionCard
+                title={volumes?.find(v => v.id === selectedVolume)?.name || selectedVolume}
+                isSelected={true}
+                onClick={() => handleVolumeSelect(selectedVolume)}
+                compact={true}
+                onExpand={() => setActiveColumnIndex(3)}
+              />
             ) : !volumes || volumes.length === 0 ? (
               <p className="text-xs text-muted-foreground p-3">
                 Nenhum volume cadastrado
@@ -295,7 +361,11 @@ export function KanbanExerciseSelector({
         </div>
 
         {/* Coluna 5: Método */}
-        <div className="space-y-2 min-w-[140px]">
+        <div 
+          className={cn("space-y-2 min-w-[140px] transition-all duration-300", getColumnFlexClass(4))}
+          onMouseEnter={() => setHoverColumnIndex(4)}
+          onMouseLeave={() => setHoverColumnIndex(null)}
+        >
           <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
             Método
           </h4>
@@ -304,6 +374,14 @@ export function KanbanExerciseSelector({
               <p className="text-xs text-muted-foreground p-3">
                 Selecione um volume primeiro
               </p>
+            ) : selectedMethod && isComplete ? (
+              <SelectionCard
+                title={methods?.find(m => m.id === selectedMethod)?.name || selectedMethod}
+                isSelected={true}
+                onClick={() => handleMethodSelect(selectedMethod)}
+                compact={true}
+                onExpand={() => setActiveColumnIndex(4)}
+              />
             ) : !methods || methods.length === 0 ? (
               <p className="text-xs text-muted-foreground p-3">
                 Nenhum método cadastrado

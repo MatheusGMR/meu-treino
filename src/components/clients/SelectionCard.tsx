@@ -19,6 +19,8 @@ interface SelectionCardProps {
   hasWarning?: boolean;
   warningMessage?: string;
   warningSeverity?: 'warning' | 'error';
+  compact?: boolean;
+  onExpand?: () => void;
 }
 
 export function SelectionCard({ 
@@ -30,11 +32,41 @@ export function SelectionCard({
   onPreview,
   hasWarning,
   warningMessage,
-  warningSeverity = 'warning'
+  warningSeverity = 'warning',
+  compact = false,
+  onExpand
 }: SelectionCardProps) {
+  const handleClick = () => {
+    if (compact && onExpand) {
+      onExpand();
+    } else {
+      onClick();
+    }
+  };
+
+  if (compact) {
+    return (
+      <button
+        onClick={handleClick}
+        disabled={disabled}
+        className={cn(
+          "w-full p-2 rounded-lg border-2 text-left transition-all relative group cursor-pointer",
+          "hover:shadow-md hover:border-primary",
+          "border-primary bg-primary/10 shadow-sm",
+          disabled && "opacity-50 cursor-not-allowed"
+        )}
+      >
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="shrink-0 text-xs">✓</Badge>
+          <div className="font-medium text-xs truncate">{title.length > 10 ? title.substring(0, 10) + '...' : title}</div>
+        </div>
+      </button>
+    );
+  }
+
   return (
     <button
-      onClick={onClick}
+      onClick={handleClick}
       disabled={disabled}
       className={cn(
         "w-full p-3 rounded-lg border-2 text-left transition-all relative group",
