@@ -62,6 +62,7 @@ interface SortableSessionProps {
   onRemoveExercise: (exerciseIndex: number) => void;
   onReorderExercises: (startIndex: number, endIndex: number) => void;
   clientMedicalConditions?: string | null;
+  enableDrag: boolean;
 }
 
 const SortableSession = ({
@@ -74,6 +75,7 @@ const SortableSession = ({
   onRemoveExercise,
   onReorderExercises,
   clientMedicalConditions,
+  enableDrag,
 }: SortableSessionProps) => {
   const {
     attributes,
@@ -104,8 +106,8 @@ const SortableSession = ({
         onAddExercise={onAddExercise}
         onRemoveExercise={onRemoveExercise}
         onReorderExercises={onReorderExercises}
-        dragHandleAttributes={attributes}
-        dragHandleListeners={listeners}
+        dragHandleAttributes={enableDrag ? attributes : undefined}
+        dragHandleListeners={enableDrag ? listeners : undefined}
         clientMedicalConditions={clientMedicalConditions}
       />
     </div>
@@ -129,6 +131,9 @@ export const WorkoutBuilder = ({
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  // Só habilitar drag quando houver 2+ sessões
+  const enableSessionDrag = builder.tempWorkout.sessions.length >= 2;
 
   const handleSessionDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -316,6 +321,7 @@ export const WorkoutBuilder = ({
                           builder.reorderExercisesInSession(index, startIndex, endIndex);
                         }}
                         clientMedicalConditions={builder.clientProfile?.medical_conditions}
+                        enableDrag={enableSessionDrag}
                       />
                     ))
                   )}

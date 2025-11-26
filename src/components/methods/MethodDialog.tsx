@@ -29,6 +29,8 @@ import { Button } from "@/components/ui/button";
 import { methodSchema, type MethodFormData } from "@/lib/schemas/methodSchema";
 import { useCreateMethod, useUpdateMethod } from "@/hooks/useMethods";
 import type { Database } from "@/integrations/supabase/types";
+import { FormLabelWithTooltip } from "@/components/shared/FormLabelWithTooltip";
+import { FIELD_DESCRIPTIONS } from "@/lib/fieldDescriptions";
 
 type Method = Database["public"]["Tables"]["methods"]["Row"];
 
@@ -198,7 +200,9 @@ export const MethodDialog = ({
                 name="objective"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Objetivo (opcional)</FormLabel>
+                    <FormLabelWithTooltip tooltip={FIELD_DESCRIPTIONS.method.objective[field.value as keyof typeof FIELD_DESCRIPTIONS.method.objective] || "Selecione um objetivo para ver a descrição"}>
+                      Objetivo
+                    </FormLabelWithTooltip>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value}
@@ -230,7 +234,9 @@ export const MethodDialog = ({
                 name="risk_level"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nível de Risco</FormLabel>
+                    <FormLabelWithTooltip tooltip={FIELD_DESCRIPTIONS.method.risk_level[field.value as keyof typeof FIELD_DESCRIPTIONS.method.risk_level] || "Selecione um nível para ver a descrição"}>
+                      Nível de Risco
+                    </FormLabelWithTooltip>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value}
@@ -258,7 +264,9 @@ export const MethodDialog = ({
               name="energy_cost"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Custo Energético</FormLabel>
+                  <FormLabelWithTooltip tooltip={FIELD_DESCRIPTIONS.method.energy_cost[field.value as keyof typeof FIELD_DESCRIPTIONS.method.energy_cost] || "Selecione um custo para ver a descrição"}>
+                    Custo Energético
+                  </FormLabelWithTooltip>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
@@ -347,7 +355,9 @@ export const MethodDialog = ({
                 name="rest_seconds"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Descanso (segundos) *</FormLabel>
+                    <FormLabelWithTooltip tooltip={FIELD_DESCRIPTIONS.method.rest_seconds} required>
+                      Descanso (segundos)
+                    </FormLabelWithTooltip>
                     <FormControl>
                       <Input
                         type="number"
@@ -366,7 +376,9 @@ export const MethodDialog = ({
                 name="load_level"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nível de Carga *</FormLabel>
+                    <FormLabelWithTooltip tooltip={FIELD_DESCRIPTIONS.method.load_level} required>
+                      Nível de Carga
+                    </FormLabelWithTooltip>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -393,7 +405,9 @@ export const MethodDialog = ({
                 name="cadence_contraction"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Cadência: Contração *</FormLabel>
+                    <FormLabelWithTooltip tooltip={FIELD_DESCRIPTIONS.method.cadence_contraction} required>
+                      Cadência: Contração
+                    </FormLabelWithTooltip>
                     <FormControl>
                       <Input
                         type="number"
@@ -412,7 +426,9 @@ export const MethodDialog = ({
                 name="cadence_pause"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Cadência: Pausa *</FormLabel>
+                    <FormLabelWithTooltip tooltip={FIELD_DESCRIPTIONS.method.cadence_pause} required>
+                      Cadência: Pausa
+                    </FormLabelWithTooltip>
                     <FormControl>
                       <Input
                         type="number"
@@ -431,7 +447,9 @@ export const MethodDialog = ({
                 name="cadence_stretch"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Cadência: Alongamento *</FormLabel>
+                    <FormLabelWithTooltip tooltip={FIELD_DESCRIPTIONS.method.cadence_stretch} required>
+                      Cadência: Alongamento
+                    </FormLabelWithTooltip>
                     <FormControl>
                       <Input
                         type="number"

@@ -33,6 +33,8 @@ import {
 import { SessionSelector } from "./SessionSelector";
 import { MuscleGroupVisualizer } from "@/components/workouts/MuscleGroupVisualizer";
 import { useWorkoutMuscleAnalysis } from "@/hooks/useWorkoutMuscleAnalysis";
+import { FormLabelWithTooltip } from "@/components/shared/FormLabelWithTooltip";
+import { FIELD_DESCRIPTIONS } from "@/lib/fieldDescriptions";
 
 interface WorkoutDialogProps {
   workout?: any;
@@ -137,7 +139,9 @@ export const WorkoutDialog = ({
                 name="training_type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tipo de Treino</FormLabel>
+                    <FormLabelWithTooltip tooltip={FIELD_DESCRIPTIONS.workout.training_type[field.value as keyof typeof FIELD_DESCRIPTIONS.workout.training_type] || "Selecione um tipo para ver a descrição"}>
+                      Tipo de Treino
+                    </FormLabelWithTooltip>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -162,7 +166,9 @@ export const WorkoutDialog = ({
                 name="level"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nível</FormLabel>
+                    <FormLabelWithTooltip tooltip={FIELD_DESCRIPTIONS.workout.level[field.value as keyof typeof FIELD_DESCRIPTIONS.workout.level] || "Selecione um nível para ver a descrição"}>
+                      Nível
+                    </FormLabelWithTooltip>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>

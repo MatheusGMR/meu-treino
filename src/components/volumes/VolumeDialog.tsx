@@ -22,6 +22,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { volumeSchema, type VolumeFormData } from "@/lib/schemas/volumeSchema";
 import { useCreateVolume, useUpdateVolume } from "@/hooks/useVolumes";
 import type { Database } from "@/integrations/supabase/types";
+import { FormLabelWithTooltip } from "@/components/shared/FormLabelWithTooltip";
+import { FIELD_DESCRIPTIONS } from "@/lib/fieldDescriptions";
 
 type Volume = Database["public"]["Tables"]["volumes"]["Row"];
 
@@ -140,7 +142,9 @@ export const VolumeDialog = ({
                     name="num_series"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Número de Séries *</FormLabel>
+                        <FormLabelWithTooltip tooltip={FIELD_DESCRIPTIONS.volume.num_series} required>
+                          Número de Séries
+                        </FormLabelWithTooltip>
                         <FormControl>
                           <Input
                             type="number"
@@ -159,7 +163,9 @@ export const VolumeDialog = ({
                     name="num_exercises"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Número de Exercícios *</FormLabel>
+                        <FormLabelWithTooltip tooltip={FIELD_DESCRIPTIONS.volume.num_exercises} required>
+                          Número de Exercícios
+                        </FormLabelWithTooltip>
                         <FormControl>
                           <Input
                             type="number"
@@ -179,7 +185,9 @@ export const VolumeDialog = ({
                   name="goal"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Objetivo</FormLabel>
+                      <FormLabelWithTooltip tooltip={FIELD_DESCRIPTIONS.volume.goal}>
+                        Objetivo
+                      </FormLabelWithTooltip>
                       <FormControl>
                         <Input placeholder="Ex: Hipertrofia / Intermediário" {...field} />
                       </FormControl>
@@ -193,7 +201,9 @@ export const VolumeDialog = ({
                   name="movement_pattern"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Padrão de Movimento</FormLabel>
+                      <FormLabelWithTooltip tooltip={FIELD_DESCRIPTIONS.volume.movement_pattern}>
+                        Padrão de Movimento
+                      </FormLabelWithTooltip>
                       <FormControl>
                         <Input placeholder="Ex: Push/Pull/Lower" {...field} />
                       </FormControl>
@@ -326,7 +336,9 @@ export const VolumeDialog = ({
                     name="min_weekly_sets"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Min Semanal</FormLabel>
+                        <FormLabelWithTooltip tooltip={FIELD_DESCRIPTIONS.volume.min_weekly_sets}>
+                          Min Semanal
+                        </FormLabelWithTooltip>
                         <FormControl>
                           <Input
                             type="number"
@@ -347,7 +359,9 @@ export const VolumeDialog = ({
                     name="optimal_weekly_sets"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Ótimo Semanal</FormLabel>
+                        <FormLabelWithTooltip tooltip={FIELD_DESCRIPTIONS.volume.optimal_weekly_sets}>
+                          Ótimo Semanal
+                        </FormLabelWithTooltip>
                         <FormControl>
                           <Input
                             type="number"
@@ -368,7 +382,9 @@ export const VolumeDialog = ({
                     name="max_weekly_sets"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Max Semanal</FormLabel>
+                        <FormLabelWithTooltip tooltip={FIELD_DESCRIPTIONS.volume.max_weekly_sets}>
+                          Max Semanal
+                        </FormLabelWithTooltip>
                         <FormControl>
                           <Input
                             type="number"

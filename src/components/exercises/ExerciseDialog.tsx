@@ -32,6 +32,8 @@ import { MediaUpload } from "@/components/shared/MediaUpload";
 import { uploadExerciseMedia } from "@/lib/supabase/storage";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
+import { FormLabelWithTooltip } from "@/components/shared/FormLabelWithTooltip";
+import { FIELD_DESCRIPTIONS } from "@/lib/fieldDescriptions";
 
 type Exercise = Database["public"]["Tables"]["exercises"]["Row"];
 
@@ -342,7 +344,9 @@ export const ExerciseDialog = ({
                 name="impact_level"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nível de Impacto</FormLabel>
+                    <FormLabelWithTooltip tooltip={FIELD_DESCRIPTIONS.exercise.impact_level[field.value as keyof typeof FIELD_DESCRIPTIONS.exercise.impact_level] || "Selecione um nível para ver a descrição"}>
+                      Nível de Impacto
+                    </FormLabelWithTooltip>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -367,7 +371,9 @@ export const ExerciseDialog = ({
                 name="biomechanical_class"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Classe Biomecânica</FormLabel>
+                    <FormLabelWithTooltip tooltip={FIELD_DESCRIPTIONS.exercise.biomechanical_class}>
+                      Classe Biomecânica
+                    </FormLabelWithTooltip>
                     <FormControl>
                       <Input placeholder="Ex: Cadeia cinética fechada" {...field} />
                     </FormControl>
@@ -382,7 +388,9 @@ export const ExerciseDialog = ({
               name="dominant_movement"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Movimento Dominante</FormLabel>
+                  <FormLabelWithTooltip tooltip={FIELD_DESCRIPTIONS.exercise.dominant_movement}>
+                    Movimento Dominante
+                  </FormLabelWithTooltip>
                   <FormControl>
                     <Input placeholder="Ex: Empurrar horizontal" {...field} />
                   </FormControl>
