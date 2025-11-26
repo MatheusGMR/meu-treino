@@ -34,6 +34,8 @@ import {
 } from "@/hooks/useSessions";
 import { MuscleGroupVisualizer } from "@/components/workouts/MuscleGroupVisualizer";
 import { useSessionMuscleAnalysis } from "@/hooks/useWorkoutMuscleAnalysis";
+import { FormLabelWithTooltip } from "@/components/shared/FormLabelWithTooltip";
+import { FIELD_DESCRIPTIONS } from "@/lib/fieldDescriptions";
 
 interface SessionDialogProps {
   session?: any;
@@ -138,7 +140,9 @@ export const SessionDialog = ({
               name="session_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tipo de Sessão *</FormLabel>
+                  <FormLabelWithTooltip tooltip={FIELD_DESCRIPTIONS.session.session_type[field.value as keyof typeof FIELD_DESCRIPTIONS.session.session_type] || "Selecione um tipo para ver a descrição"} required>
+                    Tipo de Sessão
+                  </FormLabelWithTooltip>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
