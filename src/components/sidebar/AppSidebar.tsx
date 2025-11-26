@@ -13,7 +13,7 @@ export const AppSidebar = () => {
   const location = useLocation();
   const { signOut } = useAuth();
   const { isPersonal, isAdmin, isClient } = useRole();
-  const [treinosOpen, setTreinosOpen] = useState(true);
+  const [repertorioOpen, setRepertorioOpen] = useState(true);
   const [adminOpen, setAdminOpen] = useState(true);
 
   const isActive = (path: string) => location.pathname === path;
@@ -49,7 +49,7 @@ export const AppSidebar = () => {
 
         {(isPersonal || isAdmin) && (
           <>
-            <Collapsible open={treinosOpen} onOpenChange={setTreinosOpen}>
+            <Collapsible open={repertorioOpen} onOpenChange={setRepertorioOpen}>
               <CollapsibleTrigger asChild>
                 <Button
                   variant="ghost"
@@ -60,9 +60,9 @@ export const AppSidebar = () => {
                 >
                   <div className="flex items-center gap-3">
                     <Dumbbell className="w-5 h-5" />
-                    Treinos
+                    Repertório
                   </div>
-                  <ChevronRight className={cn("w-4 h-4 transition-transform", treinosOpen && "rotate-90")} />
+                  <ChevronRight className={cn("w-4 h-4 transition-transform", repertorioOpen && "rotate-90")} />
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="pl-4 mt-1 space-y-1">
@@ -71,7 +71,7 @@ export const AppSidebar = () => {
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      "w-full justify-start gap-3",
+                      "w-full justify-start gap-3 font-normal",
                       isActive("/personal/workouts") && "bg-sidebar-accent text-sidebar-accent-foreground"
                     )}
                   >
@@ -84,7 +84,7 @@ export const AppSidebar = () => {
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      "w-full justify-start gap-3",
+                      "w-full justify-start gap-3 font-normal",
                       isActive("/personal/sessions") && "bg-sidebar-accent text-sidebar-accent-foreground"
                     )}
                   >
@@ -97,7 +97,7 @@ export const AppSidebar = () => {
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      "w-full justify-start gap-3",
+                      "w-full justify-start gap-3 font-normal",
                       isActive("/personal/exercises") && "bg-sidebar-accent text-sidebar-accent-foreground"
                     )}
                   >
@@ -110,7 +110,7 @@ export const AppSidebar = () => {
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      "w-full justify-start gap-3",
+                      "w-full justify-start gap-3 font-normal",
                       isActive("/personal/volumes") && "bg-sidebar-accent text-sidebar-accent-foreground"
                     )}
                   >
@@ -123,7 +123,7 @@ export const AppSidebar = () => {
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      "w-full justify-start gap-3",
+                      "w-full justify-start gap-3 font-normal",
                       isActive("/personal/methods") && "bg-sidebar-accent text-sidebar-accent-foreground"
                     )}
                   >
@@ -187,7 +187,7 @@ export const AppSidebar = () => {
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    "w-full justify-start gap-3",
+                    "w-full justify-start gap-3 font-normal",
                     isActive("/admin/dashboard") && "bg-sidebar-accent text-sidebar-accent-foreground"
                   )}
                 >
@@ -200,7 +200,7 @@ export const AppSidebar = () => {
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    "w-full justify-start gap-3",
+                    "w-full justify-start gap-3 font-normal",
                     isActive("/admin/professionals") && "bg-sidebar-accent text-sidebar-accent-foreground"
                   )}
                 >
@@ -213,7 +213,7 @@ export const AppSidebar = () => {
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    "w-full justify-start gap-3",
+                    "w-full justify-start gap-3 font-normal",
                     isActive("/admin/clients") && "bg-sidebar-accent text-sidebar-accent-foreground"
                   )}
                 >
@@ -226,7 +226,7 @@ export const AppSidebar = () => {
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    "w-full justify-start gap-3",
+                    "w-full justify-start gap-3 font-normal",
                     isActive("/admin/assignments") && "bg-sidebar-accent text-sidebar-accent-foreground"
                   )}
                 >
@@ -239,7 +239,7 @@ export const AppSidebar = () => {
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    "w-full justify-start gap-3",
+                    "w-full justify-start gap-3 font-normal",
                     isActive("/admin/users") && "bg-sidebar-accent text-sidebar-accent-foreground"
                   )}
                 >
@@ -252,7 +252,7 @@ export const AppSidebar = () => {
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    "w-full justify-start gap-3",
+                    "w-full justify-start gap-3 font-normal",
                     isActive("/admin/pending-updates") && "bg-sidebar-accent text-sidebar-accent-foreground"
                   )}
                 >
@@ -265,7 +265,7 @@ export const AppSidebar = () => {
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    "w-full justify-start gap-3",
+                    "w-full justify-start gap-3 font-normal",
                     isActive("/admin/exercise-import") && "bg-sidebar-accent text-sidebar-accent-foreground"
                   )}
                 >
