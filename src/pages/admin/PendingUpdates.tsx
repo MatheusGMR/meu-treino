@@ -55,21 +55,37 @@ export default function PendingUpdates() {
             disabled={triggerResearch.isPending}
           >
             {triggerResearch.isPending ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Pesquisando...
+              </>
             ) : (
-              <RefreshCw className="w-4 h-4 mr-2" />
+              <>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Executar Pesquisa Agora
+              </>
             )}
-            Executar Pesquisa Agora
           </Button>
         </div>
 
-        {pendingUpdates && pendingUpdates.length === 0 ? (
+        {triggerResearch.isPending && (
+          <Alert>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin inline" />
+            <AlertDescription>
+              Pesquisando atualizações científicas recentes... Isso pode levar até 30 segundos.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {!triggerResearch.isPending && pendingUpdates && pendingUpdates.length === 0 && (
           <Alert>
             <AlertDescription>
               Nenhuma atualização pendente no momento. Execute a pesquisa automática ou aguarde a próxima execução semanal.
             </AlertDescription>
           </Alert>
-        ) : (
+        )}
+        
+        {!triggerResearch.isPending && pendingUpdates && pendingUpdates.length > 0 && (
           <div className="grid gap-4">
             {pendingUpdates?.map((update) => {
               const entityData = update.entity_data as any;

@@ -117,6 +117,8 @@ export const useRejectUpdate = () => {
 };
 
 export const useTriggerResearch = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.functions.invoke("research-updates");
@@ -124,10 +126,20 @@ export const useTriggerResearch = () => {
       return data;
     },
     onSuccess: (data) => {
-      toast.success(data.message || "Pesquisa iniciada com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["pending-updates"] });
+      
+      if (data.updates_found === 0) {
+        toast.info("Pesquisa concluída. Nenhuma novidade encontrada desta vez.");
+      } else {
+        toast.success(`${data.updates_found} novas atualizações encontradas!`);
+      }
     },
     onError: (error) => {
-      toast.error("Erro ao iniciar pesquisa: " + error.message);
+      if (error.message.includes('timeout') || error.message.includes('aborted')) {
+        toast.error("A pesquisa demorou muito. Tente novamente em alguns minutos.");
+      } else {
+        toast.error("Erro ao iniciar pesquisa: " + error.message);
+      }
     },
   });
 };
