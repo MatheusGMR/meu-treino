@@ -1,94 +1,151 @@
 
 
-# Plano: Associar Vídeos do YouTube aos Exercícios
-
-## Mapeamento Identificado
-
-Com base nos exercícios encontrados no banco de dados, farei o seguinte mapeamento:
-
-| Vídeo Fornecido | Exercício no Banco de Dados | ID |
-|-----------------|----------------------------|-----|
-| Cadeira Abdutora Hammer | **Cadeira Abdutora** | `f2501376-6b26-4bd0-a805-47eff395696d` |
-| Cadeira Extensora Hammer | **Cadeira Extensora** (sem URL) | `95ab9234-b63a-46a5-8e77-c24bbee12d9f` |
-| Puxada Frontal Nautilus | **Puxada Frontal** | `c444d9dc-b1d4-4d71-a28c-0c8de6344b86` |
-| Stiff - Barra | **Stiff** (sem URL) | `3b1a4b34-03eb-43c0-b0ce-44c008cfc721` |
-| Desenvolvimento Articulado Nautilus | **Desenvolvimento com Halteres** (mais próximo) | `ba0598d4-6911-4905-b05b-16620c54e0bc` |
-| Supino Reto Articulado Nautilus | **Supino Reto com Barra** | `b56f321e-a57d-4526-8081-c49f987c09e9` |
-| Supino Inclinado Articulado Nautilus | **Supino Inclinado com Barra** | `0df4f1b0-9392-4023-abf0-0fb6d1ab1f75` |
-| Tríceps Testa com Halteres | **Tríceps Testa** (sem URL) | `2631dc24-3f46-4194-a32e-a150232a358f` |
-| Stiff Máquina Guiada | **Stiff** (alternativo, criar novo ou usar existente) | N/A - exercício não existe |
-| Stiff com Halteres | **Dumbbell Stiff Leg Deadlift** | `97692520-6529-4179-a7c9-feed81766de1` |
-| Rosca Direta Alternada com Halteres | **Rosca Alternada com Halteres** | `04fefb64-183a-4081-a06f-a2bd7657797c` |
-| Rosca Martelo Simultâneo com Halteres | **Rosca Martelo** | `77dee996-1f88-4f84-ac88-e0d5e000cfb6` |
-| Rosca Martelo Corda na Polia | **Cable Hammer Curl** | `5da62a1e-6be6-49a2-adc0-35ca44afb50d` |
-| Rosca Scott máquina | **Rosca Scott** | `04b04ce1-ee07-4a8a-b1ab-6277b8d895bd` |
-
-## Vídeos sem correspondência clara
-
-Os vídeos com data "1 de setembro de 2025" não têm nomes de exercícios identificáveis. Eles serão **ignorados** a menos que você forneça mais informações sobre quais exercícios representam.
+## Objetivo
+Simplificar a experiência do seletor de exercícios Kanban, removendo o conflito entre hover e redimensionamento, mantendo colunas com tamanho fixo, e adicionando uma barra de busca para facilitar a localização de exercícios.
 
 ---
 
-## Implementação
+## Problemas Identificados
 
-### Método de execução
+1. **Conflito hover vs. seleção**: A função `getColumnFlexClass` altera o tamanho das colunas tanto no hover (`hoverColumnIndex`) quanto na seleção (`activeColumnIndex`), causando redimensionamentos confusos e inesperados.
 
-Executarei **14 comandos UPDATE** para associar os vídeos aos exercícios correspondentes na tabela `exercises`.
+2. **Expansão excessiva**: Quando o mouse passa sobre uma coluna, ela expande para `flex-[3]`, o que causa "saltos" visuais e conflita com a rolagem horizontal.
 
-### SQL a ser executado
+3. **Ausência de busca**: Não existe forma de filtrar exercícios por nome, forçando o usuário a navegar por todas as opções manualmente.
 
-```sql
--- 1. Cadeira Abdutora
-UPDATE exercises SET video_url = 'https://www.youtube.com/shorts/wnIDZoduz0g' WHERE id = 'f2501376-6b26-4bd0-a805-47eff395696d';
+---
 
--- 2. Cadeira Extensora (sem URL atual)
-UPDATE exercises SET video_url = 'https://www.youtube.com/shorts/kLcM4DnKj_0' WHERE id = '95ab9234-b63a-46a5-8e77-c24bbee12d9f';
+## Solução Proposta
 
--- 3. Puxada Frontal
-UPDATE exercises SET video_url = 'https://www.youtube.com/shorts/4havAcUVmIk' WHERE id = 'c444d9dc-b1d4-4d71-a28c-0c8de6344b86';
+### Parte A - Remover comportamento de hover que altera tamanho
 
--- 4. Stiff (sem URL atual)
-UPDATE exercises SET video_url = 'https://www.youtube.com/shorts/h5OxyBT_rvI' WHERE id = '3b1a4b34-03eb-43c0-b0ce-44c008cfc721';
+**Arquivo:** `src/components/clients/KanbanExerciseSelector.tsx`
 
--- 5. Desenvolvimento com Halteres (para Desenvolvimento Articulado)
-UPDATE exercises SET video_url = 'https://www.youtube.com/shorts/NknEUA0kf7k' WHERE id = 'ba0598d4-6911-4905-b05b-16620c54e0bc';
+1. **Remover `hoverColumnIndex`**: Eliminar completamente o estado e eventos `onMouseEnter`/`onMouseLeave` das colunas.
 
--- 6. Supino Reto com Barra (para Supino Reto Articulado)
-UPDATE exercises SET video_url = 'https://www.youtube.com/shorts/eiEui2oiTmo' WHERE id = 'b56f321e-a57d-4526-8081-c49f987c09e9';
+2. **Simplificar `getColumnFlexClass`**: A função passará a depender apenas de `activeColumnIndex`, sem considerar hover.
 
--- 7. Supino Inclinado com Barra (para Supino Inclinado Articulado)
-UPDATE exercises SET video_url = 'https://www.youtube.com/shorts/QeRMZeipWwY' WHERE id = '0df4f1b0-9392-4023-abf0-0fb6d1ab1f75';
+3. **Colunas com largura fixa**: Trocar o sistema de `flex-[0.5]/[1]/[3]` por larguras fixas com `shrink-0`:
+   - Colunas anteriores à ativa: `w-[100px]` (compactas)
+   - Coluna ativa: `w-[220px]` (expandida)
+   - Colunas posteriores: `w-[140px]` (padrão)
+   
+   Isso torna o layout **previsível** e elimina saltos visuais.
 
--- 8. Tríceps Testa (sem URL atual)
-UPDATE exercises SET video_url = 'https://www.youtube.com/shorts/1FOB6qgCg9Y' WHERE id = '2631dc24-3f46-4194-a32e-a150232a358f';
+4. **Manter auto-scroll**: O `scrollIntoView` continua funcionando para trazer a coluna ativa para a área visível quando a seleção avança.
 
--- 9. Dumbbell Stiff Leg Deadlift (para Stiff com Halteres)
-UPDATE exercises SET video_url = 'https://www.youtube.com/shorts/ucSkDh3c1Lo' WHERE id = '97692520-6529-4179-a7c9-feed81766de1';
+---
 
--- 10. Rosca Alternada com Halteres
-UPDATE exercises SET video_url = 'https://www.youtube.com/shorts/VTD3ojaLRD4' WHERE id = '04fefb64-183a-4081-a06f-a2bd7657797c';
+### Parte B - Adicionar barra de busca para exercícios
 
--- 11. Rosca Martelo
-UPDATE exercises SET video_url = 'https://www.youtube.com/shorts/IgwKuLwRj9k' WHERE id = '77dee996-1f88-4f84-ac88-e0d5e000cfb6';
+**Arquivo:** `src/components/clients/KanbanExerciseSelector.tsx`
 
--- 12. Cable Hammer Curl (para Rosca Martelo Corda na Polia)
-UPDATE exercises SET video_url = 'https://www.youtube.com/shorts/XVrZ4QvVFQc' WHERE id = '5da62a1e-6be6-49a2-adc0-35ca44afb50d';
+1. **Novo estado**: `const [searchQuery, setSearchQuery] = useState<string>("")`
 
--- 13. Rosca Scott
-UPDATE exercises SET video_url = 'https://www.youtube.com/shorts/HVYszfIXLjU' WHERE id = '04b04ce1-ee07-4a8a-b1ab-6277b8d895bd';
+2. **Input de busca**: Adicionar um campo de input acima do grid de colunas:
+   ```text
+   [🔍 Buscar exercício, grupo ou tipo...]
+   ```
+
+3. **Lógica de filtro inteligente**:
+   - Se a busca corresponder a um **tipo** (ex: "musculação"), selecionar automaticamente.
+   - Se corresponder a um **grupo muscular** (ex: "peito"), selecionar tipo + grupo.
+   - Se corresponder a um **nome de exercício**, filtrar a lista de exercícios disponíveis.
+
+4. **Comportamento**:
+   - A busca é **opcional** - o fluxo de colunas continua funcionando normalmente.
+   - Ao digitar, resultados aparecem como dropdown ou filtram a coluna de exercícios.
+   - Ao selecionar um resultado da busca, o sistema preenche automaticamente tipo/grupo e posiciona na coluna de exercício.
+
+---
+
+### Parte C - Ajustes visuais complementares
+
+**Arquivo:** `src/components/clients/KanbanExerciseSelector.tsx`
+
+1. **Reduzir altura das colunas**: De `h-[280px]...h-[400px]` para `h-[250px]...h-[350px]` para melhor encaixe.
+
+2. **Indicador visual de foco**: Adicionar borda sutil ou sombra na coluna ativa para destacá-la sem depender de tamanho.
+
+3. **Animação suave**: Manter `transition-all duration-300` apenas para scroll, não para redimensionamento.
+
+---
+
+## Resultado Esperado
+
+```text
+Antes (confuso):
+┌──────────────────────────────────────────────────────────────┐
+│ [Tipo]──[Grupo]─────────────────────[Exercício][Volume][Método]
+│   ↓        ↓ (expande no hover!)        ↓         ↓       ↓
+│  Saltos visuais constantes ao mover o mouse
+└──────────────────────────────────────────────────────────────┘
+
+Depois (estável):
+┌──────────────────────────────────────────────────────────────┐
+│ [🔍 Buscar exercício...]                                      │
+├──────────────────────────────────────────────────────────────┤
+│ [✓Tipo][✓Grupo][Exercício*      ][Volume    ][Método    ]    │
+│   100px  100px    220px (ativo)   140px       140px          │
+│         ← scroll automático para coluna ativa →              │
+└──────────────────────────────────────────────────────────────┘
+* Ao selecionar, avança para próxima coluna suavemente
 ```
 
 ---
 
-## Exercícios não encontrados
+## Arquivos a Modificar
 
-- **Stiff Máquina Guiada**: Não existe no banco. Posso **criar** este exercício com o vídeo ou você pode indicar qual exercício existente deve receber este vídeo.
+| Arquivo | Alterações |
+|---------|------------|
+| `src/components/clients/KanbanExerciseSelector.tsx` | Remover hover, larguras fixas, adicionar busca |
 
-## Resumo
+---
 
-| Status | Quantidade |
-|--------|------------|
-| Vídeos a associar | **13** |
-| Vídeos ignorados (sem nome) | **6** |
-| Exercício não encontrado | **1** (Stiff Máquina Guiada) |
+## Detalhes Técnicos
+
+### Nova função de dimensionamento (sem hover)
+```typescript
+const getColumnWidthClass = (columnIndex: number) => {
+  if (columnIndex < activeColumnIndex) return "w-[100px] shrink-0";
+  if (columnIndex === activeColumnIndex) return "w-[220px] shrink-0";
+  return "w-[140px] shrink-0";
+};
+```
+
+### Estrutura do input de busca
+```typescript
+<div className="relative">
+  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+  <Input
+    placeholder="Buscar exercício, grupo ou tipo..."
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    className="pl-9"
+  />
+</div>
+```
+
+### Filtro inteligente
+```typescript
+const filteredExercises = useMemo(() => {
+  if (!searchQuery.trim() || !allExercises) return availableExercises;
+  const query = searchQuery.toLowerCase();
+  return allExercises.filter(ex => 
+    ex.name.toLowerCase().includes(query) ||
+    ex.exercise_group.toLowerCase().includes(query) ||
+    ex.exercise_type.toLowerCase().includes(query)
+  );
+}, [searchQuery, allExercises, availableExercises]);
+```
+
+---
+
+## Critérios de Aceite
+
+1. Mover o mouse sobre as colunas **não altera** o tamanho delas.
+2. Selecionar uma opção avança para a próxima coluna com scroll suave.
+3. A barra de busca filtra exercícios por nome, grupo ou tipo.
+4. O layout permanece estável e previsível durante toda a interação.
+5. Todas as 5 colunas continuam acessíveis via scroll horizontal.
 
