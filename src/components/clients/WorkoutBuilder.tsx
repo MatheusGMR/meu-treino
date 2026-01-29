@@ -218,13 +218,9 @@ export const WorkoutBuilder = ({
   const handleConfirmSubmit = async () => {
     if (!workoutNameInput.trim()) return;
     
-    builder.setTempWorkout({
-      ...builder.tempWorkout,
-      name: workoutNameInput,
-    });
-    
     try {
-      await builder.submit();
+      // Passa o nome diretamente para evitar race condition com setState assíncrono
+      await builder.submit(workoutNameInput);
       setShowWorkoutNameDialog(false);
       onSuccess();
     } catch (error) {
