@@ -1,134 +1,77 @@
 
 
-## Exercícios em Ordem Alfabética com Indicador de Vídeo
+## Correção: Footer Fixo no Construtor de Treino
 
-### Objetivo
-1. Ordenar os exercícios alfabeticamente na coluna "Exercício" do Kanban
-2. Adicionar um pequeno ícone indicando se o exercício possui vídeo disponível
+### Problema Identificado
 
----
-
-### Análise Atual
-
-**Arquivo:** `src/components/clients/KanbanExerciseSelector.tsx`
-
-A lista de exercícios é gerada pelo `availableExercises` (linhas 99-105):
-```typescript
-const availableExercises = useMemo(() => {
-  if (!selectedType || !selectedGroup || !allExercises) return [];
-  return allExercises.filter(ex => 
-    ex.exercise_type === selectedType && 
-    ex.exercise_group === selectedGroup
-  );
-}, [selectedType, selectedGroup, allExercises]);
-```
-
-Atualmente **não há ordenação alfabética** - os exercícios são exibidos na ordem que vêm do banco.
-
-O campo `video_url` existe na tabela `exercises` e pode ser `string | null`.
-
----
-
-### Solução Proposta
-
-#### 1. Ordenação Alfabética
-
-Adicionar `.sort()` ao `availableExercises`:
-```typescript
-const availableExercises = useMemo(() => {
-  if (!selectedType || !selectedGroup || !allExercises) return [];
-  return allExercises
-    .filter(ex => 
-      ex.exercise_type === selectedType && 
-      ex.exercise_group === selectedGroup
-    )
-    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')); // Ordem alfabética
-}, [selectedType, selectedGroup, allExercises]);
-```
-
-Também ordenar os resultados de busca (linha 111-118):
-```typescript
-const searchResults = useMemo(() => {
-  if (!searchQuery.trim() || !allExercises) return null;
-  const query = searchQuery.toLowerCase();
-  
-  return allExercises
-    .filter(ex => ...)
-    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')) // Ordenar
-    .slice(0, 8);
-}, [searchQuery, allExercises]);
-```
-
-#### 2. Indicador de Vídeo no SelectionCard
-
-**Arquivo:** `src/components/clients/SelectionCard.tsx`
-
-Adicionar nova prop `hasVideo`:
-```typescript
-interface SelectionCardProps {
-  // ... props existentes
-  hasVideo?: boolean;
-}
-```
-
-Exibir ícone de vídeo discreto junto ao título:
-```typescript
-import { Video } from "lucide-react";
-
-// No JSX:
-<div className="flex items-center gap-1">
-  <div className="font-medium text-sm leading-tight break-words">{title}</div>
-  {hasVideo && (
-    <Video className="w-3 h-3 text-muted-foreground shrink-0" />
-  )}
-</div>
-```
-
-#### 3. Passar `hasVideo` no KanbanExerciseSelector
-
-**Arquivo:** `src/components/clients/KanbanExerciseSelector.tsx`
-
-Ao renderizar o `SelectionCard` de exercícios (linhas 416-433):
-```typescript
-<SelectionCard
-  key={ex.id}
-  title={ex.name}
-  subtitle={ex.level || undefined}
-  isSelected={selectedExercise === ex.id}
-  onClick={() => handleExerciseSelect(ex.id)}
-  onPreview={() => {...}}
-  hasVideo={!!ex.video_url}  // ← Novo
-  hasWarning={...}
-  warningMessage={...}
-  warningSeverity={...}
-/>
-```
-
----
-
-### Resultado Visual
+O `WorkoutBuilder` usa `h-full`, mas a cadeia de containers ancestrais não propaga altura corretamente:
 
 ```text
-┌─────────────────────────────────────┐
-│ Exercício                           │
-├─────────────────────────────────────┤
-│ [Agachamento Búlgaro] 🎬            │  ← Com vídeo
-│ [Agachamento Livre]                 │  ← Sem vídeo
-│ [Afundo]                            │  ← Sem vídeo
-│ [Leg Press 45°] 🎬                  │  ← Com vídeo
-│ [Stiff] 🎬                          │  ← Com vídeo
-└─────────────────────────────────────┘
-          ↑ Ordem alfabética
+AppLayout (min-h-screen)
+  → main (overflow-auto)
+    → container p-6 (SEM altura definida)
+      → TabsContent (SEM altura definida)
+        → WorkoutBuilder (h-full) ← NÃO FUNCIONA!
 ```
 
-O ícone será pequeno (12x12px) e discreto, na cor `muted-foreground`, posicionado logo após o nome.
+O `h-full` (100%) só funciona quando **todos os ancestrais** têm altura explícita. Como o container pai não tem, o `h-full` não tem referência e o footer rola junto com o conteúdo.
+
+---
+
+### Solução
+
+Usar altura calculada com `100vh` menos os espaços do layout:
+- Padding do container: `p-6` = 24px × 2 = 48px
+- Header do cliente (nome + tabs): ~120px
+- Margem de segurança
+
+**Arquivo:** `src/components/clients/WorkoutBuilder.tsx`
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│ ← Construtor de Treino (Header)         [flex-shrink-0]     │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  [Sessões do Treino]              [Perfil do Cliente]       │
+│  ┌──────────────────┐             ┌──────────────────┐      │
+│  │ overflow-y-auto  │             │ overflow-y-auto  │      │
+│  │ (scroll interno) │             │ (scroll interno) │      │
+│  └──────────────────┘             └──────────────────┘      │
+│                   ↑ flex-1 min-h-0 ↑                        │
+├─────────────────────────────────────────────────────────────┤
+│                           [Cancelar]  [Atribuir] (FIXO)     │
+│                                          [flex-shrink-0]    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Alterações
+
+**Linha 236**: Trocar `h-full` por altura calculada
+```typescript
+// De:
+<div className="flex flex-col h-full">
+
+// Para:
+<div className="flex flex-col" style={{ height: 'calc(100vh - 200px)' }}>
+```
+
+O valor `200px` cobre:
+- Padding superior do container (24px)
+- Header da página ClientDetails (tabs, nome ~80px)
+- Padding inferior (24px)
+- Margem de segurança (~72px)
+
+Isso garante que:
+1. O container principal tenha altura fixa baseada na viewport
+2. O header e footer usem `flex-shrink-0` para não encolher
+3. A área central com `flex-1 min-h-0` ocupe o espaço restante
+4. Cada coluna (sessões e cockpit) role independentemente
 
 ---
 
 ### Arquivos a Modificar
 
-| Arquivo | Alterações |
-|---------|------------|
-| `src/components/clients/KanbanExerciseSelector.tsx` | Ordenar exercícios alfabeticamente + passar `hasVideo` |
-| `src/components/clients/SelectionCard.tsx` | Adicionar prop `hasVideo` e exibir ícone |
+| Arquivo | Alteração |
+|---------|-----------|
+| `src/components/clients/WorkoutBuilder.tsx` | Trocar `h-full` por `height: calc(100vh - 200px)` |
 
