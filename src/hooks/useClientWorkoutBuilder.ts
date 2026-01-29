@@ -384,14 +384,27 @@ export const useClientWorkoutBuilder = (clientId: string) => {
       .filter(Boolean);
   }, [tempWorkout]);
 
+  // Razão do bloqueio para feedback no UI
+  const submitBlockReason = useMemo(() => {
+    if (!tempWorkout.name.trim()) return "Informe o nome do treino";
+    if (tempWorkout.sessions.length === 0) return "Adicione pelo menos uma sessão";
+    
+    // Verificar se todas as sessões têm exercícios
+    const emptySessionIndex = tempWorkout.sessions.findIndex(s => s.exercises.length === 0);
+    if (emptySessionIndex !== -1) {
+      return `Adicione exercícios à sessão "${tempWorkout.sessions[emptySessionIndex].name}"`;
+    }
+    
+    if (compatibility.riskLevel === "critical" && !acknowledgeRisks) {
+      return "Reconheça os riscos de saúde para continuar";
+    }
+    return null;
+  }, [tempWorkout, compatibility, acknowledgeRisks]);
+
   // Validação para submit
   const canSubmit = useMemo(() => {
-    if (!tempWorkout.name.trim()) return false;
-    if (tempWorkout.sessions.length === 0) return false;
-    if (tempWorkout.sessions[0].exercises.length === 0) return false;
-    if (compatibility.riskLevel === "critical" && !acknowledgeRisks) return false;
-    return true;
-  }, [tempWorkout, compatibility, acknowledgeRisks]);
+    return submitBlockReason === null;
+  }, [submitBlockReason]);
 
   // Submit - cria treino novo sempre
   const submit = useCallback(async () => {
@@ -1005,6 +1018,7 @@ export const useClientWorkoutBuilder = (clientId: string) => {
     addExistingSession,
     getExistingSessionIds,
     canSubmit,
+    submitBlockReason,
     submit,
     isSubmitting,
     clientProfile: clientDetails?.profile,

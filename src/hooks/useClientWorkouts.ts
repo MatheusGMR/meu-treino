@@ -204,12 +204,19 @@ export const useUnassignWorkout = () => {
       workoutAssignmentId: string;
       clientId: string;
     }) => {
-      const { error } = await supabase
+      // Usar select para verificar se a exclusão realmente aconteceu
+      const { data, error } = await supabase
         .from("client_workouts")
         .delete()
-        .eq("id", workoutAssignmentId);
+        .eq("id", workoutAssignmentId)
+        .select();
 
       if (error) throw error;
+
+      // Se nenhum registro foi deletado, RLS pode ter bloqueado
+      if (!data || data.length === 0) {
+        throw new Error("Não foi possível remover o treino. Verifique suas permissões.");
+      }
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ 
