@@ -1,6 +1,11 @@
 import { AppSidebar } from "./AppSidebar";
 
-export const SidebarWithBackground = () => {
+interface SidebarWithBackgroundProps {
+  collapsed?: boolean;
+  onToggle?: () => void;
+}
+
+export const SidebarWithBackground = ({ collapsed = false, onToggle }: SidebarWithBackgroundProps) => {
   return (
     <div className="relative h-full w-full">
       {/* Background laranja com transparência */}
@@ -13,7 +18,7 @@ export const SidebarWithBackground = () => {
 
       {/* Sidebar Content */}
       <div className="relative z-10 h-full">
-        <AppSidebar />
+        <AppSidebar collapsed={collapsed} onToggle={onToggle} />
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Plus, GripVertical, RefreshCw, Sparkles } from "lucide-react";
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+// Layout fixo sem ResizablePanelGroup
 import { useClientWorkoutBuilder } from "@/hooks/useClientWorkoutBuilder";
 import { HealthAlertPanel } from "./HealthAlertPanel";
 import { Card } from "@/components/ui/card";
@@ -251,12 +251,11 @@ export const WorkoutBuilder = ({
         </div>
       </div>
 
-      {/* Painel Redimensionável: Construtor (esquerda) + Análise (direita) */}
-      <ResizablePanelGroup direction="horizontal" className="gap-6 h-[calc(100vh-280px)]">
-        <ResizablePanel defaultSize={70} minSize={55} maxSize={80}>
-          {/* Coluna Esquerda: Construtor */}
-          <div className="h-full overflow-y-auto scrollarea-hidden pr-3">
-            <div className="space-y-6">
+      {/* Layout Fixo: Construtor (esquerda) + Cockpit (direita) */}
+      <div className="flex gap-6 h-[calc(100vh-280px)]">
+        {/* Coluna Esquerda: Construtor */}
+        <div className="flex-1 overflow-y-auto scrollarea-hidden pr-3">
+          <div className="space-y-6">
             {/* Sessões do Treino */}
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -291,54 +290,50 @@ export const WorkoutBuilder = ({
                 collisionDetection={closestCenter}
                 onDragEnd={handleSessionDragEnd}
               >
-              <SortableContext
-                items={builder.tempWorkout.sessions.map((_, i) => `session-${i}`)}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="space-y-4">
-                  {builder.tempWorkout.sessions.length === 0 ? (
-                    <Card className="p-8 text-center border-dashed">
-                      <p className="text-muted-foreground mb-2">
-                        Nenhuma sessão adicionada ao treino
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Clique em "Nova Sessão" ou "Adicionar Sessão Existente" para começar
-                      </p>
-                    </Card>
-                  ) : (
-                    builder.tempWorkout.sessions.map((session, index) => (
-                      <SortableSession
-                        key={`session-${index}`}
-                        session={session}
-                        sessionIndex={index}
-                        isExpanded={expandedSessionIndex === index}
-                        onToggleExpand={() => toggleSessionExpand(index)}
-                        onRemove={() => builder.removeSession(index)}
-                        onAddExercise={(exercise) => handleAddExerciseToSession(index, exercise)}
-                        onRemoveExercise={(exerciseIndex) =>
-                          handleRemoveExerciseFromSession(index, exerciseIndex)
-                        }
-                        onReorderExercises={(startIndex, endIndex) => {
-                          builder.reorderExercisesInSession(index, startIndex, endIndex);
-                        }}
-                        clientMedicalConditions={builder.clientProfile?.medical_conditions}
-                        enableDrag={enableSessionDrag}
-                      />
-                    ))
-                  )}
-                </div>
-              </SortableContext>
+                <SortableContext
+                  items={builder.tempWorkout.sessions.map((_, i) => `session-${i}`)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-4">
+                    {builder.tempWorkout.sessions.length === 0 ? (
+                      <Card className="p-8 text-center border-dashed">
+                        <p className="text-muted-foreground mb-2">
+                          Nenhuma sessão adicionada ao treino
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Clique em "Nova Sessão" ou "Adicionar Sessão Existente" para começar
+                        </p>
+                      </Card>
+                    ) : (
+                      builder.tempWorkout.sessions.map((session, index) => (
+                        <SortableSession
+                          key={`session-${index}`}
+                          session={session}
+                          sessionIndex={index}
+                          isExpanded={expandedSessionIndex === index}
+                          onToggleExpand={() => toggleSessionExpand(index)}
+                          onRemove={() => builder.removeSession(index)}
+                          onAddExercise={(exercise) => handleAddExerciseToSession(index, exercise)}
+                          onRemoveExercise={(exerciseIndex) =>
+                            handleRemoveExerciseFromSession(index, exerciseIndex)
+                          }
+                          onReorderExercises={(startIndex, endIndex) => {
+                            builder.reorderExercisesInSession(index, startIndex, endIndex);
+                          }}
+                          clientMedicalConditions={builder.clientProfile?.medical_conditions}
+                          enableDrag={enableSessionDrag}
+                        />
+                      ))
+                    )}
+                  </div>
+                </SortableContext>
               </DndContext>
             </div>
-            </div>
           </div>
-        </ResizablePanel>
+        </div>
 
-        <ResizableHandle withHandle />
-
-        <ResizablePanel defaultSize={30} minSize={20} maxSize={45}>
-          {/* Coluna Direita: Cockpit Sticky com Scroll Independente */}
-          <div className="sticky top-0 h-[calc(100vh-280px)] overflow-y-auto scrollarea-hidden pl-3">
+        {/* Coluna Direita: Cockpit Fixo */}
+        <div className="w-[380px] flex-shrink-0 overflow-y-auto scrollarea-hidden pl-3">
             <div className="space-y-4">
             {/* BLOCO 1: Perfil do Cliente */}
             <ClientProfileCard
@@ -444,10 +439,9 @@ export const WorkoutBuilder = ({
                 profileRiskFactors={builder.profileRisks.factors}
               />
             )}
-            </div>
           </div>
-        </ResizablePanel>
-      </ResizablePanelGroup>
+        </div>
+      </div>
 
       {/* Footer com ações */}
       <div className="flex justify-end gap-3 pt-6 border-t">
