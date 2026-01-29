@@ -1,165 +1,134 @@
 
 
-## Ajustes Finos no Construtor de Treino
+## Exercícios em Ordem Alfabética com Indicador de Vídeo
 
-### Problema 1: Footer não está fixo
-
-Atualmente, o layout está assim:
-```text
-┌─────────────────────────────────────────────────────────────┐
-│ Header (fixo)                                               │
-├─────────────────────────────────────────────────────────────┤
-│ [Sessões (scroll)]              │  [Cockpit (scroll)]       │
-│                                 │                           │
-│                                 │                           │
-├─────────────────────────────────────────────────────────────┤
-│ Footer (Cancelar | Atribuir) ← também faz scroll            │
-└─────────────────────────────────────────────────────────────┘
-```
-
-O footer com os botões "Cancelar" e "Atribuir Treino" está dentro do fluxo de scroll. Precisa ficar **fixo na parte inferior**.
-
-**Arquivo:** `src/components/clients/WorkoutBuilder.tsx`
-
-**Solução:**
-1. Alterar a estrutura do componente para usar `flex flex-col h-full`
-2. O header permanece no topo
-3. A área central (`flex gap-6`) recebe `flex-1 min-h-0 overflow-hidden`
-4. O footer recebe `flex-shrink-0` para permanecer fixo
-
-```text
-┌─────────────────────────────────────────────────────────────┐
-│ Header (fixo, flex-shrink-0)                                │
-├─────────────────────────────────────────────────────────────┤
-│ [Sessões (scroll)]              │  [Cockpit (scroll)]       │
-│   overflow-y-auto               │    overflow-y-auto        │
-│   flex-1, min-h-0               │    flex-1, min-h-0        │
-├─────────────────────────────────────────────────────────────┤
-│ Footer (FIXO, flex-shrink-0)                                │
-└─────────────────────────────────────────────────────────────┘
-```
+### Objetivo
+1. Ordenar os exercícios alfabeticamente na coluna "Exercício" do Kanban
+2. Adicionar um pequeno ícone indicando se o exercício possui vídeo disponível
 
 ---
 
-### Problema 2: Título "Grupo Muscular" muito grande
-
-No `KanbanExerciseSelector.tsx`, linha 350-351:
-```html
-<h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
-  Grupo Muscular
-</h4>
-```
-
-O título "Grupo Muscular" (13 caracteres) é maior que os outros:
-- "Tipo" (4 caracteres)
-- "Exercício" (9 caracteres)  
-- "Volume" (6 caracteres)
-- "Método" (6 caracteres)
-
-Isso causa desalinhamento nos botões abaixo.
+### Análise Atual
 
 **Arquivo:** `src/components/clients/KanbanExerciseSelector.tsx`
 
-**Solução:**
-Encurtar "Grupo Muscular" para apenas **"Grupo"** (5 caracteres), mantendo consistência com os outros títulos.
+A lista de exercícios é gerada pelo `availableExercises` (linhas 99-105):
+```typescript
+const availableExercises = useMemo(() => {
+  if (!selectedType || !selectedGroup || !allExercises) return [];
+  return allExercises.filter(ex => 
+    ex.exercise_type === selectedType && 
+    ex.exercise_group === selectedGroup
+  );
+}, [selectedType, selectedGroup, allExercises]);
+```
+
+Atualmente **não há ordenação alfabética** - os exercícios são exibidos na ordem que vêm do banco.
+
+O campo `video_url` existe na tabela `exercises` e pode ser `string | null`.
 
 ---
 
-## Alterações Detalhadas
+### Solução Proposta
 
-### Arquivo 1: `src/components/clients/WorkoutBuilder.tsx`
+#### 1. Ordenação Alfabética
 
-**Linha 236**: Alterar container principal
+Adicionar `.sort()` ao `availableExercises`:
 ```typescript
-// De:
-<div className="space-y-6">
-
-// Para:
-<div className="flex flex-col h-full">
+const availableExercises = useMemo(() => {
+  if (!selectedType || !selectedGroup || !allExercises) return [];
+  return allExercises
+    .filter(ex => 
+      ex.exercise_type === selectedType && 
+      ex.exercise_group === selectedGroup
+    )
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')); // Ordem alfabética
+}, [selectedType, selectedGroup, allExercises]);
 ```
 
-**Linha 238**: Header com flex-shrink-0
+Também ordenar os resultados de busca (linha 111-118):
 ```typescript
-// De:
-<div className="flex items-center gap-4 pb-4 border-b">
-
-// Para:
-<div className="flex items-center gap-4 pb-4 border-b flex-shrink-0">
+const searchResults = useMemo(() => {
+  if (!searchQuery.trim() || !allExercises) return null;
+  const query = searchQuery.toLowerCase();
+  
+  return allExercises
+    .filter(ex => ...)
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')) // Ordenar
+    .slice(0, 8);
+}, [searchQuery, allExercises]);
 ```
 
-**Linha 251**: Área central com flex-1 e overflow controlado
-```typescript
-// De:
-<div className="flex gap-6 h-[calc(100vh-280px)]">
+#### 2. Indicador de Vídeo no SelectionCard
 
-// Para:
-<div className="flex gap-6 flex-1 min-h-0 overflow-hidden mt-6">
+**Arquivo:** `src/components/clients/SelectionCard.tsx`
+
+Adicionar nova prop `hasVideo`:
+```typescript
+interface SelectionCardProps {
+  // ... props existentes
+  hasVideo?: boolean;
+}
 ```
 
-**Linha 443**: Footer fixo
+Exibir ícone de vídeo discreto junto ao título:
 ```typescript
-// De:
-<div className="flex justify-end gap-3 pt-6 border-t">
+import { Video } from "lucide-react";
 
-// Para:
-<div className="flex justify-end gap-3 pt-6 border-t flex-shrink-0 mt-6">
+// No JSX:
+<div className="flex items-center gap-1">
+  <div className="font-medium text-sm leading-tight break-words">{title}</div>
+  {hasVideo && (
+    <Video className="w-3 h-3 text-muted-foreground shrink-0" />
+  )}
+</div>
+```
+
+#### 3. Passar `hasVideo` no KanbanExerciseSelector
+
+**Arquivo:** `src/components/clients/KanbanExerciseSelector.tsx`
+
+Ao renderizar o `SelectionCard` de exercícios (linhas 416-433):
+```typescript
+<SelectionCard
+  key={ex.id}
+  title={ex.name}
+  subtitle={ex.level || undefined}
+  isSelected={selectedExercise === ex.id}
+  onClick={() => handleExerciseSelect(ex.id)}
+  onPreview={() => {...}}
+  hasVideo={!!ex.video_url}  // ← Novo
+  hasWarning={...}
+  warningMessage={...}
+  warningSeverity={...}
+/>
 ```
 
 ---
 
-### Arquivo 2: `src/components/clients/KanbanExerciseSelector.tsx`
+### Resultado Visual
 
-**Linha 350-352**: Encurtar título da coluna
-```typescript
-// De:
-<h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
-  Grupo Muscular
-</h4>
-
-// Para:
-<h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
-  Grupo
-</h4>
-```
-
----
-
-## Resultado Esperado
-
-### Layout Corrigido
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│ ← Construtor de Treino                      (Header FIXO)   │
-│   Monte um treino personalizado...                          │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  [Sessões do Treino]              [Perfil do Cliente]       │
-│  ┌──────────────────┐             ┌──────────────────┐      │
-│  │ ↕ scroll interno │             │ ↕ scroll interno │      │
-│  │                  │             │                  │      │
-│  └──────────────────┘             └──────────────────┘      │
-│                                                             │
-├─────────────────────────────────────────────────────────────┤
-│                           [Cancelar]  [Atribuir]  (FIXO)    │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────┐
+│ Exercício                           │
+├─────────────────────────────────────┤
+│ [Agachamento Búlgaro] 🎬            │  ← Com vídeo
+│ [Agachamento Livre]                 │  ← Sem vídeo
+│ [Afundo]                            │  ← Sem vídeo
+│ [Leg Press 45°] 🎬                  │  ← Com vídeo
+│ [Stiff] 🎬                          │  ← Com vídeo
+└─────────────────────────────────────┘
+          ↑ Ordem alfabética
 ```
 
-### Colunas Kanban Alinhadas
-```text
-┌────────┬────────┬───────────┬────────┬────────┐
-│  Tipo  │ Grupo  │ Exercício │ Volume │ Método │  ← Títulos alinhados
-├────────┼────────┼───────────┼────────┼────────┤
-│  [  ]  │  [  ]  │   [  ]    │  [  ]  │  [  ]  │  ← Botões alinhados
-│  [  ]  │  [  ]  │   [  ]    │  [  ]  │  [  ]  │
-└────────┴────────┴───────────┴────────┴────────┘
-```
+O ícone será pequeno (12x12px) e discreto, na cor `muted-foreground`, posicionado logo após o nome.
 
 ---
 
-## Arquivos a Modificar
+### Arquivos a Modificar
 
 | Arquivo | Alterações |
 |---------|------------|
-| `src/components/clients/WorkoutBuilder.tsx` | Reestruturar layout com flex para footer fixo |
-| `src/components/clients/KanbanExerciseSelector.tsx` | Encurtar "Grupo Muscular" → "Grupo" |
+| `src/components/clients/KanbanExerciseSelector.tsx` | Ordenar exercícios alfabeticamente + passar `hasVideo` |
+| `src/components/clients/SelectionCard.tsx` | Adicionar prop `hasVideo` e exibir ícone |
 
