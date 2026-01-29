@@ -1,92 +1,165 @@
 
 
-## Correção: Race Condition na Atribuição de Treino
+## Ajustes Finos no Construtor de Treino
 
-### Diagnóstico
+### Problema 1: Footer não está fixo
 
-Analisando os logs da edge function, encontrei a causa do erro:
-
+Atualmente, o layout está assim:
 ```text
-19:36:53Z - workoutName: ""         ← Primeira tentativa: nome VAZIO ❌
-19:36:59Z - workoutName: "Teste Alpha"  ← Segunda tentativa: nome PREENCHIDO ✓
+┌─────────────────────────────────────────────────────────────┐
+│ Header (fixo)                                               │
+├─────────────────────────────────────────────────────────────┤
+│ [Sessões (scroll)]              │  [Cockpit (scroll)]       │
+│                                 │                           │
+│                                 │                           │
+├─────────────────────────────────────────────────────────────┤
+│ Footer (Cancelar | Atribuir) ← também faz scroll            │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-**Causa:** O componente `WorkoutBuilder.tsx` chama `setTempWorkout()` para atualizar o nome e logo em seguida chama `builder.submit()`. Como o `setState` do React é assíncrono, o `submit()` é executado antes que o estado seja atualizado, enviando o nome vazio.
-
-```typescript
-// WorkoutBuilder.tsx - handleConfirmSubmit (linhas 218-233)
-builder.setTempWorkout({
-  ...builder.tempWorkout,
-  name: workoutNameInput,   // ← Atualiza estado (ASSÍNCRONO!)
-});
-
-await builder.submit();     // ← Executa com estado ANTIGO (nome vazio)
-```
-
----
-
-### Solução
-
-Modificar a função `submit()` no hook para aceitar um parâmetro opcional `workoutName`, que tem prioridade sobre o valor do estado:
-
-**Arquivo:** `src/hooks/useClientWorkoutBuilder.ts`
-
-1. Alterar a assinatura de `submit` para aceitar um parâmetro:
-   ```typescript
-   const submit = useCallback(async (workoutName?: string) => {
-   ```
-
-2. Usar o parâmetro com fallback para o estado:
-   ```typescript
-   const finalWorkoutName = workoutName || tempWorkout.name;
-   ```
-
-3. Validar o nome antes de enviar:
-   ```typescript
-   if (!finalWorkoutName.trim()) {
-     toast({
-       title: "Erro",
-       description: "O nome do treino é obrigatório",
-       variant: "destructive",
-     });
-     return;
-   }
-   ```
+O footer com os botões "Cancelar" e "Atribuir Treino" está dentro do fluxo de scroll. Precisa ficar **fixo na parte inferior**.
 
 **Arquivo:** `src/components/clients/WorkoutBuilder.tsx`
 
-4. Modificar `handleConfirmSubmit` para passar o nome diretamente:
-   ```typescript
-   const handleConfirmSubmit = async () => {
-     if (!workoutNameInput.trim()) return;
-     
-     try {
-       await builder.submit(workoutNameInput);  // Passa o nome diretamente
-       setShowWorkoutNameDialog(false);
-       onSuccess();
-     } catch (error) {
-       console.error("Erro ao criar treino:", error);
-     }
-   };
-   ```
+**Solução:**
+1. Alterar a estrutura do componente para usar `flex flex-col h-full`
+2. O header permanece no topo
+3. A área central (`flex gap-6`) recebe `flex-1 min-h-0 overflow-hidden`
+4. O footer recebe `flex-shrink-0` para permanecer fixo
 
-5. Remover a chamada desnecessária de `setTempWorkout` (opcional, mas limpa o código).
-
----
-
-### Resultado Esperado
-
-| Antes | Depois |
-|-------|--------|
-| 1ª tentativa falha (nome vazio) | 1ª tentativa funciona (nome passado como parâmetro) |
-| 2ª tentativa funciona | --- |
+```text
+┌─────────────────────────────────────────────────────────────┐
+│ Header (fixo, flex-shrink-0)                                │
+├─────────────────────────────────────────────────────────────┤
+│ [Sessões (scroll)]              │  [Cockpit (scroll)]       │
+│   overflow-y-auto               │    overflow-y-auto        │
+│   flex-1, min-h-0               │    flex-1, min-h-0        │
+├─────────────────────────────────────────────────────────────┤
+│ Footer (FIXO, flex-shrink-0)                                │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-### Arquivos a Modificar
+### Problema 2: Título "Grupo Muscular" muito grande
+
+No `KanbanExerciseSelector.tsx`, linha 350-351:
+```html
+<h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
+  Grupo Muscular
+</h4>
+```
+
+O título "Grupo Muscular" (13 caracteres) é maior que os outros:
+- "Tipo" (4 caracteres)
+- "Exercício" (9 caracteres)  
+- "Volume" (6 caracteres)
+- "Método" (6 caracteres)
+
+Isso causa desalinhamento nos botões abaixo.
+
+**Arquivo:** `src/components/clients/KanbanExerciseSelector.tsx`
+
+**Solução:**
+Encurtar "Grupo Muscular" para apenas **"Grupo"** (5 caracteres), mantendo consistência com os outros títulos.
+
+---
+
+## Alterações Detalhadas
+
+### Arquivo 1: `src/components/clients/WorkoutBuilder.tsx`
+
+**Linha 236**: Alterar container principal
+```typescript
+// De:
+<div className="space-y-6">
+
+// Para:
+<div className="flex flex-col h-full">
+```
+
+**Linha 238**: Header com flex-shrink-0
+```typescript
+// De:
+<div className="flex items-center gap-4 pb-4 border-b">
+
+// Para:
+<div className="flex items-center gap-4 pb-4 border-b flex-shrink-0">
+```
+
+**Linha 251**: Área central com flex-1 e overflow controlado
+```typescript
+// De:
+<div className="flex gap-6 h-[calc(100vh-280px)]">
+
+// Para:
+<div className="flex gap-6 flex-1 min-h-0 overflow-hidden mt-6">
+```
+
+**Linha 443**: Footer fixo
+```typescript
+// De:
+<div className="flex justify-end gap-3 pt-6 border-t">
+
+// Para:
+<div className="flex justify-end gap-3 pt-6 border-t flex-shrink-0 mt-6">
+```
+
+---
+
+### Arquivo 2: `src/components/clients/KanbanExerciseSelector.tsx`
+
+**Linha 350-352**: Encurtar título da coluna
+```typescript
+// De:
+<h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
+  Grupo Muscular
+</h4>
+
+// Para:
+<h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
+  Grupo
+</h4>
+```
+
+---
+
+## Resultado Esperado
+
+### Layout Corrigido
+```text
+┌─────────────────────────────────────────────────────────────┐
+│ ← Construtor de Treino                      (Header FIXO)   │
+│   Monte um treino personalizado...                          │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  [Sessões do Treino]              [Perfil do Cliente]       │
+│  ┌──────────────────┐             ┌──────────────────┐      │
+│  │ ↕ scroll interno │             │ ↕ scroll interno │      │
+│  │                  │             │                  │      │
+│  └──────────────────┘             └──────────────────┘      │
+│                                                             │
+├─────────────────────────────────────────────────────────────┤
+│                           [Cancelar]  [Atribuir]  (FIXO)    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Colunas Kanban Alinhadas
+```text
+┌────────┬────────┬───────────┬────────┬────────┐
+│  Tipo  │ Grupo  │ Exercício │ Volume │ Método │  ← Títulos alinhados
+├────────┼────────┼───────────┼────────┼────────┤
+│  [  ]  │  [  ]  │   [  ]    │  [  ]  │  [  ]  │  ← Botões alinhados
+│  [  ]  │  [  ]  │   [  ]    │  [  ]  │  [  ]  │
+└────────┴────────┴───────────┴────────┴────────┘
+```
+
+---
+
+## Arquivos a Modificar
 
 | Arquivo | Alterações |
 |---------|------------|
-| `src/hooks/useClientWorkoutBuilder.ts` | Adicionar parâmetro `workoutName` à função `submit` |
-| `src/components/clients/WorkoutBuilder.tsx` | Passar `workoutNameInput` diretamente ao `submit()` |
+| `src/components/clients/WorkoutBuilder.tsx` | Reestruturar layout com flex para footer fixo |
+| `src/components/clients/KanbanExerciseSelector.tsx` | Encurtar "Grupo Muscular" → "Grupo" |
 
