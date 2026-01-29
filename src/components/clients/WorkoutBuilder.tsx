@@ -233,7 +233,7 @@ export const WorkoutBuilder = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col" style={{ height: 'calc(100vh - 200px)' }}>
       {/* Header */}
       <div className="flex items-center gap-4 pb-4 border-b flex-shrink-0">
         <Button variant="ghost" size="icon" onClick={onCancel}>
