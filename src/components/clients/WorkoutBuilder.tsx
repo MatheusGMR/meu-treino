@@ -233,9 +233,9 @@ export const WorkoutBuilder = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center gap-4 pb-4 border-b">
+      <div className="flex items-center gap-4 pb-4 border-b flex-shrink-0">
         <Button variant="ghost" size="icon" onClick={onCancel}>
           <ArrowLeft className="w-5 h-5" />
         </Button>
@@ -248,7 +248,7 @@ export const WorkoutBuilder = ({
       </div>
 
       {/* Layout Fixo: Construtor (esquerda) + Cockpit (direita) */}
-      <div className="flex gap-6 h-[calc(100vh-280px)]">
+      <div className="flex gap-6 flex-1 min-h-0 overflow-hidden mt-6">
         {/* Coluna Esquerda: Construtor */}
         <div className="flex-1 overflow-y-auto scrollarea-hidden pr-3">
           <div className="space-y-6">
@@ -440,7 +440,7 @@ export const WorkoutBuilder = ({
       </div>
 
       {/* Footer com ações */}
-      <div className="flex justify-end gap-3 pt-6 border-t">
+      <div className="flex justify-end gap-3 pt-6 border-t flex-shrink-0 mt-6">
         <Button variant="outline" onClick={onCancel}>
           Cancelar
         </Button>

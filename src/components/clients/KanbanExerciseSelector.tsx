@@ -348,7 +348,7 @@ export function KanbanExerciseSelector({
             )}
           >
             <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
-              Grupo Muscular
+              Grupo
             </h4>
             <div className="h-[250px] md:h-[280px] lg:h-[320px] xl:h-[350px] overflow-y-auto scrollarea-hidden">
               {!selectedType ? (
