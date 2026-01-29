@@ -1,98 +1,92 @@
 
 
-## Objetivo
-Substituir o efeito de expansão (scale) no hover dos botões do seletor por um efeito de inversão de cores.
+## Correção: Race Condition na Atribuição de Treino
 
----
+### Diagnóstico
 
-## Problema Atual
-
-No arquivo `src/components/clients/SelectionCard.tsx`, linha 73, existe:
-```
-"hover:shadow-md hover:scale-[1.02]"
-```
-
-Este efeito de escala pode parecer conflitante com outras animações e cria uma sensação de "salto" visual.
-
----
-
-## Solução Proposta
-
-**Arquivo:** `src/components/clients/SelectionCard.tsx`
-
-### Mudança Principal
-
-Substituir `hover:scale-[1.02]` por classes que invertem as cores no hover:
-
-**De:**
-```typescript
-"hover:shadow-md hover:scale-[1.02]",
-isSelected 
-  ? "border-primary bg-primary/10 shadow-sm" 
-  : "border-border bg-card hover:border-primary/50",
-```
-
-**Para:**
-```typescript
-"hover:shadow-md",
-isSelected 
-  ? "border-primary bg-primary text-primary-foreground shadow-sm" 
-  : "border-border bg-card hover:bg-primary hover:text-primary-foreground hover:border-primary",
-```
-
-### Detalhes da Implementação
-
-1. **Estado normal (não selecionado)**:
-   - Fundo: `bg-card` (cor de fundo do card)
-   - Texto: cor padrão (foreground)
-   - Borda: `border-border`
-
-2. **Hover (não selecionado)**:
-   - Fundo: `bg-primary` (cor primária - laranja)
-   - Texto: `text-primary-foreground` (texto que contrasta com primário)
-   - Borda: `border-primary`
-
-3. **Selecionado**:
-   - Fundo: `bg-primary` (cor primária sólida)
-   - Texto: `text-primary-foreground`
-   - Borda: `border-primary`
-
-4. **Remover**: `hover:scale-[1.02]` de ambos os estados
-
----
-
-## Ajuste Complementar
-
-Também será removido o `hover:scale-100` da linha de disabled (linha 77):
-```typescript
-// De:
-disabled && "opacity-50 cursor-not-allowed hover:scale-100"
-
-// Para:
-disabled && "opacity-50 cursor-not-allowed"
-```
-
----
-
-## Resultado Visual
+Analisando os logs da edge function, encontrei a causa do erro:
 
 ```text
-Antes:
-┌─────────────────┐
-│  Peito          │  → mouse entra → card aumenta de tamanho (scale 1.02)
-└─────────────────┘
+19:36:53Z - workoutName: ""         ← Primeira tentativa: nome VAZIO ❌
+19:36:59Z - workoutName: "Teste Alpha"  ← Segunda tentativa: nome PREENCHIDO ✓
+```
 
-Depois:
-┌─────────────────┐
-│  Peito          │  → mouse entra → fundo fica laranja, texto fica branco
-└─────────────────┘
+**Causa:** O componente `WorkoutBuilder.tsx` chama `setTempWorkout()` para atualizar o nome e logo em seguida chama `builder.submit()`. Como o `setState` do React é assíncrono, o `submit()` é executado antes que o estado seja atualizado, enviando o nome vazio.
+
+```typescript
+// WorkoutBuilder.tsx - handleConfirmSubmit (linhas 218-233)
+builder.setTempWorkout({
+  ...builder.tempWorkout,
+  name: workoutNameInput,   // ← Atualiza estado (ASSÍNCRONO!)
+});
+
+await builder.submit();     // ← Executa com estado ANTIGO (nome vazio)
 ```
 
 ---
 
-## Arquivo a Modificar
+### Solução
 
-| Arquivo | Alteração |
-|---------|-----------|
-| `src/components/clients/SelectionCard.tsx` | Substituir hover:scale por hover com inversão de cores |
+Modificar a função `submit()` no hook para aceitar um parâmetro opcional `workoutName`, que tem prioridade sobre o valor do estado:
+
+**Arquivo:** `src/hooks/useClientWorkoutBuilder.ts`
+
+1. Alterar a assinatura de `submit` para aceitar um parâmetro:
+   ```typescript
+   const submit = useCallback(async (workoutName?: string) => {
+   ```
+
+2. Usar o parâmetro com fallback para o estado:
+   ```typescript
+   const finalWorkoutName = workoutName || tempWorkout.name;
+   ```
+
+3. Validar o nome antes de enviar:
+   ```typescript
+   if (!finalWorkoutName.trim()) {
+     toast({
+       title: "Erro",
+       description: "O nome do treino é obrigatório",
+       variant: "destructive",
+     });
+     return;
+   }
+   ```
+
+**Arquivo:** `src/components/clients/WorkoutBuilder.tsx`
+
+4. Modificar `handleConfirmSubmit` para passar o nome diretamente:
+   ```typescript
+   const handleConfirmSubmit = async () => {
+     if (!workoutNameInput.trim()) return;
+     
+     try {
+       await builder.submit(workoutNameInput);  // Passa o nome diretamente
+       setShowWorkoutNameDialog(false);
+       onSuccess();
+     } catch (error) {
+       console.error("Erro ao criar treino:", error);
+     }
+   };
+   ```
+
+5. Remover a chamada desnecessária de `setTempWorkout` (opcional, mas limpa o código).
+
+---
+
+### Resultado Esperado
+
+| Antes | Depois |
+|-------|--------|
+| 1ª tentativa falha (nome vazio) | 1ª tentativa funciona (nome passado como parâmetro) |
+| 2ª tentativa funciona | --- |
+
+---
+
+### Arquivos a Modificar
+
+| Arquivo | Alterações |
+|---------|------------|
+| `src/hooks/useClientWorkoutBuilder.ts` | Adicionar parâmetro `workoutName` à função `submit` |
+| `src/components/clients/WorkoutBuilder.tsx` | Passar `workoutNameInput` diretamente ao `submit()` |
 
