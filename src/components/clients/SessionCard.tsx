@@ -184,16 +184,13 @@ export const SessionCard = ({
             <h5 className="text-sm font-semibold text-foreground">
               Adicionar mais exercícios
             </h5>
-            <div className="overflow-x-auto -mx-6 px-6 pb-2">
-              <div className="min-w-[900px]">
-                <KanbanExerciseSelector
-                  onSave={onAddExercise}
-                  onComplete={() => {}}
-                  orderIndex={session.exercises.length}
-                  clientMedicalConditions={clientMedicalConditions}
-                />
-              </div>
-            </div>
+            {/* Kanban agora cuida do scroll horizontal internamente */}
+            <KanbanExerciseSelector
+              onSave={onAddExercise}
+              onComplete={() => {}}
+              orderIndex={session.exercises.length}
+              clientMedicalConditions={clientMedicalConditions}
+            />
           </div>
 
           {/* Lista de exercícios - se existirem */}
