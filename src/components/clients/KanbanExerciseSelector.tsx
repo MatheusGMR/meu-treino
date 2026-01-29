@@ -98,10 +98,12 @@ export function KanbanExerciseSelector({
 
   const availableExercises = useMemo(() => {
     if (!selectedType || !selectedGroup || !allExercises) return [];
-    return allExercises.filter(ex => 
-      ex.exercise_type === selectedType && 
-      ex.exercise_group === selectedGroup
-    );
+    return allExercises
+      .filter(ex => 
+        ex.exercise_type === selectedType && 
+        ex.exercise_group === selectedGroup
+      )
+      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
   }, [selectedType, selectedGroup, allExercises]);
 
   // Filtro inteligente baseado na busca
@@ -109,13 +111,14 @@ export function KanbanExerciseSelector({
     if (!searchQuery.trim() || !allExercises) return null;
     const query = searchQuery.toLowerCase();
     
-    const matchingExercises = allExercises.filter(ex => 
-      ex.name.toLowerCase().includes(query) ||
-      ex.exercise_group.toLowerCase().includes(query) ||
-      ex.exercise_type.toLowerCase().includes(query)
-    ).slice(0, 8); // Limitar a 8 resultados
-
-    return matchingExercises;
+    return allExercises
+      .filter(ex => 
+        ex.name.toLowerCase().includes(query) ||
+        ex.exercise_group.toLowerCase().includes(query) ||
+        ex.exercise_type.toLowerCase().includes(query)
+      )
+      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+      .slice(0, 8);
   }, [searchQuery, allExercises]);
 
   const handleSearchSelect = (exercise: Exercise) => {
@@ -426,6 +429,7 @@ export function KanbanExerciseSelector({
                           setPreviewExercise(ex);
                           setShowPreview(true);
                         }}
+                        hasVideo={!!ex.video_url}
                         hasWarning={contraindicationCheck?.hasRisk}
                         warningMessage={contraindicationCheck?.message}
                         warningSeverity={contraindicationCheck?.severity}
