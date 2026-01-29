@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -59,6 +59,21 @@ export function KanbanExerciseSelector({
   const [showPreview, setShowPreview] = useState(false);
   const [activeColumnIndex, setActiveColumnIndex] = useState<number>(0);
   const [hoverColumnIndex, setHoverColumnIndex] = useState<number | null>(null);
+  
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const columnRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Auto-scroll to active column when it changes
+  useEffect(() => {
+    const activeColumn = columnRefs.current[activeColumnIndex];
+    if (activeColumn && scrollContainerRef.current) {
+      activeColumn.scrollIntoView({ 
+        behavior: "smooth", 
+        inline: "nearest", 
+        block: "nearest" 
+      });
+    }
+  }, [activeColumnIndex]);
 
   const { data: allExercises } = useExercises();
   const { data: volumes } = useVolumes();
@@ -190,215 +205,225 @@ export function KanbanExerciseSelector({
 
   return (
     <div className="space-y-4">
-      {/* Grid de 5 colunas com efeito carta de baralho */}
-      <div className="flex gap-4 lg:gap-6 transition-all duration-300">
-        {/* Coluna 1: Tipo */}
-        <div 
-          className={cn("space-y-2 min-w-[140px] transition-all duration-300", getColumnFlexClass(0))}
-          onMouseEnter={() => setHoverColumnIndex(0)}
-          onMouseLeave={() => setHoverColumnIndex(null)}
-        >
-          <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
-            Tipo
-          </h4>
-          <div className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] overflow-y-auto scrollarea-hidden">
-            {selectedType && activeColumnIndex > 0 ? (
-              <SelectionCard
-                title={EXERCISE_TYPES.find(t => t.value === selectedType)?.label || selectedType}
-                isSelected={true}
-                onClick={() => handleTypeSelect(selectedType)}
-                compact={true}
-                onExpand={() => setActiveColumnIndex(0)}
-              />
-            ) : (
-              <div className="space-y-2 pr-1">
-                {EXERCISE_TYPES.map(type => (
-                  <SelectionCard
-                    key={type.value}
-                    title={type.label}
-                    isSelected={selectedType === type.value}
-                    onClick={() => handleTypeSelect(type.value)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Coluna 2: Grupo */}
-        <div 
-          className={cn("space-y-2 min-w-[140px] transition-all duration-300", getColumnFlexClass(1))}
-          onMouseEnter={() => setHoverColumnIndex(1)}
-          onMouseLeave={() => setHoverColumnIndex(null)}
-        >
-          <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
-            Grupo Muscular
-          </h4>
-          <div className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] overflow-y-auto scrollarea-hidden">
-            {!selectedType ? (
-              <p className="text-xs text-muted-foreground p-3">
-                Selecione um tipo primeiro
-              </p>
-            ) : selectedGroup && activeColumnIndex > 1 ? (
-              <SelectionCard
-                title={EXERCISE_GROUPS.find(g => g.value === selectedGroup)?.label || selectedGroup}
-                isSelected={true}
-                onClick={() => handleGroupSelect(selectedGroup)}
-                compact={true}
-                onExpand={() => setActiveColumnIndex(1)}
-              />
-            ) : availableGroups.length === 0 ? (
-              <p className="text-xs text-muted-foreground p-3">
-                Nenhum grupo disponível
-              </p>
-            ) : (
-              <div className="space-y-2 pr-1">
-                {availableGroups.map(group => (
-                  <SelectionCard
-                    key={group.value}
-                    title={group.label}
-                    isSelected={selectedGroup === group.value}
-                    onClick={() => handleGroupSelect(group.value)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Coluna 3: Exercício */}
-        <div 
-          className={cn("space-y-2 min-w-[140px] transition-all duration-300", getColumnFlexClass(2))}
-          onMouseEnter={() => setHoverColumnIndex(2)}
-          onMouseLeave={() => setHoverColumnIndex(null)}
-        >
-          <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
-            Exercício
-          </h4>
-          <div className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] overflow-y-auto scrollarea-hidden">
-            {!selectedGroup ? (
-              <p className="text-xs text-muted-foreground p-3">
-                Selecione um grupo primeiro
-              </p>
-            ) : selectedExercise && activeColumnIndex > 2 ? (
-              <SelectionCard
-                title={availableExercises.find(ex => ex.id === selectedExercise)?.name || selectedExercise}
-                isSelected={true}
-                onClick={() => handleExerciseSelect(selectedExercise)}
-                compact={true}
-                onExpand={() => setActiveColumnIndex(2)}
-              />
-            ) : availableExercises.length === 0 ? (
-              <p className="text-xs text-muted-foreground p-3">
-                Nenhum exercício encontrado
-              </p>
-            ) : (
-              <div className="space-y-2 pr-1">
-                {availableExercises.map(ex => {
-                  const contraindicationCheck = contraindicationResults.get(ex.id);
-                  return (
+      {/* Grid de 5 colunas com scroll horizontal interno */}
+      <div 
+        ref={scrollContainerRef}
+        className="overflow-x-auto overscroll-x-contain pb-2 scrollbar-thin"
+      >
+        <div className="flex gap-3 lg:gap-4 transition-all duration-300 min-w-max">
+          {/* Coluna 1: Tipo */}
+          <div 
+            ref={(el) => (columnRefs.current[0] = el)}
+            className={cn("space-y-2 min-w-[120px] transition-all duration-300", getColumnFlexClass(0))}
+            onMouseEnter={() => setHoverColumnIndex(0)}
+            onMouseLeave={() => setHoverColumnIndex(null)}
+          >
+            <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
+              Tipo
+            </h4>
+            <div className="h-[280px] md:h-[320px] lg:h-[360px] xl:h-[400px] overflow-y-auto scrollarea-hidden">
+              {selectedType && activeColumnIndex > 0 ? (
+                <SelectionCard
+                  title={EXERCISE_TYPES.find(t => t.value === selectedType)?.label || selectedType}
+                  isSelected={true}
+                  onClick={() => handleTypeSelect(selectedType)}
+                  compact={true}
+                  onExpand={() => setActiveColumnIndex(0)}
+                />
+              ) : (
+                <div className="space-y-2 pr-1">
+                  {EXERCISE_TYPES.map(type => (
                     <SelectionCard
-                      key={ex.id}
-                      title={ex.name}
-                      subtitle={ex.level || undefined}
-                      isSelected={selectedExercise === ex.id}
-                      onClick={() => handleExerciseSelect(ex.id)}
-                      onPreview={() => {
-                        setPreviewExercise(ex);
-                        setShowPreview(true);
-                      }}
-                      hasWarning={contraindicationCheck?.hasRisk}
-                      warningMessage={contraindicationCheck?.message}
-                      warningSeverity={contraindicationCheck?.severity}
+                      key={type.value}
+                      title={type.label}
+                      isSelected={selectedType === type.value}
+                      onClick={() => handleTypeSelect(type.value)}
                     />
-                  );
-                })}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Coluna 4: Volume */}
-        <div 
-          className={cn("space-y-2 min-w-[140px] transition-all duration-300", getColumnFlexClass(3))}
-          onMouseEnter={() => setHoverColumnIndex(3)}
-          onMouseLeave={() => setHoverColumnIndex(null)}
-        >
-          <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
-            Volume
-          </h4>
-          <div className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] overflow-y-auto scrollarea-hidden">
-            {!selectedExercise ? (
-              <p className="text-xs text-muted-foreground p-3">
-                Selecione um exercício primeiro
-              </p>
-            ) : selectedVolume && activeColumnIndex > 3 ? (
-              <SelectionCard
-                title={volumes?.find(v => v.id === selectedVolume)?.name || selectedVolume}
-                isSelected={true}
-                onClick={() => handleVolumeSelect(selectedVolume)}
-                compact={true}
-                onExpand={() => setActiveColumnIndex(3)}
-              />
-            ) : !volumes || volumes.length === 0 ? (
-              <p className="text-xs text-muted-foreground p-3">
-                Nenhum volume cadastrado
-              </p>
-            ) : (
-              <div className="space-y-2 pr-1">
-                {volumes.map(vol => (
-                  <SelectionCard
-                    key={vol.id}
-                    title={vol.name}
-                    subtitle={`${vol.num_series}x${vol.num_exercises}`}
-                    isSelected={selectedVolume === vol.id}
-                    onClick={() => handleVolumeSelect(vol.id)}
-                  />
-                ))}
-              </div>
-            )}
+          {/* Coluna 2: Grupo */}
+          <div 
+            ref={(el) => (columnRefs.current[1] = el)}
+            className={cn("space-y-2 min-w-[120px] transition-all duration-300", getColumnFlexClass(1))}
+            onMouseEnter={() => setHoverColumnIndex(1)}
+            onMouseLeave={() => setHoverColumnIndex(null)}
+          >
+            <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
+              Grupo Muscular
+            </h4>
+            <div className="h-[280px] md:h-[320px] lg:h-[360px] xl:h-[400px] overflow-y-auto scrollarea-hidden">
+              {!selectedType ? (
+                <p className="text-xs text-muted-foreground p-3">
+                  Selecione um tipo primeiro
+                </p>
+              ) : selectedGroup && activeColumnIndex > 1 ? (
+                <SelectionCard
+                  title={EXERCISE_GROUPS.find(g => g.value === selectedGroup)?.label || selectedGroup}
+                  isSelected={true}
+                  onClick={() => handleGroupSelect(selectedGroup)}
+                  compact={true}
+                  onExpand={() => setActiveColumnIndex(1)}
+                />
+              ) : availableGroups.length === 0 ? (
+                <p className="text-xs text-muted-foreground p-3">
+                  Nenhum grupo disponível
+                </p>
+              ) : (
+                <div className="space-y-2 pr-1">
+                  {availableGroups.map(group => (
+                    <SelectionCard
+                      key={group.value}
+                      title={group.label}
+                      isSelected={selectedGroup === group.value}
+                      onClick={() => handleGroupSelect(group.value)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Coluna 5: Método */}
-        <div 
-          className={cn("space-y-2 min-w-[140px] transition-all duration-300", getColumnFlexClass(4))}
-          onMouseEnter={() => setHoverColumnIndex(4)}
-          onMouseLeave={() => setHoverColumnIndex(null)}
-        >
-          <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
-            Método
-          </h4>
-          <div className="h-[300px] md:h-[350px] lg:h-[400px] xl:h-[450px] overflow-y-auto scrollarea-hidden">
-            {!selectedVolume ? (
-              <p className="text-xs text-muted-foreground p-3">
-                Selecione um volume primeiro
-              </p>
-            ) : selectedMethod && isComplete ? (
-              <SelectionCard
-                title={methods?.find(m => m.id === selectedMethod)?.name || selectedMethod}
-                isSelected={true}
-                onClick={() => handleMethodSelect(selectedMethod)}
-                compact={true}
-                onExpand={() => setActiveColumnIndex(4)}
-              />
-            ) : !methods || methods.length === 0 ? (
-              <p className="text-xs text-muted-foreground p-3">
-                Nenhum método cadastrado
-              </p>
-            ) : (
-              <div className="space-y-2 pr-1">
-                {methods.map(method => (
-                  <SelectionCard
-                    key={method.id}
-                    title={method.name || `${method.reps_min}-${method.reps_max} reps`}
-                    subtitle={method.objective || undefined}
-                    isSelected={selectedMethod === method.id}
-                    onClick={() => handleMethodSelect(method.id)}
-                  />
-                ))}
-              </div>
-            )}
+          {/* Coluna 3: Exercício */}
+          <div 
+            ref={(el) => (columnRefs.current[2] = el)}
+            className={cn("space-y-2 min-w-[120px] transition-all duration-300", getColumnFlexClass(2))}
+            onMouseEnter={() => setHoverColumnIndex(2)}
+            onMouseLeave={() => setHoverColumnIndex(null)}
+          >
+            <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
+              Exercício
+            </h4>
+            <div className="h-[280px] md:h-[320px] lg:h-[360px] xl:h-[400px] overflow-y-auto scrollarea-hidden">
+              {!selectedGroup ? (
+                <p className="text-xs text-muted-foreground p-3">
+                  Selecione um grupo primeiro
+                </p>
+              ) : selectedExercise && activeColumnIndex > 2 ? (
+                <SelectionCard
+                  title={availableExercises.find(ex => ex.id === selectedExercise)?.name || selectedExercise}
+                  isSelected={true}
+                  onClick={() => handleExerciseSelect(selectedExercise)}
+                  compact={true}
+                  onExpand={() => setActiveColumnIndex(2)}
+                />
+              ) : availableExercises.length === 0 ? (
+                <p className="text-xs text-muted-foreground p-3">
+                  Nenhum exercício encontrado
+                </p>
+              ) : (
+                <div className="space-y-2 pr-1">
+                  {availableExercises.map(ex => {
+                    const contraindicationCheck = contraindicationResults.get(ex.id);
+                    return (
+                      <SelectionCard
+                        key={ex.id}
+                        title={ex.name}
+                        subtitle={ex.level || undefined}
+                        isSelected={selectedExercise === ex.id}
+                        onClick={() => handleExerciseSelect(ex.id)}
+                        onPreview={() => {
+                          setPreviewExercise(ex);
+                          setShowPreview(true);
+                        }}
+                        hasWarning={contraindicationCheck?.hasRisk}
+                        warningMessage={contraindicationCheck?.message}
+                        warningSeverity={contraindicationCheck?.severity}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Coluna 4: Volume */}
+          <div 
+            ref={(el) => (columnRefs.current[3] = el)}
+            className={cn("space-y-2 min-w-[120px] transition-all duration-300", getColumnFlexClass(3))}
+            onMouseEnter={() => setHoverColumnIndex(3)}
+            onMouseLeave={() => setHoverColumnIndex(null)}
+          >
+            <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
+              Volume
+            </h4>
+            <div className="h-[280px] md:h-[320px] lg:h-[360px] xl:h-[400px] overflow-y-auto scrollarea-hidden">
+              {!selectedExercise ? (
+                <p className="text-xs text-muted-foreground p-3">
+                  Selecione um exercício primeiro
+                </p>
+              ) : selectedVolume && activeColumnIndex > 3 ? (
+                <SelectionCard
+                  title={volumes?.find(v => v.id === selectedVolume)?.name || selectedVolume}
+                  isSelected={true}
+                  onClick={() => handleVolumeSelect(selectedVolume)}
+                  compact={true}
+                  onExpand={() => setActiveColumnIndex(3)}
+                />
+              ) : !volumes || volumes.length === 0 ? (
+                <p className="text-xs text-muted-foreground p-3">
+                  Nenhum volume cadastrado
+                </p>
+              ) : (
+                <div className="space-y-2 pr-1">
+                  {volumes.map(vol => (
+                    <SelectionCard
+                      key={vol.id}
+                      title={vol.name}
+                      subtitle={`${vol.num_series}x${vol.num_exercises}`}
+                      isSelected={selectedVolume === vol.id}
+                      onClick={() => handleVolumeSelect(vol.id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Coluna 5: Método */}
+          <div 
+            ref={(el) => (columnRefs.current[4] = el)}
+            className={cn("space-y-2 min-w-[120px] transition-all duration-300", getColumnFlexClass(4))}
+            onMouseEnter={() => setHoverColumnIndex(4)}
+            onMouseLeave={() => setHoverColumnIndex(null)}
+          >
+            <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
+              Método
+            </h4>
+            <div className="h-[280px] md:h-[320px] lg:h-[360px] xl:h-[400px] overflow-y-auto scrollarea-hidden">
+              {!selectedVolume ? (
+                <p className="text-xs text-muted-foreground p-3">
+                  Selecione um volume primeiro
+                </p>
+              ) : selectedMethod && isComplete ? (
+                <SelectionCard
+                  title={methods?.find(m => m.id === selectedMethod)?.name || selectedMethod}
+                  isSelected={true}
+                  onClick={() => handleMethodSelect(selectedMethod)}
+                  compact={true}
+                  onExpand={() => setActiveColumnIndex(4)}
+                />
+              ) : !methods || methods.length === 0 ? (
+                <p className="text-xs text-muted-foreground p-3">
+                  Nenhum método cadastrado
+                </p>
+              ) : (
+                <div className="space-y-2 pr-1">
+                  {methods.map(method => (
+                    <SelectionCard
+                      key={method.id}
+                      title={method.name || `${method.reps_min}-${method.reps_max} reps`}
+                      subtitle={method.objective || undefined}
+                      isSelected={selectedMethod === method.id}
+                      onClick={() => handleMethodSelect(method.id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
