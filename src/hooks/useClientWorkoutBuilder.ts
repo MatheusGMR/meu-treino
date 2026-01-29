@@ -385,8 +385,8 @@ export const useClientWorkoutBuilder = (clientId: string) => {
   }, [tempWorkout]);
 
   // Razão do bloqueio para feedback no UI
+  // Nota: o nome do treino é solicitado no diálogo de confirmação, não bloqueamos por isso
   const submitBlockReason = useMemo(() => {
-    if (!tempWorkout.name.trim()) return "Informe o nome do treino";
     if (tempWorkout.sessions.length === 0) return "Adicione pelo menos uma sessão";
     
     // Verificar se todas as sessões têm exercícios
