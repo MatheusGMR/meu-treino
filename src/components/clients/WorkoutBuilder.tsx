@@ -18,6 +18,7 @@ import { WorkoutProgressCard } from "./cockpit/WorkoutProgressCard";
 import { AISuggestionsCard } from "./cockpit/AISuggestionsCard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CardContent } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogContent,
@@ -453,12 +454,25 @@ export const WorkoutBuilder = ({
         <Button variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button
-          onClick={handleSubmit}
-          disabled={!builder.canSubmit || builder.isSubmitting}
-        >
-          {builder.isSubmitting ? "Atribuindo..." : "Atribuir Treino"}
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!builder.canSubmit || builder.isSubmitting}
+                >
+                  {builder.isSubmitting ? "Atribuindo..." : "Atribuir Treino"}
+                </Button>
+              </span>
+            </TooltipTrigger>
+            {!builder.canSubmit && builder.submitBlockReason && (
+              <TooltipContent side="top">
+                <p className="text-xs">{builder.submitBlockReason}</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {/* Dialog de Nome do Treino */}

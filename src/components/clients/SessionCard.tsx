@@ -184,12 +184,16 @@ export const SessionCard = ({
             <h5 className="text-sm font-semibold text-foreground">
               Adicionar mais exercícios
             </h5>
-            <KanbanExerciseSelector
-              onSave={onAddExercise}
-              onComplete={() => {}}
-              orderIndex={session.exercises.length}
-              clientMedicalConditions={clientMedicalConditions}
-            />
+            <div className="overflow-x-auto -mx-6 px-6">
+              <div className="min-w-[800px]">
+                <KanbanExerciseSelector
+                  onSave={onAddExercise}
+                  onComplete={() => {}}
+                  orderIndex={session.exercises.length}
+                  clientMedicalConditions={clientMedicalConditions}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Lista de exercícios - se existirem */}
