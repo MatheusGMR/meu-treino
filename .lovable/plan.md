@@ -1,193 +1,187 @@
 
 
-# Plano de Correção: 3 Bugs no Sistema de Treinos
+# Plano: Sidebar Colapsável + Layout Fixo do Construtor de Treino
 
-## Diagnóstico
+## Contexto e Diagnóstico
 
-### Problema 1: Não consegue atribuir treino à cliente Renata
-**Causa identificada:** A validação `canSubmit` no `useClientWorkoutBuilder.ts` (linha 391) verifica se `tempWorkout.sessions[0].exercises.length === 0`, ou seja, se a **primeira sessão** tem exercícios. Se o treino tiver sessões vazias, o botão permanece desabilitado sem nenhum feedback visual explicando o porquê.
+### Situação Atual
+1. **Sidebar**: Fixa em 256px (`w-64`), sem opção de colapsar
+2. **WorkoutBuilder**: Usa `ResizablePanelGroup` permitindo redimensionar construtor x cockpit
+3. **KanbanExerciseSelector**: A coluna de Método existe no código (linhas 363-403), mas pode estar sendo cortada por problema de layout
+4. **Overflow**: Já existe `overflow-x-auto` no SessionCard, mas com `min-w-[800px]` que pode não ser suficiente
 
-**O que acontece:**
-- O usuário cria sessões, mas não adiciona exercícios
-- O botão "Atribuir Treino" fica desabilitado
-- Não há mensagem explicando por que está desabilitado
-
-**Solução:**
-- Adicionar feedback visual claro mostrando o que falta para poder atribuir
-- Mostrar tooltip ou mensagem no botão desabilitado
-
----
-
-### Problema 2: Treino deletado ainda aparece (card permanece)
-**Causa identificada:** A tabela `client_workouts` **não possui RLS policy para DELETE**!
-
-Políticas existentes:
-- SELECT ✅
-- INSERT ✅  
-- UPDATE ✅
-- **DELETE ❌ NÃO EXISTE**
-
-**O que acontece:**
-1. Frontend chama `.delete()` no Supabase
-2. RLS bloqueia silenciosamente (sem erro explícito)
-3. O registro não é deletado
-4. `onSuccess` é chamado mesmo assim (Supabase não retorna erro)
-5. `invalidateQueries` recarrega os mesmos dados
-6. Card continua aparecendo
-
-**Solução:**
-- Criar RLS policy para DELETE na tabela `client_workouts`
-- Adicionar verificação de `count` no frontend para confirmar exclusão
+### Solução Proposta
+- Remover os painéis redimensionáveis do WorkoutBuilder
+- Tornar a sidebar colapsável (de 256px para ~64px ícones)
+- Garantir que o Kanban caiba inteiro dentro do card da sessão
 
 ---
 
-### Problema 3: Caixas de método/volume fora da sessão (visual quebrado)
-**Causa identificada:** O `KanbanExerciseSelector` tem 5 colunas com `flex` dinâmico e altura fixa de `h-[300px] md:h-[350px]...`. Quando inserido dentro do `CardContent` do `SessionCard`, o espaço horizontal é insuficiente, causando overflow.
+## Fase 1: Tornar a Sidebar Colapsável
 
-**O que acontece:**
-- O Kanban precisa de ~700-900px de largura para as 5 colunas
-- Dentro do Card (que está em ~70% da tela), fica muito apertado
-- As colunas vazam para fora do container
+### Arquivo: `src/layouts/AppLayout.tsx`
 
-**Solução:**
-- Adicionar `overflow-x-auto` no container do Kanban
-- Ou usar layout mais compacto quando dentro de SessionCard
+Modificar para usar estado de sidebar colapsada:
+
+```text
+┌────────────────────────────────────────────────────────────────┐
+│   ANTES                          DEPOIS                       │
+│                                                                │
+│ ┌──────────┬──────────────┐     ┌────┬─────────────────────┐   │
+│ │ Sidebar  │              │     │ ≡  │                     │   │
+│ │ 256px    │   Conteúdo   │ --> │64px│      Conteúdo       │   │
+│ │ FIXA     │              │     │icon│      MAIS LARGO     │   │
+│ └──────────┴──────────────┘     └────┴─────────────────────┘   │
+└────────────────────────────────────────────────────────────────┘
+```
+
+**Alterações:**
+- Criar estado `collapsed` no AppLayout
+- Passar para sidebar via contexto ou prop
+- Sidebar usa `w-64` quando expandida, `w-16` quando colapsada
+- Botão de toggle visível no header da sidebar
+
+### Arquivo: `src/components/sidebar/AppSidebar.tsx`
+
+**Alterações:**
+- Receber prop `collapsed` e `onToggle`
+- Quando colapsado: esconder texto, mostrar só ícones
+- Adicionar botão de toggle (ícone `<<` ou `>>`)
+- Tooltips nos ícones quando colapsado
 
 ---
 
-## Plano de Implementação
+## Fase 2: Layout Fixo no WorkoutBuilder
 
-### Fase 1: Corrigir RLS para DELETE (Problema 2)
+### Arquivo: `src/components/clients/WorkoutBuilder.tsx`
 
-**Migração SQL:**
-```sql
-CREATE POLICY "Personals podem deletar treinos de clientes"
-ON public.client_workouts FOR DELETE
-USING (
-  (assigned_by = auth.uid()) OR 
-  has_role(auth.uid(), 'admin'::app_role)
-);
-```
+**Remover:**
+- `ResizablePanelGroup`, `ResizablePanel`, `ResizableHandle`
 
-### Fase 2: Adicionar Feedback no Builder (Problema 1)
-
-**Arquivo:** `src/components/clients/WorkoutBuilder.tsx`
-
-Modificar o botão de submit para mostrar feedback:
+**Adicionar:**
+- Layout flex com tamanhos fixos:
+  - Sessões: `flex-1` (ocupa espaço restante)
+  - Cockpit: `w-[380px]` fixo (bom para visualização)
 
 ```typescript
-// Antes
-<Button
-  onClick={handleSubmit}
-  disabled={!builder.canSubmit || builder.isSubmitting}
->
-  {builder.isSubmitting ? "Atribuindo..." : "Atribuir Treino"}
-</Button>
+// ANTES (linhas 254-450)
+<ResizablePanelGroup direction="horizontal" className="gap-6">
+  <ResizablePanel defaultSize={70}> ... </ResizablePanel>
+  <ResizableHandle withHandle />
+  <ResizablePanel defaultSize={30}> ... </ResizablePanel>
+</ResizablePanelGroup>
 
-// Depois: Adicionar Tooltip explicativo
-<TooltipProvider>
-  <Tooltip>
-    <TooltipTrigger asChild>
-      <span>
-        <Button
-          onClick={handleSubmit}
-          disabled={!builder.canSubmit || builder.isSubmitting}
-        >
-          {builder.isSubmitting ? "Atribuindo..." : "Atribuir Treino"}
-        </Button>
-      </span>
-    </TooltipTrigger>
-    {!builder.canSubmit && (
-      <TooltipContent side="top">
-        <p className="text-xs">{builder.submitBlockReason}</p>
-      </TooltipContent>
-    )}
-  </Tooltip>
-</TooltipProvider>
-```
-
-**Arquivo:** `src/hooks/useClientWorkoutBuilder.ts`
-
-Adicionar razão do bloqueio:
-
-```typescript
-const submitBlockReason = useMemo(() => {
-  if (!tempWorkout.name.trim()) return "Informe o nome do treino";
-  if (tempWorkout.sessions.length === 0) return "Adicione pelo menos uma sessão";
-  if (tempWorkout.sessions[0].exercises.length === 0) return "Adicione exercícios à primeira sessão";
-  if (compatibility.riskLevel === "critical" && !acknowledgeRisks) return "Reconheça os riscos para continuar";
-  return null;
-}, [tempWorkout, compatibility, acknowledgeRisks]);
-```
-
-### Fase 3: Corrigir Layout do Kanban (Problema 3)
-
-**Arquivo:** `src/components/clients/SessionCard.tsx`
-
-Adicionar wrapper com scroll horizontal:
-
-```typescript
-// Antes (linha 182-192)
-<div className="space-y-3">
-  <h5 className="text-sm font-semibold text-foreground">
-    Adicionar mais exercícios
-  </h5>
-  <KanbanExerciseSelector ... />
-</div>
-
-// Depois: Adicionar overflow-x-auto
-<div className="space-y-3">
-  <h5 className="text-sm font-semibold text-foreground">
-    Adicionar mais exercícios
-  </h5>
-  <div className="overflow-x-auto -mx-4 px-4">
-    <div className="min-w-[800px]">
-      <KanbanExerciseSelector ... />
-    </div>
+// DEPOIS
+<div className="flex gap-6 h-[calc(100vh-280px)]">
+  <div className="flex-1 overflow-y-auto">
+    {/* Sessões do Treino */}
+  </div>
+  <div className="w-[380px] flex-shrink-0 overflow-y-auto">
+    {/* Cockpit */}
   </div>
 </div>
 ```
 
-### Fase 4: Verificar Exclusão no Frontend
+---
 
-**Arquivo:** `src/hooks/useClientWorkouts.ts`
+## Fase 3: Corrigir Layout do Kanban (Todas as Colunas Visíveis)
 
-Melhorar `useUnassignWorkout` para verificar se exclusão funcionou:
+### Arquivo: `src/components/clients/SessionCard.tsx`
 
+O problema é que `min-w-[800px]` pode não ser suficiente para 5 colunas com `min-w-[140px]` cada (= 700px) + gaps.
+
+**Correção:**
 ```typescript
-mutationFn: async ({ workoutAssignmentId, clientId }) => {
-  const { error, count } = await supabase
-    .from("client_workouts")
-    .delete()
-    .eq("id", workoutAssignmentId)
-    .select('*', { count: 'exact', head: true });
+// Antes (linhas 187-196)
+<div className="overflow-x-auto -mx-6 px-6">
+  <div className="min-w-[800px]">
+    <KanbanExerciseSelector ... />
+  </div>
+</div>
 
-  if (error) throw error;
-  
-  // Se nenhum registro foi afetado, provavelmente RLS bloqueou
-  // Mas como adicionamos a policy, isso não deve mais acontecer
-},
+// Depois - Garantir espaço para todas as 5 colunas
+<div className="overflow-x-auto -mx-6 px-6 pb-2">
+  <div className="min-w-[900px]">
+    <KanbanExerciseSelector ... />
+  </div>
+</div>
+```
+
+### Arquivo: `src/components/clients/KanbanExerciseSelector.tsx`
+
+A coluna de Método EXISTE no código (linhas 363-403). Se não está aparecendo, verificar:
+
+1. **Gap entre colunas**: `gap-4 lg:gap-6` pode estar consumindo muito espaço
+2. **Altura do container**: `h-[300px] md:h-[350px] lg:h-[400px]` pode estar causando corte vertical
+
+**Ajustes:**
+- Reduzir `min-w-[140px]` para `min-w-[120px]` em telas menores
+- Garantir que `gap-4` seja consistente
+
+---
+
+## Arquivos a Modificar
+
+| Arquivo | Modificação |
+|---------|-------------|
+| `src/layouts/AppLayout.tsx` | Estado collapsed, passar para sidebar |
+| `src/components/sidebar/AppSidebar.tsx` | Modo colapsado, botão toggle, tooltips |
+| `src/components/clients/WorkoutBuilder.tsx` | Remover Resizable, usar flex fixo |
+| `src/components/clients/SessionCard.tsx` | Aumentar min-width do container |
+
+---
+
+## Comportamento Esperado
+
+### Sidebar Colapsável
+- **Expandida (padrão)**: 256px, mostra ícones + texto
+- **Colapsada**: 64px, mostra só ícones com tooltip
+- **Toggle**: Botão no topo da sidebar (`<<` para colapsar, `>>` para expandir)
+
+### Construtor de Treino
+- **Sessões**: Ocupa todo espaço disponível (flex-1)
+- **Cockpit**: Fixo em 380px, suficiente para boa visualização
+- **Kanban**: 5 colunas sempre visíveis com scroll horizontal se necessário
+
+### Resultado Visual
+
+```text
+┌──────────────────────────────────────────────────────────────────┐
+│ << │                   CONSTRUTOR DE TREINO                      │
+├────┼────────────────────────────────────────────┬────────────────┤
+│ 🏠 │                                            │                │
+│ 🏋 │   ┌────────────────────────────────────┐   │  ┌──────────┐  │
+│ 📋 │   │ Sessão 1                      ✕    │   │  │ Perfil   │  │
+│ 👥 │   │                                    │   │  │ Cliente  │  │
+│    │   │ Tipo│Grupo│Exerc│Volume│Método│   │   │  └──────────┘  │
+│    │   │  [  ]  [  ]  [  ]  [  ]   [  ]    │   │  ┌──────────┐  │
+│    │   └────────────────────────────────────┘   │  │ Volume   │  │
+│    │                                            │  │ Semanal  │  │
+│    │   ┌────────────────────────────────────┐   │  └──────────┘  │
+│    │   │ + Nova Sessão                      │   │      ...       │
+│    │   └────────────────────────────────────┘   │                │
+├────┴────────────────────────────────────────────┴────────────────┤
+│                        [ Atribuir Treino ]                       │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Arquivos a Modificar/Criar
+## Seção Técnica
 
-| Arquivo | Ação |
-|---------|------|
-| **Migração SQL** | CRIAR - Policy DELETE para client_workouts |
-| `src/hooks/useClientWorkoutBuilder.ts` | MODIFICAR - Adicionar `submitBlockReason` |
-| `src/components/clients/WorkoutBuilder.tsx` | MODIFICAR - Tooltip no botão + imports |
-| `src/components/clients/SessionCard.tsx` | MODIFICAR - Overflow no container do Kanban |
-| `src/hooks/useClientWorkouts.ts` | MODIFICAR - Melhorar verificação de delete |
+### Dependências
+- Nenhuma nova dependência necessária
+- Remover imports não utilizados de `ResizablePanelGroup`
 
----
+### Estado da Sidebar (React Context vs Props)
+- Usar `useState` no AppLayout e passar via props
+- Futuramente pode migrar para Context se necessário em mais lugares
 
-## Resultado Esperado
+### Persistência do Estado
+- Salvar preferência de sidebar colapsada no `localStorage`
+- Chave: `sidebar-collapsed`
 
-| Problema | Status Esperado |
-|----------|-----------------|
-| Atribuição bloqueada sem feedback | ✅ Tooltip explica o que falta |
-| Card permanece após deletar | ✅ Delete funciona com RLS correta |
-| Kanban vazando da sessão | ✅ Scroll horizontal quando necessário |
+### Responsividade
+- Sidebar colapsável apenas em desktop (`md:` e acima)
+- Em mobile, manter comportamento atual (escondida)
 
