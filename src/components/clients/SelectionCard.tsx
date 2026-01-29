@@ -70,11 +70,11 @@ export function SelectionCard({
       disabled={disabled}
       className={cn(
         "w-full p-3 rounded-lg border-2 text-left transition-all relative group",
-        "hover:shadow-md hover:scale-[1.02]",
+        "hover:shadow-md",
         isSelected 
-          ? "border-primary bg-primary/10 shadow-sm" 
-          : "border-border bg-card hover:border-primary/50",
-        disabled && "opacity-50 cursor-not-allowed hover:scale-100",
+          ? "border-primary bg-primary text-primary-foreground shadow-sm" 
+          : "border-border bg-card hover:bg-primary hover:text-primary-foreground hover:border-primary",
+        disabled && "opacity-50 cursor-not-allowed",
         hasWarning && warningSeverity === 'error' && "border-destructive/50 bg-destructive/5",
         hasWarning && warningSeverity === 'warning' && "border-yellow-500/50 bg-yellow-500/5"
       )}
