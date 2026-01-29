@@ -407,8 +407,22 @@ export const useClientWorkoutBuilder = (clientId: string) => {
   }, [submitBlockReason]);
 
   // Submit - cria treino novo sempre
-  const submit = useCallback(async () => {
+  // Aceita workoutName como parâmetro para evitar race condition com setState assíncrono
+  const submit = useCallback(async (workoutName?: string) => {
     if (!canSubmit) return;
+    
+    // Usar o parâmetro se fornecido, senão usar o estado
+    const finalWorkoutName = workoutName || tempWorkout.name;
+    
+    // Validar nome do treino
+    if (!finalWorkoutName.trim()) {
+      toast({
+        title: "Erro",
+        description: "O nome do treino é obrigatório",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsSubmitting(true);
     
@@ -422,7 +436,7 @@ export const useClientWorkoutBuilder = (clientId: string) => {
       const { data, error } = await supabase.functions.invoke('create-workout-and-assign', {
         body: {
           clientId,
-          workoutName: tempWorkout.name,
+          workoutName: finalWorkoutName,
           newSessions,
           existingSessionIds,
           trainingType: tempWorkout.training_type,
