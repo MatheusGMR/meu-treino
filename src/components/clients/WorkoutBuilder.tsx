@@ -448,21 +448,26 @@ export const WorkoutBuilder = ({
         <Button variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <TooltipProvider>
+        <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <span>
+              {/* Wrapper com pointer-events para permitir tooltip em botão desabilitado */}
+              <span 
+                className="inline-block"
+                tabIndex={!builder.canSubmit ? 0 : undefined}
+              >
                 <Button
                   onClick={handleSubmit}
                   disabled={!builder.canSubmit || builder.isSubmitting}
+                  className={!builder.canSubmit ? "pointer-events-none" : ""}
                 >
                   {builder.isSubmitting ? "Atribuindo..." : "Atribuir Treino"}
                 </Button>
               </span>
             </TooltipTrigger>
             {!builder.canSubmit && builder.submitBlockReason && (
-              <TooltipContent side="top">
-                <p className="text-xs">{builder.submitBlockReason}</p>
+              <TooltipContent side="top" className="max-w-xs bg-popover text-popover-foreground border shadow-lg z-50">
+                <p className="text-sm">{builder.submitBlockReason}</p>
               </TooltipContent>
             )}
           </Tooltip>
