@@ -1,187 +1,93 @@
 
-
-# Plano: Sidebar Colapsável + Layout Fixo do Construtor de Treino
-
-## Contexto e Diagnóstico
-
-### Situação Atual
-1. **Sidebar**: Fixa em 256px (`w-64`), sem opção de colapsar
-2. **WorkoutBuilder**: Usa `ResizablePanelGroup` permitindo redimensionar construtor x cockpit
-3. **KanbanExerciseSelector**: A coluna de Método existe no código (linhas 363-403), mas pode estar sendo cortada por problema de layout
-4. **Overflow**: Já existe `overflow-x-auto` no SessionCard, mas com `min-w-[800px]` que pode não ser suficiente
-
-### Solução Proposta
-- Remover os painéis redimensionáveis do WorkoutBuilder
-- Tornar a sidebar colapsável (de 256px para ~64px ícones)
-- Garantir que o Kanban caiba inteiro dentro do card da sessão
+## Objetivo
+Fazer a coluna **“Método”** ficar sempre acessível/visível como a 5ª coluna do Kanban dentro do quadro da sessão, sem “vazar” para fora do card, e sem depender do usuário “adivinhar” o scroll horizontal. Se necessário, reduzir larguras/gaps para caber melhor.
 
 ---
 
-## Fase 1: Tornar a Sidebar Colapsável
+## Diagnóstico (por que “Método” pode não aparecer)
+Hoje o `KanbanExerciseSelector` renderiza a coluna **Método** no JSX (ela existe), então o problema é quase certamente **layout/overflow**:
 
-### Arquivo: `src/layouts/AppLayout.tsx`
+1. O Kanban usa um `flex` de 5 colunas com “efeito baralho” (coluna ativa cresce `flex-[3]`), o que pode gerar **largura total maior** do que o espaço disponível.
+2. Em alguns contextos (principalmente dentro do card da sessão), a largura “extra” pode estar ficando **cortada** sem um scroll horizontal claro, então a coluna 5 fica fora da área visível.
+3. Mesmo quando existe `overflow-x-auto` no `SessionCard`, ainda pode acontecer do scroll “não ser óbvio” e o usuário não perceber que precisa arrastar para ver a última coluna.
 
-Modificar para usar estado de sidebar colapsada:
-
-```text
-┌────────────────────────────────────────────────────────────────┐
-│   ANTES                          DEPOIS                       │
-│                                                                │
-│ ┌──────────┬──────────────┐     ┌────┬─────────────────────┐   │
-│ │ Sidebar  │              │     │ ≡  │                     │   │
-│ │ 256px    │   Conteúdo   │ --> │64px│      Conteúdo       │   │
-│ │ FIXA     │              │     │icon│      MAIS LARGO     │   │
-│ └──────────┴──────────────┘     └────┴─────────────────────┘   │
-└────────────────────────────────────────────────────────────────┘
-```
-
-**Alterações:**
-- Criar estado `collapsed` no AppLayout
-- Passar para sidebar via contexto ou prop
-- Sidebar usa `w-64` quando expandida, `w-16` quando colapsada
-- Botão de toggle visível no header da sidebar
-
-### Arquivo: `src/components/sidebar/AppSidebar.tsx`
-
-**Alterações:**
-- Receber prop `collapsed` e `onToggle`
-- Quando colapsado: esconder texto, mostrar só ícones
-- Adicionar botão de toggle (ícone `<<` ou `>>`)
-- Tooltips nos ícones quando colapsado
+A solução mais robusta é garantir que **o próprio Kanban** seja um “scroll container” horizontal e, quando o fluxo chega no passo do Método (ao selecionar o Volume), o sistema **role automaticamente** para a coluna do Método.
 
 ---
 
-## Fase 2: Layout Fixo no WorkoutBuilder
+## Estratégia de correção (sem reduzir o número de colunas)
+### Parte A — Scroll horizontal “dentro” do Kanban (para não vazar em nenhum lugar)
+**Arquivo:** `src/components/clients/KanbanExerciseSelector.tsx`
 
-### Arquivo: `src/components/clients/WorkoutBuilder.tsx`
+1. **Envolver o grid de colunas** (o `<div className="flex gap-4 ...">`) em um container com:
+   - `overflow-x-auto`
+   - `overscroll-x-contain` (para melhorar o toque/trackpad)
+   - `pb-2` (para não cortar scrollbar, quando existir)
+2. Garantir que as colunas não “estourem” para fora do card, porque agora ficam “recortadas” dentro do scroll container.
 
-**Remover:**
-- `ResizablePanelGroup`, `ResizablePanel`, `ResizableHandle`
-
-**Adicionar:**
-- Layout flex com tamanhos fixos:
-  - Sessões: `flex-1` (ocupa espaço restante)
-  - Cockpit: `w-[380px]` fixo (bom para visualização)
-
-```typescript
-// ANTES (linhas 254-450)
-<ResizablePanelGroup direction="horizontal" className="gap-6">
-  <ResizablePanel defaultSize={70}> ... </ResizablePanel>
-  <ResizableHandle withHandle />
-  <ResizablePanel defaultSize={30}> ... </ResizablePanel>
-</ResizablePanelGroup>
-
-// DEPOIS
-<div className="flex gap-6 h-[calc(100vh-280px)]">
-  <div className="flex-1 overflow-y-auto">
-    {/* Sessões do Treino */}
-  </div>
-  <div className="w-[380px] flex-shrink-0 overflow-y-auto">
-    {/* Cockpit */}
-  </div>
-</div>
-```
+Resultado: em qualquer lugar que o Kanban for usado (ex.: `SessionCard` e `SessionEditorInline`), as 5 colunas ficam contidas e acessíveis.
 
 ---
 
-## Fase 3: Corrigir Layout do Kanban (Todas as Colunas Visíveis)
+### Parte B — Auto-scroll para a coluna ativa (o usuário sempre “vê” o Método quando chega nele)
+**Arquivo:** `src/components/clients/KanbanExerciseSelector.tsx`
 
-### Arquivo: `src/components/clients/SessionCard.tsx`
+1. Criar refs para as colunas:
+   - `const columnRefs = useRef<(HTMLDivElement | null)[]>([])`
+2. Em cada coluna (Tipo/Grupo/Exercício/Volume/Método), setar `ref={(el) => (columnRefs.current[i] = el)}`
+3. Adicionar um `useEffect` que, ao mudar `activeColumnIndex`, faz:
+   - `columnRefs.current[activeColumnIndex]?.scrollIntoView({ behavior: "smooth", inline: "nearest", block: "nearest" })`
 
-O problema é que `min-w-[800px]` pode não ser suficiente para 5 colunas com `min-w-[140px]` cada (= 700px) + gaps.
-
-**Correção:**
-```typescript
-// Antes (linhas 187-196)
-<div className="overflow-x-auto -mx-6 px-6">
-  <div className="min-w-[800px]">
-    <KanbanExerciseSelector ... />
-  </div>
-</div>
-
-// Depois - Garantir espaço para todas as 5 colunas
-<div className="overflow-x-auto -mx-6 px-6 pb-2">
-  <div className="min-w-[900px]">
-    <KanbanExerciseSelector ... />
-  </div>
-</div>
-```
-
-### Arquivo: `src/components/clients/KanbanExerciseSelector.tsx`
-
-A coluna de Método EXISTE no código (linhas 363-403). Se não está aparecendo, verificar:
-
-1. **Gap entre colunas**: `gap-4 lg:gap-6` pode estar consumindo muito espaço
-2. **Altura do container**: `h-[300px] md:h-[350px] lg:h-[400px]` pode estar causando corte vertical
-
-**Ajustes:**
-- Reduzir `min-w-[140px]` para `min-w-[120px]` em telas menores
-- Garantir que `gap-4` seja consistente
+Resultado prático: ao selecionar **Volume**, `activeColumnIndex` vai para 4, e o UI automaticamente traz a coluna **Método** para dentro do viewport do Kanban.
 
 ---
 
-## Arquivos a Modificar
+### Parte C — Reduzir “aperto” (opcional, mas recomendado pelo seu feedback)
+Ainda mantendo 5 colunas, podemos reduzir o espaço consumido para diminuir a chance de a coluna “Método” ficar longe:
 
-| Arquivo | Modificação |
-|---------|-------------|
-| `src/layouts/AppLayout.tsx` | Estado collapsed, passar para sidebar |
-| `src/components/sidebar/AppSidebar.tsx` | Modo colapsado, botão toggle, tooltips |
-| `src/components/clients/WorkoutBuilder.tsx` | Remover Resizable, usar flex fixo |
-| `src/components/clients/SessionCard.tsx` | Aumentar min-width do container |
+**Arquivo:** `src/components/clients/KanbanExerciseSelector.tsx`
 
----
-
-## Comportamento Esperado
-
-### Sidebar Colapsável
-- **Expandida (padrão)**: 256px, mostra ícones + texto
-- **Colapsada**: 64px, mostra só ícones com tooltip
-- **Toggle**: Botão no topo da sidebar (`<<` para colapsar, `>>` para expandir)
-
-### Construtor de Treino
-- **Sessões**: Ocupa todo espaço disponível (flex-1)
-- **Cockpit**: Fixo em 380px, suficiente para boa visualização
-- **Kanban**: 5 colunas sempre visíveis com scroll horizontal se necessário
-
-### Resultado Visual
-
-```text
-┌──────────────────────────────────────────────────────────────────┐
-│ << │                   CONSTRUTOR DE TREINO                      │
-├────┼────────────────────────────────────────────┬────────────────┤
-│ 🏠 │                                            │                │
-│ 🏋 │   ┌────────────────────────────────────┐   │  ┌──────────┐  │
-│ 📋 │   │ Sessão 1                      ✕    │   │  │ Perfil   │  │
-│ 👥 │   │                                    │   │  │ Cliente  │  │
-│    │   │ Tipo│Grupo│Exerc│Volume│Método│   │   │  └──────────┘  │
-│    │   │  [  ]  [  ]  [  ]  [  ]   [  ]    │   │  ┌──────────┐  │
-│    │   └────────────────────────────────────┘   │  │ Volume   │  │
-│    │                                            │  │ Semanal  │  │
-│    │   ┌────────────────────────────────────┐   │  └──────────┘  │
-│    │   │ + Nova Sessão                      │   │      ...       │
-│    │   └────────────────────────────────────┘   │                │
-├────┴────────────────────────────────────────────┴────────────────┤
-│                        [ Atribuir Treino ]                       │
-└──────────────────────────────────────────────────────────────────┘
-```
+1. Diminuir gaps:
+   - de `gap-4 lg:gap-6` para algo como `gap-3 lg:gap-4`
+2. Diminuir o `min-w` das colunas:
+   - de `min-w-[140px]` para `min-w-[120px]` (principalmente em telas menores)
+3. (Opcional avançado) Trocar o sistema de `flex-[3]/[1]/[0.5]` por larguras fixas com `shrink-0` (ex.: ativo 320px, restantes 150px), deixando a largura total mais previsível. Só faremos isso se, mesmo com scroll + auto-scroll, ainda ficar ruim visualmente.
 
 ---
 
-## Seção Técnica
+## Ajustes nos locais onde o Kanban é embutido
+### SessionCard
+**Arquivo:** `src/components/clients/SessionCard.tsx`
 
-### Dependências
-- Nenhuma nova dependência necessária
-- Remover imports não utilizados de `ResizablePanelGroup`
+- Como o Kanban passará a cuidar do scroll horizontal internamente, vamos:
+  1. Remover ou simplificar o wrapper externo `overflow-x-auto` para evitar “scroll duplo”.
+  2. Manter apenas o wrapper de alinhamento `-mx-6 px-6 pb-2` (se necessário para layout), deixando o overflow por conta do Kanban.
 
-### Estado da Sidebar (React Context vs Props)
-- Usar `useState` no AppLayout e passar via props
-- Futuramente pode migrar para Context se necessário em mais lugares
+### SessionEditorInline
+**Arquivo:** `src/components/clients/SessionEditorInline.tsx`
 
-### Persistência do Estado
-- Salvar preferência de sidebar colapsada no `localStorage`
-- Chave: `sidebar-collapsed`
+- Não precisa adicionar wrapper novo: como o Kanban agora se auto-contém, ele não vai mais “vazar” nesse componente também.
 
-### Responsividade
-- Sidebar colapsável apenas em desktop (`md:` e acima)
-- Em mobile, manter comportamento atual (escondida)
+---
+
+## Critérios de aceite (como vamos validar)
+1. No card de sessão, você consegue sempre ver a coluna **Método** (ou pelo menos ela aparece automaticamente quando você seleciona um Volume).
+2. Nenhuma coluna “vaza” para fora do quadro da sessão.
+3. O Kanban continua com as 5 colunas (Tipo, Grupo, Exercício, Volume, Método).
+4. O comportamento fica bom tanto no `SessionCard` quanto no `SessionEditorInline`.
+
+---
+
+## Arquivos que serão alterados
+- `src/components/clients/KanbanExerciseSelector.tsx` (scroll horizontal interno + auto-scroll + ajustes de largura/gap)
+- `src/components/clients/SessionCard.tsx` (remover/simplificar wrapper de scroll externo para evitar scroll duplo)
+- `src/components/clients/SessionEditorInline.tsx` (apenas se precisar ajustar espaçamentos, mas a meta é não precisar)
+
+---
+
+## Risco/impacto
+Baixo risco funcional (não mexe em dados). O risco principal é visual (scroll duplo, quebra do “efeito baralho”). Por isso, a implementação será incremental:
+1) scroll interno + auto-scroll (essencial)  
+2) ajuste de gap/min-width (refino)  
+3) só se necessário, refatorar o “efeito baralho” para larguras fixas (opcional)
 
