@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SelectionCard } from "./SelectionCard";
 import { useExercises } from "@/hooks/useExercises";
@@ -58,7 +59,7 @@ export function KanbanExerciseSelector({
   const [previewExercise, setPreviewExercise] = useState<Exercise | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [activeColumnIndex, setActiveColumnIndex] = useState<number>(0);
-  const [hoverColumnIndex, setHoverColumnIndex] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
   
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const columnRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -102,6 +103,41 @@ export function KanbanExerciseSelector({
       ex.exercise_group === selectedGroup
     );
   }, [selectedType, selectedGroup, allExercises]);
+
+  // Filtro inteligente baseado na busca
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim() || !allExercises) return null;
+    const query = searchQuery.toLowerCase();
+    
+    const matchingExercises = allExercises.filter(ex => 
+      ex.name.toLowerCase().includes(query) ||
+      ex.exercise_group.toLowerCase().includes(query) ||
+      ex.exercise_type.toLowerCase().includes(query)
+    ).slice(0, 8); // Limitar a 8 resultados
+
+    return matchingExercises;
+  }, [searchQuery, allExercises]);
+
+  const handleSearchSelect = (exercise: Exercise) => {
+    setSelectedType(exercise.exercise_type);
+    setSelectedGroup(exercise.exercise_group);
+    setSelectedExercise(exercise.id);
+    setSearchQuery("");
+    setActiveColumnIndex(3); // Ir para Volume
+
+    // Verificar contraindicação
+    const contraindicationCheck = contraindicationResults.get(exercise.id);
+    if (contraindicationCheck?.hasRisk) {
+      toast({
+        variant: contraindicationCheck.severity === 'error' ? 'destructive' : 'default',
+        title: contraindicationCheck.severity === 'error' 
+          ? "⚠️ Atenção: Contraindicação Crítica" 
+          : "⚠️ Atenção: Contraindicação",
+        description: `${exercise.name}: ${contraindicationCheck.message}`,
+        duration: 6000,
+      });
+    }
+  };
 
   const isComplete = !!(
     selectedType && 
@@ -176,6 +212,7 @@ export function KanbanExerciseSelector({
     setSelectedExercise(null);
     setSelectedVolume(null);
     setSelectedMethod(null);
+    setSearchQuery("");
     setActiveColumnIndex(0);
   };
 
@@ -194,34 +231,90 @@ export function KanbanExerciseSelector({
     onComplete?.();
   };
 
-  const getColumnFlexClass = (columnIndex: number) => {
-    const effectiveActiveIndex = hoverColumnIndex ?? activeColumnIndex;
-    if (columnIndex < effectiveActiveIndex) return "flex-[0.5]";
-    if (columnIndex === effectiveActiveIndex) return "flex-[3]";
-    return "flex-[1]";
+  // Larguras fixas para cada coluna (sem hover)
+  const getColumnWidthClass = (columnIndex: number) => {
+    if (columnIndex < activeColumnIndex) return "w-[100px] shrink-0";
+    if (columnIndex === activeColumnIndex) return "w-[220px] shrink-0";
+    return "w-[140px] shrink-0";
   };
 
   const selectedValues = [selectedType, selectedGroup, selectedExercise, selectedVolume, selectedMethod];
 
   return (
     <div className="space-y-4">
+      {/* Barra de busca */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar exercício, grupo ou tipo..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9 pr-9"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+        
+        {/* Dropdown de resultados da busca */}
+        {searchResults && searchResults.length > 0 && (
+          <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-[300px] overflow-y-auto">
+            {searchResults.map(ex => {
+              const contraindicationCheck = contraindicationResults.get(ex.id);
+              return (
+                <button
+                  key={ex.id}
+                  onClick={() => handleSearchSelect(ex)}
+                  className={cn(
+                    "w-full px-3 py-2 text-left hover:bg-accent flex items-center justify-between gap-2",
+                    contraindicationCheck?.hasRisk && "bg-destructive/5"
+                  )}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{ex.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {ex.exercise_type} • {ex.exercise_group}
+                    </p>
+                  </div>
+                  {contraindicationCheck?.hasRisk && (
+                    <span className="text-xs text-destructive">⚠️</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+        
+        {searchResults && searchResults.length === 0 && searchQuery.trim() && (
+          <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg p-3">
+            <p className="text-sm text-muted-foreground">Nenhum exercício encontrado</p>
+          </div>
+        )}
+      </div>
+
       {/* Grid de 5 colunas com scroll horizontal interno */}
       <div 
         ref={scrollContainerRef}
         className="overflow-x-auto overscroll-x-contain pb-2 scrollbar-thin"
       >
-        <div className="flex gap-3 lg:gap-4 transition-all duration-300 min-w-max">
+        <div className="flex gap-3 lg:gap-4 min-w-max">
           {/* Coluna 1: Tipo */}
           <div 
             ref={(el) => (columnRefs.current[0] = el)}
-            className={cn("space-y-2 min-w-[120px] transition-all duration-300", getColumnFlexClass(0))}
-            onMouseEnter={() => setHoverColumnIndex(0)}
-            onMouseLeave={() => setHoverColumnIndex(null)}
+            className={cn(
+              "space-y-2 transition-all duration-200",
+              getColumnWidthClass(0),
+              activeColumnIndex === 0 && "ring-2 ring-primary/20 rounded-lg p-2 -m-2"
+            )}
           >
             <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
               Tipo
             </h4>
-            <div className="h-[280px] md:h-[320px] lg:h-[360px] xl:h-[400px] overflow-y-auto scrollarea-hidden">
+            <div className="h-[250px] md:h-[280px] lg:h-[320px] xl:h-[350px] overflow-y-auto scrollarea-hidden">
               {selectedType && activeColumnIndex > 0 ? (
                 <SelectionCard
                   title={EXERCISE_TYPES.find(t => t.value === selectedType)?.label || selectedType}
@@ -248,14 +341,16 @@ export function KanbanExerciseSelector({
           {/* Coluna 2: Grupo */}
           <div 
             ref={(el) => (columnRefs.current[1] = el)}
-            className={cn("space-y-2 min-w-[120px] transition-all duration-300", getColumnFlexClass(1))}
-            onMouseEnter={() => setHoverColumnIndex(1)}
-            onMouseLeave={() => setHoverColumnIndex(null)}
+            className={cn(
+              "space-y-2 transition-all duration-200",
+              getColumnWidthClass(1),
+              activeColumnIndex === 1 && "ring-2 ring-primary/20 rounded-lg p-2 -m-2"
+            )}
           >
             <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
               Grupo Muscular
             </h4>
-            <div className="h-[280px] md:h-[320px] lg:h-[360px] xl:h-[400px] overflow-y-auto scrollarea-hidden">
+            <div className="h-[250px] md:h-[280px] lg:h-[320px] xl:h-[350px] overflow-y-auto scrollarea-hidden">
               {!selectedType ? (
                 <p className="text-xs text-muted-foreground p-3">
                   Selecione um tipo primeiro
@@ -290,14 +385,16 @@ export function KanbanExerciseSelector({
           {/* Coluna 3: Exercício */}
           <div 
             ref={(el) => (columnRefs.current[2] = el)}
-            className={cn("space-y-2 min-w-[120px] transition-all duration-300", getColumnFlexClass(2))}
-            onMouseEnter={() => setHoverColumnIndex(2)}
-            onMouseLeave={() => setHoverColumnIndex(null)}
+            className={cn(
+              "space-y-2 transition-all duration-200",
+              getColumnWidthClass(2),
+              activeColumnIndex === 2 && "ring-2 ring-primary/20 rounded-lg p-2 -m-2"
+            )}
           >
             <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
               Exercício
             </h4>
-            <div className="h-[280px] md:h-[320px] lg:h-[360px] xl:h-[400px] overflow-y-auto scrollarea-hidden">
+            <div className="h-[250px] md:h-[280px] lg:h-[320px] xl:h-[350px] overflow-y-auto scrollarea-hidden">
               {!selectedGroup ? (
                 <p className="text-xs text-muted-foreground p-3">
                   Selecione um grupo primeiro
@@ -343,14 +440,16 @@ export function KanbanExerciseSelector({
           {/* Coluna 4: Volume */}
           <div 
             ref={(el) => (columnRefs.current[3] = el)}
-            className={cn("space-y-2 min-w-[120px] transition-all duration-300", getColumnFlexClass(3))}
-            onMouseEnter={() => setHoverColumnIndex(3)}
-            onMouseLeave={() => setHoverColumnIndex(null)}
+            className={cn(
+              "space-y-2 transition-all duration-200",
+              getColumnWidthClass(3),
+              activeColumnIndex === 3 && "ring-2 ring-primary/20 rounded-lg p-2 -m-2"
+            )}
           >
             <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
               Volume
             </h4>
-            <div className="h-[280px] md:h-[320px] lg:h-[360px] xl:h-[400px] overflow-y-auto scrollarea-hidden">
+            <div className="h-[250px] md:h-[280px] lg:h-[320px] xl:h-[350px] overflow-y-auto scrollarea-hidden">
               {!selectedExercise ? (
                 <p className="text-xs text-muted-foreground p-3">
                   Selecione um exercício primeiro
@@ -386,14 +485,16 @@ export function KanbanExerciseSelector({
           {/* Coluna 5: Método */}
           <div 
             ref={(el) => (columnRefs.current[4] = el)}
-            className={cn("space-y-2 min-w-[120px] transition-all duration-300", getColumnFlexClass(4))}
-            onMouseEnter={() => setHoverColumnIndex(4)}
-            onMouseLeave={() => setHoverColumnIndex(null)}
+            className={cn(
+              "space-y-2 transition-all duration-200",
+              getColumnWidthClass(4),
+              activeColumnIndex === 4 && "ring-2 ring-primary/20 rounded-lg p-2 -m-2"
+            )}
           >
             <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
               Método
             </h4>
-            <div className="h-[280px] md:h-[320px] lg:h-[360px] xl:h-[400px] overflow-y-auto scrollarea-hidden">
+            <div className="h-[250px] md:h-[280px] lg:h-[320px] xl:h-[350px] overflow-y-auto scrollarea-hidden">
               {!selectedVolume ? (
                 <p className="text-xs text-muted-foreground p-3">
                   Selecione um volume primeiro
