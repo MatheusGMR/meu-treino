@@ -20,6 +20,8 @@ interface KanbanExerciseSelectorProps {
   onComplete?: () => void;
   orderIndex: number;
   clientMedicalConditions?: string | null;
+  defaultMethodId?: string | null;
+  defaultVolumeId?: string | null;
 }
 
 const EXERCISE_TYPES: { value: Enums<"exercise_type_enum">; label: string }[] = [
@@ -49,7 +51,9 @@ export function KanbanExerciseSelector({
   onSave, 
   onComplete, 
   orderIndex,
-  clientMedicalConditions
+  clientMedicalConditions,
+  defaultMethodId,
+  defaultVolumeId,
 }: KanbanExerciseSelectorProps) {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
@@ -126,7 +130,17 @@ export function KanbanExerciseSelector({
     setSelectedGroup(exercise.exercise_group);
     setSelectedExercise(exercise.id);
     setSearchQuery("");
-    setActiveColumnIndex(3); // Ir para Volume
+    
+    // Auto-fill defaults
+    if (defaultVolumeId && defaultMethodId) {
+      setSelectedVolume(defaultVolumeId);
+      setSelectedMethod(defaultMethodId);
+    } else if (defaultVolumeId) {
+      setSelectedVolume(defaultVolumeId);
+      setActiveColumnIndex(4); // Jump to Method
+    } else {
+      setActiveColumnIndex(3); // Go to Volume
+    }
 
     // Verificar contraindicação
     const contraindicationCheck = contraindicationResults.get(exercise.id);
@@ -169,9 +183,28 @@ export function KanbanExerciseSelector({
 
   const handleExerciseSelect = (exerciseId: string) => {
     setSelectedExercise(exerciseId);
-    setSelectedVolume(null);
-    setSelectedMethod(null);
-    setActiveColumnIndex(3);
+    
+    // Auto-fill defaults if available
+    const hasDefaultVolume = !!defaultVolumeId;
+    const hasDefaultMethod = !!defaultMethodId;
+    
+    if (hasDefaultVolume && hasDefaultMethod) {
+      setSelectedVolume(defaultVolumeId);
+      setSelectedMethod(defaultMethodId);
+      // Don't advance column - stay showing all as complete
+    } else if (hasDefaultVolume) {
+      setSelectedVolume(defaultVolumeId);
+      setSelectedMethod(null);
+      setActiveColumnIndex(4); // Jump to Method
+    } else if (hasDefaultMethod) {
+      setSelectedVolume(null);
+      setSelectedMethod(null);
+      setActiveColumnIndex(3); // Go to Volume
+    } else {
+      setSelectedVolume(null);
+      setSelectedMethod(null);
+      setActiveColumnIndex(3);
+    }
 
     // Verificar contraindicação e mostrar toast
     const contraindicationCheck = contraindicationResults.get(exerciseId);
@@ -210,11 +243,12 @@ export function KanbanExerciseSelector({
     
     onSave(exerciseData);
 
+    // Reset but keep defaults
     setSelectedType(null);
     setSelectedGroup(null);
     setSelectedExercise(null);
-    setSelectedVolume(null);
-    setSelectedMethod(null);
+    setSelectedVolume(defaultVolumeId || null);
+    setSelectedMethod(defaultMethodId || null);
     setSearchQuery("");
     setActiveColumnIndex(0);
   };
@@ -451,7 +485,7 @@ export function KanbanExerciseSelector({
             )}
           >
             <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
-              Volume
+              Volume {defaultVolumeId && <span className="text-primary text-[10px]">• padrão</span>}
             </h4>
             <div className="h-[250px] md:h-[280px] lg:h-[320px] xl:h-[350px] overflow-y-auto scrollarea-hidden">
               {!selectedExercise ? (
@@ -496,7 +530,7 @@ export function KanbanExerciseSelector({
             )}
           >
             <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-3 leading-tight">
-              Método
+              Método {defaultMethodId && <span className="text-primary text-[10px]">• padrão</span>}
             </h4>
             <div className="h-[250px] md:h-[280px] lg:h-[320px] xl:h-[350px] overflow-y-auto scrollarea-hidden">
               {!selectedVolume ? (
