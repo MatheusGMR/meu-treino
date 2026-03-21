@@ -213,6 +213,7 @@ export const SessionCard = ({
   isExpanded,
   onToggleExpand,
   onRemove,
+  onDuplicate,
   onAddExercise,
   onRemoveExercise,
   onReorderExercises,
