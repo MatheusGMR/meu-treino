@@ -130,7 +130,17 @@ export function KanbanExerciseSelector({
     setSelectedGroup(exercise.exercise_group);
     setSelectedExercise(exercise.id);
     setSearchQuery("");
-    setActiveColumnIndex(3); // Ir para Volume
+    
+    // Auto-fill defaults
+    if (defaultVolumeId && defaultMethodId) {
+      setSelectedVolume(defaultVolumeId);
+      setSelectedMethod(defaultMethodId);
+    } else if (defaultVolumeId) {
+      setSelectedVolume(defaultVolumeId);
+      setActiveColumnIndex(4); // Jump to Method
+    } else {
+      setActiveColumnIndex(3); // Go to Volume
+    }
 
     // Verificar contraindicação
     const contraindicationCheck = contraindicationResults.get(exercise.id);
