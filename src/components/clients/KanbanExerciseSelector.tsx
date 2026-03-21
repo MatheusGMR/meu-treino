@@ -51,7 +51,9 @@ export function KanbanExerciseSelector({
   onSave, 
   onComplete, 
   orderIndex,
-  clientMedicalConditions
+  clientMedicalConditions,
+  defaultMethodId,
+  defaultVolumeId,
 }: KanbanExerciseSelectorProps) {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
