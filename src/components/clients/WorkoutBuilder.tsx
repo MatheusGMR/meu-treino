@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Plus, GripVertical, RefreshCw, Sparkles } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 // Layout fixo sem ResizablePanelGroup
 import { useClientWorkoutBuilder } from "@/hooks/useClientWorkoutBuilder";
 import { HealthAlertPanel } from "./HealthAlertPanel";
@@ -59,8 +60,10 @@ interface SortableSessionProps {
   isExpanded: boolean;
   onToggleExpand: () => void;
   onRemove: () => void;
+  onDuplicate: () => void;
   onAddExercise: (exercise: SessionExerciseData) => void;
   onRemoveExercise: (exerciseIndex: number) => void;
+  onUpdateExerciseNotes: (exerciseIndex: number, notes: string) => void;
   onReorderExercises: (startIndex: number, endIndex: number) => void;
   onUpdateName: (name: string) => void;
   onUpdateType: (type: string) => void;
@@ -74,8 +77,10 @@ const SortableSession = ({
   isExpanded,
   onToggleExpand,
   onRemove,
+  onDuplicate,
   onAddExercise,
   onRemoveExercise,
+  onUpdateExerciseNotes,
   onReorderExercises,
   onUpdateName,
   onUpdateType,
@@ -108,8 +113,10 @@ const SortableSession = ({
         isExpanded={isExpanded}
         onToggleExpand={onToggleExpand}
         onRemove={onRemove}
+        onDuplicate={onDuplicate}
         onAddExercise={onAddExercise}
         onRemoveExercise={onRemoveExercise}
+        onUpdateExerciseNotes={onUpdateExerciseNotes}
         onReorderExercises={onReorderExercises}
         onUpdateName={onUpdateName}
         onUpdateType={onUpdateType}
@@ -239,6 +246,22 @@ export const WorkoutBuilder = ({
     setExpandedSessionIndex(expandedSessionIndex === index ? null : index);
   };
 
+  const handleDuplicateSession = (index: number) => {
+    const session = builder.tempWorkout.sessions[index];
+    if (!session) return;
+    builder.addNewSession({
+      name: `${session.name} (cópia)`,
+      description: session.description,
+      session_type: session.session_type,
+      exercises: [...session.exercises],
+      isNew: true,
+    });
+    toast({
+      title: "Sessão duplicada",
+      description: `"${session.name}" foi duplicada com ${session.exercises.length} exercício(s)`,
+    });
+  };
+
   return (
     <div className="flex flex-col" style={{ height: 'calc(100vh - 200px)' }}>
       {/* Header */}
@@ -316,10 +339,19 @@ export const WorkoutBuilder = ({
                           isExpanded={expandedSessionIndex === index}
                           onToggleExpand={() => toggleSessionExpand(index)}
                           onRemove={() => builder.removeSession(index)}
+                          onDuplicate={() => handleDuplicateSession(index)}
                           onAddExercise={(exercise) => handleAddExerciseToSession(index, exercise)}
                           onRemoveExercise={(exerciseIndex) =>
                             handleRemoveExerciseFromSession(index, exerciseIndex)
                           }
+                          onUpdateExerciseNotes={(exerciseIndex, notes) => {
+                            const s = builder.tempWorkout.sessions[index];
+                            if (!s) return;
+                            const updatedExercises = s.exercises.map((ex, i) =>
+                              i === exerciseIndex ? { ...ex, notes } : ex
+                            );
+                            builder.updateSession(index, { ...s, exercises: updatedExercises });
+                          }}
                           onReorderExercises={(startIndex, endIndex) => {
                             builder.reorderExercisesInSession(index, startIndex, endIndex);
                           }}
@@ -485,17 +517,15 @@ export const WorkoutBuilder = ({
         </TooltipProvider>
       </div>
 
-      {/* Dialog de Nome do Treino */}
+      {/* Dialog de Nome do Treino com Preview */}
       <Dialog open={showWorkoutNameDialog} onOpenChange={setShowWorkoutNameDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Nome do Treino</DialogTitle>
+            <DialogTitle>Confirmar Treino</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="dialog-workout-name">
-                Digite o nome do treino antes de atribuir
-              </Label>
+              <Label htmlFor="dialog-workout-name">Nome do treino</Label>
               <Input
                 id="dialog-workout-name"
                 value={workoutNameInput}
@@ -504,6 +534,43 @@ export const WorkoutBuilder = ({
                 className="text-lg"
                 autoFocus
               />
+            </div>
+
+            {/* Preview resumo */}
+            <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+              <h4 className="text-sm font-semibold text-foreground">Resumo do Treino</h4>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div>
+                  <p className="text-2xl font-bold text-primary">{builder.tempWorkout.sessions.length}</p>
+                  <p className="text-xs text-muted-foreground">Sessões</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-primary">{builder.muscleAnalysis.totalExercises}</p>
+                  <p className="text-xs text-muted-foreground">Exercícios</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-primary">{builder.muscleAnalysis.muscleGroups.length}</p>
+                  <p className="text-xs text-muted-foreground">Grupos Musc.</p>
+                </div>
+              </div>
+              <div className="space-y-1 pt-2 border-t">
+                {builder.tempWorkout.sessions.map((s, i) => (
+                  <div key={i} className="flex justify-between text-xs">
+                    <span className="text-foreground font-medium">{s.name}</span>
+                    <span className="text-muted-foreground">
+                      {s.exercises.length} exercício{s.exercises.length !== 1 ? 's' : ''}
+                      {s.session_type ? ` • ${s.session_type}` : ''}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {builder.muscleAnalysis.warnings.length > 0 && (
+                <div className="pt-2 border-t space-y-1">
+                  {builder.muscleAnalysis.warnings.map((w, i) => (
+                    <p key={i} className="text-xs text-amber-600">⚠️ {w}</p>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           <div className="flex justify-end gap-3">

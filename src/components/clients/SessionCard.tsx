@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { ChevronDown, ChevronRight, Trash2, GripVertical, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Trash2, GripVertical, X, Copy } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -61,8 +61,10 @@ interface SessionCardProps {
   isExpanded: boolean;
   onToggleExpand: () => void;
   onRemove: () => void;
+  onDuplicate: () => void;
   onAddExercise: (exercise: SessionExerciseData) => void;
   onRemoveExercise: (exerciseIndex: number) => void;
+  onUpdateExerciseNotes?: (exerciseIndex: number, notes: string) => void;
   onReorderExercises?: (startIndex: number, endIndex: number) => void;
   onUpdateName?: (name: string) => void;
   onUpdateType?: (type: string) => void;
@@ -76,9 +78,10 @@ interface SortableExerciseProps {
   exercise: SessionExerciseData;
   index: number;
   onRemove: () => void;
+  onUpdateNotes?: (notes: string) => void;
 }
 
-const SortableExercise = ({ exercise, index, onRemove }: SortableExerciseProps) => {
+const SortableExercise = ({ exercise, index, onRemove, onUpdateNotes }: SortableExerciseProps) => {
   const {
     attributes,
     listeners,
@@ -110,7 +113,7 @@ const SortableExercise = ({ exercise, index, onRemove }: SortableExerciseProps) 
         <GripVertical className="w-4 h-4 text-muted-foreground" />
       </button>
       <div className="flex-1">
-        <InlineExerciseRow exercise={exercise} onRemove={onRemove} />
+        <InlineExerciseRow exercise={exercise} onRemove={onRemove} onUpdateNotes={onUpdateNotes} />
       </div>
     </div>
   );
@@ -212,8 +215,10 @@ export const SessionCard = ({
   isExpanded,
   onToggleExpand,
   onRemove,
+  onDuplicate,
   onAddExercise,
   onRemoveExercise,
+  onUpdateExerciseNotes,
   onReorderExercises,
   onUpdateName,
   onUpdateType,
@@ -358,7 +363,12 @@ export const SessionCard = ({
               )}
             </div>
           </div>
-          {removeButton}
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" onClick={onDuplicate} className="shrink-0" title="Duplicar sessão">
+              <Copy className="w-4 h-4" />
+            </Button>
+            {removeButton}
+          </div>
         </div>
       </CardHeader>
 
@@ -408,6 +418,7 @@ export const SessionCard = ({
                         exercise={ex}
                         index={idx}
                         onRemove={() => onRemoveExercise(idx)}
+                        onUpdateNotes={onUpdateExerciseNotes ? (notes) => onUpdateExerciseNotes(idx, notes) : undefined}
                       />
                     ))}
                   </div>
