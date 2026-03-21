@@ -273,6 +273,13 @@ export const SessionCard = ({
 
       {isExpanded && (
         <CardContent className="space-y-6">
+          {/* Seletores de método e volume padrão */}
+          <SessionDefaults
+            onDefaultsChange={(methodId, volumeId) => {
+              sessionDefaultsRef.current = { methodId, volumeId };
+            }}
+          />
+
           {/* Kanban para adicionar mais exercícios - no topo */}
           <div className="space-y-3">
             <h5 className="text-sm font-semibold text-foreground">
@@ -283,6 +290,8 @@ export const SessionCard = ({
               onComplete={() => {}}
               orderIndex={session.exercises.length}
               clientMedicalConditions={clientMedicalConditions}
+              defaultMethodId={sessionDefaultsRef.current.methodId}
+              defaultVolumeId={sessionDefaultsRef.current.volumeId}
             />
           </div>
 
