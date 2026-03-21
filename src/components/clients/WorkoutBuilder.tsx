@@ -59,6 +59,7 @@ interface SortableSessionProps {
   isExpanded: boolean;
   onToggleExpand: () => void;
   onRemove: () => void;
+  onDuplicate: () => void;
   onAddExercise: (exercise: SessionExerciseData) => void;
   onRemoveExercise: (exerciseIndex: number) => void;
   onReorderExercises: (startIndex: number, endIndex: number) => void;
