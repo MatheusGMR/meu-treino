@@ -242,6 +242,22 @@ export const WorkoutBuilder = ({
     setExpandedSessionIndex(expandedSessionIndex === index ? null : index);
   };
 
+  const handleDuplicateSession = (index: number) => {
+    const session = builder.tempWorkout.sessions[index];
+    if (!session) return;
+    builder.addNewSession({
+      name: `${session.name} (cópia)`,
+      description: session.description,
+      session_type: session.session_type,
+      exercises: [...session.exercises],
+      isNew: true,
+    });
+    toast({
+      title: "Sessão duplicada",
+      description: `"${session.name}" foi duplicada com ${session.exercises.length} exercício(s)`,
+    });
+  };
+
   return (
     <div className="flex flex-col" style={{ height: 'calc(100vh - 200px)' }}>
       {/* Header */}
