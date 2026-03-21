@@ -1,5 +1,7 @@
-import { GripVertical, X } from "lucide-react";
+import { useState } from "react";
+import { GripVertical, X, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useExercises } from "@/hooks/useExercises";
 import { useVolumes } from "@/hooks/useVolumes";
 import { useMethods } from "@/hooks/useMethods";
@@ -9,9 +11,11 @@ import type { SessionExerciseData } from "@/lib/schemas/sessionSchema";
 interface InlineExerciseRowProps {
   exercise: SessionExerciseData;
   onRemove: () => void;
+  onUpdateNotes?: (notes: string) => void;
 }
 
-export function InlineExerciseRow({ exercise, onRemove }: InlineExerciseRowProps) {
+export function InlineExerciseRow({ exercise, onRemove, onUpdateNotes }: InlineExerciseRowProps) {
+  const [showNotes, setShowNotes] = useState(!!exercise.notes);
   const { data: exercises } = useExercises();
   const { data: volumes } = useVolumes();
   const { data: methods } = useMethods();
@@ -40,58 +44,79 @@ export function InlineExerciseRow({ exercise, onRemove }: InlineExerciseRowProps
   };
 
   return (
-    <div className="grid grid-cols-12 gap-2 items-center p-2 border border-border rounded-md bg-card hover:bg-muted/50 transition-colors group">
-      {/* Drag handle */}
-      <div className="col-span-1 flex justify-center opacity-30 group-hover:opacity-100 transition-opacity cursor-grab">
-        <GripVertical className="w-4 h-4 text-muted-foreground" />
-      </div>
+    <div className="space-y-1">
+      <div className="grid grid-cols-12 gap-2 items-center p-2 border border-border rounded-md bg-card hover:bg-muted/50 transition-colors group">
+        {/* Drag handle */}
+        <div className="col-span-1 flex justify-center opacity-30 group-hover:opacity-100 transition-opacity cursor-grab">
+          <GripVertical className="w-4 h-4 text-muted-foreground" />
+        </div>
 
-      {/* Tipo */}
-      <div className="col-span-2">
-        <Badge variant="outline" className={`text-xs ${getTypeColor(exerciseData.exercise_type)}`}>
-          {exerciseData.exercise_type}
-        </Badge>
-      </div>
+        {/* Tipo */}
+        <div className="col-span-2">
+          <Badge variant="outline" className={`text-xs ${getTypeColor(exerciseData.exercise_type)}`}>
+            {exerciseData.exercise_type}
+          </Badge>
+        </div>
 
-      {/* Grupo */}
-      <div className="col-span-2">
-        <span className="text-xs text-muted-foreground">
-          {exerciseData.exercise_group}
-        </span>
-      </div>
+        {/* Grupo */}
+        <div className="col-span-2">
+          <span className="text-xs text-muted-foreground">
+            {exerciseData.exercise_group}
+          </span>
+        </div>
 
-      {/* Exercício */}
-      <div className="col-span-2">
-        <span className="text-xs font-medium truncate block">
-          {exerciseData.name}
-        </span>
-      </div>
+        {/* Exercício */}
+        <div className="col-span-2">
+          <span className="text-xs font-medium truncate block">
+            {exerciseData.name}
+          </span>
+        </div>
 
-      {/* Volume */}
-      <div className="col-span-2">
-        <span className="text-xs text-muted-foreground">
-          {volumeData.name}
-        </span>
-      </div>
+        {/* Volume */}
+        <div className="col-span-2">
+          <span className="text-xs text-muted-foreground">
+            {volumeData.name}
+          </span>
+        </div>
 
-      {/* Método */}
-      <div className="col-span-2">
-        <span className="text-xs text-muted-foreground">
-          {methodData.name || `${methodData.reps_min}-${methodData.reps_max}`}
-        </span>
-      </div>
+        {/* Método */}
+        <div className="col-span-2">
+          <span className="text-xs text-muted-foreground">
+            {methodData.name || `${methodData.reps_min}-${methodData.reps_max}`}
+          </span>
+        </div>
 
-      {/* Ações */}
-      <div className="col-span-1 flex justify-center">
-        <Button 
-          onClick={onRemove} 
-          size="icon" 
-          variant="ghost" 
-          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          <X className="w-4 h-4 text-muted-foreground hover:text-destructive" />
-        </Button>
+        {/* Ações */}
+        <div className="col-span-1 flex justify-center gap-0.5">
+          {onUpdateNotes && (
+            <Button 
+              onClick={() => setShowNotes(!showNotes)} 
+              size="icon" 
+              variant="ghost" 
+              className={`h-7 w-7 transition-opacity ${showNotes || exercise.notes ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+              title="Notas"
+            >
+              <MessageSquare className={`w-3.5 h-3.5 ${exercise.notes ? 'text-primary' : 'text-muted-foreground'}`} />
+            </Button>
+          )}
+          <Button 
+            onClick={onRemove} 
+            size="icon" 
+            variant="ghost" 
+            className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <X className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+          </Button>
+        </div>
       </div>
+      {showNotes && onUpdateNotes && (
+        <Input
+          value={exercise.notes || ""}
+          onChange={(e) => onUpdateNotes(e.target.value)}
+          placeholder="Ex: usar pegada supinada, foco na fase excêntrica..."
+          className="h-7 text-xs ml-8"
+        />
+      )}
     </div>
   );
 }

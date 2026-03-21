@@ -5,6 +5,7 @@ export const sessionExerciseSchema = z.object({
   volume_id: z.string().uuid("Volume inválido"),
   method_id: z.string().uuid("Método inválido"),
   order_index: z.number().int().min(0),
+  notes: z.string().max(500).optional(),
 });
 
 export const sessionSchema = z.object({
