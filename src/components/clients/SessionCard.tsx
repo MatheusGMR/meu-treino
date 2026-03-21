@@ -25,6 +25,8 @@ import {
 import { KanbanExerciseSelector } from "./KanbanExerciseSelector";
 import { InlineExerciseRow } from "./InlineExerciseRow";
 import { toast } from "@/hooks/use-toast";
+import { useMethods } from "@/hooks/useMethods";
+import { useVolumes } from "@/hooks/useVolumes";
 import type { SessionExerciseData } from "@/lib/schemas/sessionSchema";
 import {
   DndContext,
