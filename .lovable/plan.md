@@ -1,77 +1,60 @@
 
 
-## Correção: Footer Fixo no Construtor de Treino
+## Implementação dos 3 Pontos de Alta Prioridade
 
-### Problema Identificado
+### 1. Permitir nomear e tipar sessões
 
-O `WorkoutBuilder` usa `h-full`, mas a cadeia de containers ancestrais não propaga altura corretamente:
+**Arquivo:** `src/components/clients/SessionCard.tsx`
 
-```text
-AppLayout (min-h-screen)
-  → main (overflow-auto)
-    → container p-6 (SEM altura definida)
-      → TabsContent (SEM altura definida)
-        → WorkoutBuilder (h-full) ← NÃO FUNCIONA!
-```
-
-O `h-full` (100%) só funciona quando **todos os ancestrais** têm altura explícita. Como o container pai não tem, o `h-full` não tem referência e o footer rola junto com o conteúdo.
-
----
-
-### Solução
-
-Usar altura calculada com `100vh` menos os espaços do layout:
-- Padding do container: `p-6` = 24px × 2 = 48px
-- Header do cliente (nome + tabs): ~120px
-- Margem de segurança
+- Adicionar props `onUpdateName` e `onUpdateDescription` ao `SessionCardProps`
+- No header da sessão, ao lado do nome, adicionar um botão de edição (ícone `Edit`) que abre um inline edit
+- Quando `isNew`, mostrar um `Input` editável para o nome da sessão em vez de texto fixo "Sessão 1"
+- Adicionar um `Select` compacto para o tipo de sessão (Musculação/Mobilidade/Alongamento) ao lado do nome
 
 **Arquivo:** `src/components/clients/WorkoutBuilder.tsx`
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│ ← Construtor de Treino (Header)         [flex-shrink-0]     │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  [Sessões do Treino]              [Perfil do Cliente]       │
-│  ┌──────────────────┐             ┌──────────────────┐      │
-│  │ overflow-y-auto  │             │ overflow-y-auto  │      │
-│  │ (scroll interno) │             │ (scroll interno) │      │
-│  └──────────────────┘             └──────────────────┘      │
-│                   ↑ flex-1 min-h-0 ↑                        │
-├─────────────────────────────────────────────────────────────┤
-│                           [Cancelar]  [Atribuir] (FIXO)     │
-│                                          [flex-shrink-0]    │
-└─────────────────────────────────────────────────────────────┘
-```
+- Criar handler `handleUpdateSessionName` que chama `builder.updateSession()` com o novo nome
+- Passar as novas props ao `SessionCard`/`SortableSession`
 
-### Alterações
+**Arquivo:** `src/hooks/useClientWorkoutBuilder.ts`
 
-**Linha 236**: Trocar `h-full` por altura calculada
-```typescript
-// De:
-<div className="flex flex-col h-full">
+- Adicionar campo `session_type` ao `TempSession` interface (já existe no schema como obrigatório)
+- Garantir que o `session_type` seja enviado na submissão
 
-// Para:
-<div className="flex flex-col" style={{ height: 'calc(100vh - 200px)' }}>
-```
+### 2. Toast + auto-scroll ao adicionar exercício
 
-O valor `200px` cobre:
-- Padding superior do container (24px)
-- Header da página ClientDetails (tabs, nome ~80px)
-- Padding inferior (24px)
-- Margem de segurança (~72px)
+**Arquivo:** `src/components/clients/SessionCard.tsx`
 
-Isso garante que:
-1. O container principal tenha altura fixa baseada na viewport
-2. O header e footer usem `flex-shrink-0` para não encolher
-3. A área central com `flex-1 min-h-0` ocupe o espaço restante
-4. Cada coluna (sessões e cockpit) role independentemente
+- Adicionar `useRef` para a div da lista de exercícios adicionados
+- No `onAddExercise` callback, após adicionar:
+  - Exibir toast de sucesso: "Exercício adicionado à sessão"
+  - Fazer `scrollIntoView({ behavior: 'smooth' })` da lista de exercícios para que fique visível
+- Atualizar o badge de contagem em tempo real (já funciona via props)
+
+**Arquivo:** `src/components/clients/KanbanExerciseSelector.tsx`
+
+- Sem mudanças — o `onSave` já propaga corretamente
+
+### 3. Confirmação ao remover sessão com exercícios
+
+**Arquivo:** `src/components/clients/SessionCard.tsx`
+
+- Importar `AlertDialog` components
+- Envolver o botão de remover com `AlertDialog`:
+  - Se `session.exercises.length > 0`: mostrar dialog de confirmação com mensagem "Esta sessão contém X exercício(s). Deseja removê-la?"
+  - Se a sessão estiver vazia: remover diretamente sem confirmação
+
+**Arquivo:** `src/components/clients/WorkoutBuilder.tsx`
+
+- Nenhuma mudança necessária — o `onRemove` já está propagado
 
 ---
 
-### Arquivos a Modificar
+### Resumo de Arquivos
 
-| Arquivo | Alteração |
-|---------|-----------|
-| `src/components/clients/WorkoutBuilder.tsx` | Trocar `h-full` por `height: calc(100vh - 200px)` |
+| Arquivo | Alterações |
+|---------|------------|
+| `src/components/clients/SessionCard.tsx` | Edição inline de nome/tipo, toast+scroll ao adicionar, AlertDialog ao remover |
+| `src/components/clients/WorkoutBuilder.tsx` | Handlers para atualizar nome/tipo de sessão, passar novas props |
+| `src/hooks/useClientWorkoutBuilder.ts` | Adicionar `session_type` ao TempSession |
 
