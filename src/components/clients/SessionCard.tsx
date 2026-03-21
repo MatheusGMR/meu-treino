@@ -64,6 +64,7 @@ interface SessionCardProps {
   onDuplicate: () => void;
   onAddExercise: (exercise: SessionExerciseData) => void;
   onRemoveExercise: (exerciseIndex: number) => void;
+  onUpdateExerciseNotes?: (exerciseIndex: number, notes: string) => void;
   onReorderExercises?: (startIndex: number, endIndex: number) => void;
   onUpdateName?: (name: string) => void;
   onUpdateType?: (type: string) => void;
