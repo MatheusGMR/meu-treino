@@ -77,9 +77,10 @@ interface SortableExerciseProps {
   exercise: SessionExerciseData;
   index: number;
   onRemove: () => void;
+  onUpdateNotes?: (notes: string) => void;
 }
 
-const SortableExercise = ({ exercise, index, onRemove }: SortableExerciseProps) => {
+const SortableExercise = ({ exercise, index, onRemove, onUpdateNotes }: SortableExerciseProps) => {
   const {
     attributes,
     listeners,
@@ -111,7 +112,7 @@ const SortableExercise = ({ exercise, index, onRemove }: SortableExerciseProps) 
         <GripVertical className="w-4 h-4 text-muted-foreground" />
       </button>
       <div className="flex-1">
-        <InlineExerciseRow exercise={exercise} onRemove={onRemove} />
+        <InlineExerciseRow exercise={exercise} onRemove={onRemove} onUpdateNotes={onUpdateNotes} />
       </div>
     </div>
   );
