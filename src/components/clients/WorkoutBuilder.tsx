@@ -319,6 +319,7 @@ export const WorkoutBuilder = ({
                           isExpanded={expandedSessionIndex === index}
                           onToggleExpand={() => toggleSessionExpand(index)}
                           onRemove={() => builder.removeSession(index)}
+                          onDuplicate={() => handleDuplicateSession(index)}
                           onAddExercise={(exercise) => handleAddExerciseToSession(index, exercise)}
                           onRemoveExercise={(exerciseIndex) =>
                             handleRemoveExerciseFromSession(index, exerciseIndex)

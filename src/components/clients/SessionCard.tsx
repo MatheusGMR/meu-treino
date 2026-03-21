@@ -360,7 +360,12 @@ export const SessionCard = ({
               )}
             </div>
           </div>
-          {removeButton}
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" onClick={onDuplicate} className="shrink-0" title="Duplicar sessão">
+              <Copy className="w-4 h-4" />
+            </Button>
+            {removeButton}
+          </div>
         </div>
       </CardHeader>
 
