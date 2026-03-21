@@ -218,6 +218,7 @@ export const SessionCard = ({
   onDuplicate,
   onAddExercise,
   onRemoveExercise,
+  onUpdateExerciseNotes,
   onReorderExercises,
   onUpdateName,
   onUpdateType,
