@@ -77,6 +77,8 @@ const SortableSession = ({
   onAddExercise,
   onRemoveExercise,
   onReorderExercises,
+  onUpdateName,
+  onUpdateType,
   clientMedicalConditions,
   enableDrag,
 }: SortableSessionProps) => {
