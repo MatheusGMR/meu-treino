@@ -116,6 +116,96 @@ const SortableExercise = ({ exercise, index, onRemove }: SortableExerciseProps) 
   );
 };
 
+// Component for session-level default method/volume
+const SessionDefaults = ({ onDefaultsChange }: { onDefaultsChange: (methodId: string | null, volumeId: string | null) => void }) => {
+  const [defaultMethodId, setDefaultMethodId] = useState<string | null>(null);
+  const [defaultVolumeId, setDefaultVolumeId] = useState<string | null>(null);
+  const { data: methods } = useMethods();
+  const { data: volumes } = useVolumes();
+
+  const selectedMethodData = useMemo(() => 
+    methods?.find(m => m.id === defaultMethodId), [methods, defaultMethodId]
+  );
+
+  const handleMethodChange = (val: string) => {
+    const newVal = val === "none" ? null : val;
+    setDefaultMethodId(newVal);
+    onDefaultsChange(newVal, defaultVolumeId);
+  };
+
+  const handleVolumeChange = (val: string) => {
+    const newVal = val === "none" ? null : val;
+    setDefaultVolumeId(newVal);
+    onDefaultsChange(defaultMethodId, newVal);
+  };
+
+  const clearDefaults = () => {
+    setDefaultMethodId(null);
+    setDefaultVolumeId(null);
+    onDefaultsChange(null, null);
+  };
+
+  return (
+    <div className="space-y-3 p-3 rounded-lg bg-muted/30 border border-border/50">
+      <div className="flex items-center justify-between">
+        <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          Padrões da Sessão
+        </h5>
+        {(defaultMethodId || defaultVolumeId) && (
+          <Button variant="ghost" size="sm" onClick={clearDefaults} className="h-6 px-2 text-xs gap-1">
+            <X className="w-3 h-3" /> Limpar
+          </Button>
+        )}
+      </div>
+      <div className="flex gap-3 flex-wrap">
+        <div className="flex-1 min-w-[180px]">
+          <label className="text-xs text-muted-foreground mb-1 block">Método padrão</label>
+          <Select value={defaultMethodId || "none"} onValueChange={handleMethodChange}>
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue placeholder="Nenhum" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Nenhum (selecionar por exercício)</SelectItem>
+              {methods?.map(m => (
+                <SelectItem key={m.id} value={m.id}>
+                  {m.name || `${m.reps_min}-${m.reps_max} reps`} • {m.objective || m.load_level}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex-1 min-w-[180px]">
+          <label className="text-xs text-muted-foreground mb-1 block">Volume padrão</label>
+          <Select value={defaultVolumeId || "none"} onValueChange={handleVolumeChange}>
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue placeholder="Nenhum" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Nenhum (selecionar por exercício)</SelectItem>
+              {volumes?.map(v => (
+                <SelectItem key={v.id} value={v.id}>
+                  {v.name} • {v.num_series}x{v.num_exercises}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      {/* Resumo do método selecionado */}
+      {selectedMethodData && (
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground bg-background/50 rounded p-2">
+          <span>Reps: {selectedMethodData.reps_min}-{selectedMethodData.reps_max}</span>
+          <span>Pausa: {selectedMethodData.rest_seconds}s</span>
+          <span>Carga: {selectedMethodData.load_level}</span>
+          <span>Cadência: {selectedMethodData.cadence_contraction}-{selectedMethodData.cadence_pause}-{selectedMethodData.cadence_stretch}</span>
+          <span>Risco: {selectedMethodData.risk_level}</span>
+          <span>Energia: {selectedMethodData.energy_cost}</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const SessionCard = ({
   session,
   sessionIndex,
@@ -133,6 +223,7 @@ export const SessionCard = ({
 }: SessionCardProps) => {
   const exerciseListRef = useRef<HTMLDivElement>(null);
   const prevExerciseCount = useRef(session.exercises.length);
+  const sessionDefaultsRef = useRef<{ methodId: string | null; volumeId: string | null }>({ methodId: null, volumeId: null });
 
   const sensors = useSensors(
     useSensor(PointerSensor),

@@ -20,6 +20,8 @@ interface KanbanExerciseSelectorProps {
   onComplete?: () => void;
   orderIndex: number;
   clientMedicalConditions?: string | null;
+  defaultMethodId?: string | null;
+  defaultVolumeId?: string | null;
 }
 
 const EXERCISE_TYPES: { value: Enums<"exercise_type_enum">; label: string }[] = [
