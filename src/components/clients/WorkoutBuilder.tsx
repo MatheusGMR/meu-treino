@@ -506,17 +506,15 @@ export const WorkoutBuilder = ({
         </TooltipProvider>
       </div>
 
-      {/* Dialog de Nome do Treino */}
+      {/* Dialog de Nome do Treino com Preview */}
       <Dialog open={showWorkoutNameDialog} onOpenChange={setShowWorkoutNameDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Nome do Treino</DialogTitle>
+            <DialogTitle>Confirmar Treino</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="dialog-workout-name">
-                Digite o nome do treino antes de atribuir
-              </Label>
+              <Label htmlFor="dialog-workout-name">Nome do treino</Label>
               <Input
                 id="dialog-workout-name"
                 value={workoutNameInput}
@@ -525,6 +523,43 @@ export const WorkoutBuilder = ({
                 className="text-lg"
                 autoFocus
               />
+            </div>
+
+            {/* Preview resumo */}
+            <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+              <h4 className="text-sm font-semibold text-foreground">Resumo do Treino</h4>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div>
+                  <p className="text-2xl font-bold text-primary">{builder.tempWorkout.sessions.length}</p>
+                  <p className="text-xs text-muted-foreground">Sessões</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-primary">{builder.muscleAnalysis.totalExercises}</p>
+                  <p className="text-xs text-muted-foreground">Exercícios</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-primary">{builder.muscleAnalysis.muscleGroups.length}</p>
+                  <p className="text-xs text-muted-foreground">Grupos Musc.</p>
+                </div>
+              </div>
+              <div className="space-y-1 pt-2 border-t">
+                {builder.tempWorkout.sessions.map((s, i) => (
+                  <div key={i} className="flex justify-between text-xs">
+                    <span className="text-foreground font-medium">{s.name}</span>
+                    <span className="text-muted-foreground">
+                      {s.exercises.length} exercício{s.exercises.length !== 1 ? 's' : ''}
+                      {s.session_type ? ` • ${s.session_type}` : ''}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {builder.muscleAnalysis.warnings.length > 0 && (
+                <div className="pt-2 border-t space-y-1">
+                  {builder.muscleAnalysis.warnings.map((w, i) => (
+                    <p key={i} className="text-xs text-amber-600">⚠️ {w}</p>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           <div className="flex justify-end gap-3">
