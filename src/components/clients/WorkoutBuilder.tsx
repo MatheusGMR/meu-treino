@@ -322,6 +322,14 @@ export const WorkoutBuilder = ({
                           onReorderExercises={(startIndex, endIndex) => {
                             builder.reorderExercisesInSession(index, startIndex, endIndex);
                           }}
+                          onUpdateName={(name) => {
+                            const s = builder.tempWorkout.sessions[index];
+                            if (s) builder.updateSession(index, { ...s, name });
+                          }}
+                          onUpdateType={(type) => {
+                            const s = builder.tempWorkout.sessions[index];
+                            if (s) builder.updateSession(index, { ...s, session_type: type });
+                          }}
                           clientMedicalConditions={builder.clientProfile?.medical_conditions}
                           enableDrag={enableSessionDrag}
                         />
