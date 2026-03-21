@@ -62,6 +62,8 @@ interface SortableSessionProps {
   onAddExercise: (exercise: SessionExerciseData) => void;
   onRemoveExercise: (exerciseIndex: number) => void;
   onReorderExercises: (startIndex: number, endIndex: number) => void;
+  onUpdateName: (name: string) => void;
+  onUpdateType: (type: string) => void;
   clientMedicalConditions?: string | null;
   enableDrag: boolean;
 }
@@ -75,6 +77,8 @@ const SortableSession = ({
   onAddExercise,
   onRemoveExercise,
   onReorderExercises,
+  onUpdateName,
+  onUpdateType,
   clientMedicalConditions,
   enableDrag,
 }: SortableSessionProps) => {
@@ -107,6 +111,8 @@ const SortableSession = ({
         onAddExercise={onAddExercise}
         onRemoveExercise={onRemoveExercise}
         onReorderExercises={onReorderExercises}
+        onUpdateName={onUpdateName}
+        onUpdateType={onUpdateType}
         dragHandleAttributes={enableDrag ? attributes : undefined}
         dragHandleListeners={enableDrag ? listeners : undefined}
         clientMedicalConditions={clientMedicalConditions}
@@ -165,6 +171,7 @@ export const WorkoutBuilder = ({
     builder.addNewSession({
       name: `Sessão ${sessionNumber}`,
       description: "",
+      session_type: "Musculação",
       exercises: [],
       isNew: true,
     });
@@ -315,6 +322,14 @@ export const WorkoutBuilder = ({
                           }
                           onReorderExercises={(startIndex, endIndex) => {
                             builder.reorderExercisesInSession(index, startIndex, endIndex);
+                          }}
+                          onUpdateName={(name) => {
+                            const s = builder.tempWorkout.sessions[index];
+                            if (s) builder.updateSession(index, { ...s, name });
+                          }}
+                          onUpdateType={(type) => {
+                            const s = builder.tempWorkout.sessions[index];
+                            if (s) builder.updateSession(index, { ...s, session_type: type });
                           }}
                           clientMedicalConditions={builder.clientProfile?.medical_conditions}
                           enableDrag={enableSessionDrag}
