@@ -116,6 +116,7 @@ const SortableSession = ({
         onDuplicate={onDuplicate}
         onAddExercise={onAddExercise}
         onRemoveExercise={onRemoveExercise}
+        onUpdateExerciseNotes={onUpdateExerciseNotes}
         onReorderExercises={onReorderExercises}
         onUpdateName={onUpdateName}
         onUpdateType={onUpdateType}
