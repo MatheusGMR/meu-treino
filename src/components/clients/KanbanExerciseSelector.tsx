@@ -173,9 +173,28 @@ export function KanbanExerciseSelector({
 
   const handleExerciseSelect = (exerciseId: string) => {
     setSelectedExercise(exerciseId);
-    setSelectedVolume(null);
-    setSelectedMethod(null);
-    setActiveColumnIndex(3);
+    
+    // Auto-fill defaults if available
+    const hasDefaultVolume = !!defaultVolumeId;
+    const hasDefaultMethod = !!defaultMethodId;
+    
+    if (hasDefaultVolume && hasDefaultMethod) {
+      setSelectedVolume(defaultVolumeId);
+      setSelectedMethod(defaultMethodId);
+      // Don't advance column - stay showing all as complete
+    } else if (hasDefaultVolume) {
+      setSelectedVolume(defaultVolumeId);
+      setSelectedMethod(null);
+      setActiveColumnIndex(4); // Jump to Method
+    } else if (hasDefaultMethod) {
+      setSelectedVolume(null);
+      setSelectedMethod(null);
+      setActiveColumnIndex(3); // Go to Volume
+    } else {
+      setSelectedVolume(null);
+      setSelectedMethod(null);
+      setActiveColumnIndex(3);
+    }
 
     // Verificar contraindicação e mostrar toast
     const contraindicationCheck = contraindicationResults.get(exerciseId);
