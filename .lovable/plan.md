@@ -1,60 +1,108 @@
 
 
-## Implementação dos 3 Pontos de Alta Prioridade
+## Metodo Padrao por Sessao com Auto-Preenchimento
 
-### 1. Permitir nomear e tipar sessões
+### Conceito
 
-**Arquivo:** `src/components/clients/SessionCard.tsx`
+O profissional seleciona um **metodo padrao** ao criar/expandir uma sessao. Esse metodo pre-preenche automaticamente a coluna "Metodo" (e sugere volumes compativeis) no Kanban para cada exercicio adicionado. O fluxo Kanban passa de 5 passos para efetivamente 3 (Tipo → Grupo → Exercicio), acelerando a montagem.
 
-- Adicionar props `onUpdateName` e `onUpdateDescription` ao `SessionCardProps`
-- No header da sessão, ao lado do nome, adicionar um botão de edição (ícone `Edit`) que abre um inline edit
-- Quando `isNew`, mostrar um `Input` editável para o nome da sessão em vez de texto fixo "Sessão 1"
-- Adicionar um `Select` compacto para o tipo de sessão (Musculação/Mobilidade/Alongamento) ao lado do nome
-
-**Arquivo:** `src/components/clients/WorkoutBuilder.tsx`
-
-- Criar handler `handleUpdateSessionName` que chama `builder.updateSession()` com o novo nome
-- Passar as novas props ao `SessionCard`/`SortableSession`
-
-**Arquivo:** `src/hooks/useClientWorkoutBuilder.ts`
-
-- Adicionar campo `session_type` ao `TempSession` interface (já existe no schema como obrigatório)
-- Garantir que o `session_type` seja enviado na submissão
-
-### 2. Toast + auto-scroll ao adicionar exercício
-
-**Arquivo:** `src/components/clients/SessionCard.tsx`
-
-- Adicionar `useRef` para a div da lista de exercícios adicionados
-- No `onAddExercise` callback, após adicionar:
-  - Exibir toast de sucesso: "Exercício adicionado à sessão"
-  - Fazer `scrollIntoView({ behavior: 'smooth' })` da lista de exercícios para que fique visível
-- Atualizar o badge de contagem em tempo real (já funciona via props)
-
-**Arquivo:** `src/components/clients/KanbanExerciseSelector.tsx`
-
-- Sem mudanças — o `onSave` já propaga corretamente
-
-### 3. Confirmação ao remover sessão com exercícios
-
-**Arquivo:** `src/components/clients/SessionCard.tsx`
-
-- Importar `AlertDialog` components
-- Envolver o botão de remover com `AlertDialog`:
-  - Se `session.exercises.length > 0`: mostrar dialog de confirmação com mensagem "Esta sessão contém X exercício(s). Deseja removê-la?"
-  - Se a sessão estiver vazia: remover diretamente sem confirmação
-
-**Arquivo:** `src/components/clients/WorkoutBuilder.tsx`
-
-- Nenhuma mudança necessária — o `onRemove` já está propagado
+O metodo pode ser alterado por exercicio individual no Kanban (a coluna continua editavel).
 
 ---
 
-### Resumo de Arquivos
+### Fluxo Proposto
 
-| Arquivo | Alterações |
+```text
+SessionCard Header:
+┌──────────────────────────────────────────────────────────────┐
+│ [≡] [▼] [Nome da Sessao______] [Tipo: Musculacao ▼]         │
+│                                                              │
+│ Metodo padrao: [Selecionar metodo... ▼]  ← NOVO              │
+│   "3/12 - Hipertrofia • Baixo risco • Pausa 60s"            │
+│                                                              │
+│ Volume padrao: [Selecionar volume... ▼]  ← NOVO              │
+│   "3x12 • Hipertrofia"                                      │
+├──────────────────────────────────────────────────────────────┤
+│ Kanban: Tipo → Grupo → Exercicio → [Volume*] → [Metodo*]    │
+│                                      ↑ pre-preenchido        │
+│                                      (editavel por exercicio)│
+└──────────────────────────────────────────────────────────────┘
+```
+
+Quando o metodo padrao esta definido:
+- A coluna "Volume" mostra o volume padrao ja selecionado mas permite trocar
+- A coluna "Metodo" mostra o metodo padrao ja selecionado mas permite trocar
+- O Kanban avanca automaticamente ate a coluna de exercicio (pula Volume e Metodo se ja preenchidos)
+- Ao completar a selecao do exercicio, o sistema ja tem tudo para adicionar
+
+---
+
+### Alteracoes por Arquivo
+
+#### 1. `src/components/clients/SessionCard.tsx`
+
+- Adicionar dois `Select` no header da sessao (abaixo do nome/tipo):
+  - **Metodo padrao**: lista todos os metodos disponiveis, mostra nome + objetivo + reps
+  - **Volume padrao**: lista todos os volumes, mostra nome + series x exercicios
+- Armazenar `defaultMethodId` e `defaultVolumeId` como estado local
+- Passar esses valores ao `KanbanExerciseSelector` via novas props
+- Exibir um resumo descritivo do metodo selecionado (reps, pausa, cadencia, carga)
+
+#### 2. `src/components/clients/KanbanExerciseSelector.tsx`
+
+- Novas props: `defaultMethodId?: string`, `defaultVolumeId?: string`
+- Quando `defaultMethodId` existe:
+  - Iniciar `selectedMethod` com esse valor
+  - Iniciar `selectedVolume` com `defaultVolumeId` (se fornecido)
+  - Se ambos estao preenchidos, o `activeColumnIndex` inicial e 0 (Tipo) normalmente, mas ao selecionar exercicio, pular diretamente para confirmacao
+- Ajustar `handleExerciseSelect`: se defaults existem, setar volume/metodo automaticamente e marcar como completo
+- A coluna Metodo e Volume continuam editaveis - o trainer clica para expandir e trocar se quiser
+- Ao clicar "Adicionar Outro Exercicio", manter os defaults (nao resetar volume/metodo)
+
+#### 3. `src/hooks/useClientWorkoutBuilder.ts`
+
+- Sem mudancas no hook principal - os defaults sao gerenciados no nivel do SessionCard/Kanban
+
+---
+
+### Detalhes do Select de Metodo no SessionCard
+
+O select mostrara cada metodo com informacoes uteis:
+
+```text
+┌─────────────────────────────────────────┐
+│ Drop Set                                │
+│   Hipertrofia • 8-12 reps • Pausa 60s  │
+├─────────────────────────────────────────┤
+│ Piramide Crescente                      │
+│   Forca • 6-10 reps • Pausa 90s        │
+├─────────────────────────────────────────┤
+│ Bi-Set                                  │
+│   Hipertrofia • 10-15 reps • Pausa 45s │
+└─────────────────────────────────────────┘
+```
+
+Apos selecionar, exibe um card resumo:
+```text
+Metodo: Drop Set
+  Reps: 8-12 | Pausa: 60s | Carga: Alta
+  Cadencia: 2-1-3 | Risco: Medio | Energia: Alta
+```
+
+---
+
+### Comportamento Inteligente do Kanban com Defaults
+
+1. **Sem defaults**: Fluxo atual (Tipo → Grupo → Exercicio → Volume → Metodo)
+2. **Com metodo + volume padrao**: Ao selecionar exercicio, sistema auto-preenche e mostra botao "Adicionar" imediatamente. Colunas Volume e Metodo mostram o valor default com indicador visual "padrao" e botao para editar
+3. **Resetar defaults**: Botao "Limpar padrao" no SessionCard para voltar ao fluxo manual
+
+---
+
+### Arquivos a Modificar
+
+| Arquivo | Alteracoes |
 |---------|------------|
-| `src/components/clients/SessionCard.tsx` | Edição inline de nome/tipo, toast+scroll ao adicionar, AlertDialog ao remover |
-| `src/components/clients/WorkoutBuilder.tsx` | Handlers para atualizar nome/tipo de sessão, passar novas props |
-| `src/hooks/useClientWorkoutBuilder.ts` | Adicionar `session_type` ao TempSession |
+| `src/components/clients/SessionCard.tsx` | Adicionar selects de metodo/volume padrao no header, passar props ao Kanban |
+| `src/components/clients/KanbanExerciseSelector.tsx` | Receber defaults, auto-preencher, pular colunas, manter editavel |
 
