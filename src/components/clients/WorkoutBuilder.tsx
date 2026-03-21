@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Plus, GripVertical, RefreshCw, Sparkles } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 // Layout fixo sem ResizablePanelGroup
 import { useClientWorkoutBuilder } from "@/hooks/useClientWorkoutBuilder";
 import { HealthAlertPanel } from "./HealthAlertPanel";
