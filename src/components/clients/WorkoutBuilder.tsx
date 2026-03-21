@@ -344,6 +344,14 @@ export const WorkoutBuilder = ({
                           onRemoveExercise={(exerciseIndex) =>
                             handleRemoveExerciseFromSession(index, exerciseIndex)
                           }
+                          onUpdateExerciseNotes={(exerciseIndex, notes) => {
+                            const s = builder.tempWorkout.sessions[index];
+                            if (!s) return;
+                            const updatedExercises = s.exercises.map((ex, i) =>
+                              i === exerciseIndex ? { ...ex, notes } : ex
+                            );
+                            builder.updateSession(index, { ...s, exercises: updatedExercises });
+                          }}
                           onReorderExercises={(startIndex, endIndex) => {
                             builder.reorderExercisesInSession(index, startIndex, endIndex);
                           }}
