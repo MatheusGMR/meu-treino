@@ -110,6 +110,7 @@ const SortableSession = ({
         isExpanded={isExpanded}
         onToggleExpand={onToggleExpand}
         onRemove={onRemove}
+        onDuplicate={onDuplicate}
         onAddExercise={onAddExercise}
         onRemoveExercise={onRemoveExercise}
         onReorderExercises={onReorderExercises}
