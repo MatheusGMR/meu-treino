@@ -17,6 +17,7 @@ interface TempSession {
   id?: string;
   name: string;
   description: string;
+  session_type?: string;
   exercises: SessionExerciseData[];
   isNew?: boolean;
   isEdited?: boolean;

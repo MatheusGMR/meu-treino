@@ -1,10 +1,30 @@
-import { useState } from "react";
-import { ChevronDown, ChevronRight, Edit, Trash2, GripVertical } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { ChevronDown, ChevronRight, Trash2, GripVertical, Video } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { KanbanExerciseSelector } from "./KanbanExerciseSelector";
 import { InlineExerciseRow } from "./InlineExerciseRow";
+import { toast } from "@/hooks/use-toast";
 import type { SessionExerciseData } from "@/lib/schemas/sessionSchema";
 import {
   DndContext,
@@ -16,7 +36,6 @@ import {
   DragEndEvent,
 } from "@dnd-kit/core";
 import {
-  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
@@ -29,6 +48,7 @@ interface TempSession {
   id?: string;
   name: string;
   description: string;
+  session_type?: string;
   exercises: SessionExerciseData[];
   isNew?: boolean;
 }
@@ -42,6 +62,8 @@ interface SessionCardProps {
   onAddExercise: (exercise: SessionExerciseData) => void;
   onRemoveExercise: (exerciseIndex: number) => void;
   onReorderExercises?: (startIndex: number, endIndex: number) => void;
+  onUpdateName?: (name: string) => void;
+  onUpdateType?: (type: string) => void;
   dragHandleAttributes?: any;
   dragHandleListeners?: any;
   clientMedicalConditions?: string | null;
@@ -101,16 +123,35 @@ export const SessionCard = ({
   onAddExercise,
   onRemoveExercise,
   onReorderExercises,
+  onUpdateName,
+  onUpdateType,
   dragHandleAttributes,
   dragHandleListeners,
   clientMedicalConditions,
 }: SessionCardProps) => {
+  const exerciseListRef = useRef<HTMLDivElement>(null);
+  const prevExerciseCount = useRef(session.exercises.length);
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  // Auto-scroll + toast when exercise is added
+  useEffect(() => {
+    if (session.exercises.length > prevExerciseCount.current) {
+      toast({
+        title: "Exercício adicionado",
+        description: `${session.exercises.length} exercício${session.exercises.length !== 1 ? 's' : ''} na sessão`,
+      });
+      setTimeout(() => {
+        exerciseListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    }
+    prevExerciseCount.current = session.exercises.length;
+  }, [session.exercises.length]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -122,6 +163,39 @@ export const SessionCard = ({
 
     onReorderExercises(oldIndex, newIndex);
   };
+
+  const handleRemoveClick = () => {
+    onRemove();
+  };
+
+  const removeButton = session.exercises.length > 0 ? (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="ghost" size="icon" className="shrink-0">
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Remover sessão?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Esta sessão contém {session.exercises.length} exercício{session.exercises.length !== 1 ? 's' : ''}. 
+            Ao removê-la, todos os exercícios serão perdidos. Deseja continuar?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={handleRemoveClick}>
+            Remover
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  ) : (
+    <Button variant="ghost" size="icon" onClick={handleRemoveClick} className="shrink-0">
+      <Trash2 className="w-4 h-4" />
+    </Button>
+  );
 
   return (
     <Card>
@@ -151,10 +225,35 @@ export const SessionCard = ({
             </Button>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h4 className="font-semibold">{session.name}</h4>
-                <Badge variant={session.isNew ? "default" : "secondary"}>
-                  {session.isNew ? "Nova" : "Existente"}
-                </Badge>
+                {session.isNew && onUpdateName ? (
+                  <Input
+                    value={session.name}
+                    onChange={(e) => onUpdateName(e.target.value)}
+                    className="h-8 text-sm font-semibold max-w-[200px]"
+                    placeholder="Nome da sessão"
+                  />
+                ) : (
+                  <h4 className="font-semibold">{session.name}</h4>
+                )}
+                {session.isNew && onUpdateType ? (
+                  <Select
+                    value={session.session_type || ""}
+                    onValueChange={(val) => onUpdateType(val)}
+                  >
+                    <SelectTrigger className="h-8 w-[140px] text-xs">
+                      <SelectValue placeholder="Tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Musculação">Musculação</SelectItem>
+                      <SelectItem value="Mobilidade">Mobilidade</SelectItem>
+                      <SelectItem value="Alongamento">Alongamento</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  !session.isNew && (
+                    <Badge variant="secondary">Existente</Badge>
+                  )
+                )}
                 <Badge variant="outline">
                   {session.exercises.length} exercício{session.exercises.length !== 1 ? 's' : ''}
                 </Badge>
@@ -166,14 +265,7 @@ export const SessionCard = ({
               )}
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onRemove}
-            className="shrink-0"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+          {removeButton}
         </div>
       </CardHeader>
 
@@ -184,7 +276,6 @@ export const SessionCard = ({
             <h5 className="text-sm font-semibold text-foreground">
               Adicionar mais exercícios
             </h5>
-            {/* Kanban agora cuida do scroll horizontal internamente */}
             <KanbanExerciseSelector
               onSave={onAddExercise}
               onComplete={() => {}}
@@ -195,7 +286,7 @@ export const SessionCard = ({
 
           {/* Lista de exercícios - se existirem */}
           {session.exercises.length > 0 && (
-            <div className="space-y-3 pt-6 border-t border-border/30">
+            <div className="space-y-3 pt-6 border-t border-border/30" ref={exerciseListRef}>
               <h5 className="text-sm font-semibold text-muted-foreground">
                 Exercícios adicionados
               </h5>
