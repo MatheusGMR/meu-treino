@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { ChevronDown, ChevronRight, Trash2, GripVertical, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Trash2, GripVertical, X, Copy } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
