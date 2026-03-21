@@ -62,6 +62,8 @@ interface SortableSessionProps {
   onAddExercise: (exercise: SessionExerciseData) => void;
   onRemoveExercise: (exerciseIndex: number) => void;
   onReorderExercises: (startIndex: number, endIndex: number) => void;
+  onUpdateName: (name: string) => void;
+  onUpdateType: (type: string) => void;
   clientMedicalConditions?: string | null;
   enableDrag: boolean;
 }
