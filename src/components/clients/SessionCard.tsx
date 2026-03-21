@@ -418,6 +418,7 @@ export const SessionCard = ({
                         exercise={ex}
                         index={idx}
                         onRemove={() => onRemoveExercise(idx)}
+                        onUpdateNotes={onUpdateExerciseNotes ? (notes) => onUpdateExerciseNotes(idx, notes) : undefined}
                       />
                     ))}
                   </div>
