@@ -233,11 +233,12 @@ export function KanbanExerciseSelector({
     
     onSave(exerciseData);
 
+    // Reset but keep defaults
     setSelectedType(null);
     setSelectedGroup(null);
     setSelectedExercise(null);
-    setSelectedVolume(null);
-    setSelectedMethod(null);
+    setSelectedVolume(defaultVolumeId || null);
+    setSelectedMethod(defaultMethodId || null);
     setSearchQuery("");
     setActiveColumnIndex(0);
   };
