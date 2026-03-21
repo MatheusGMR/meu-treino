@@ -171,6 +171,7 @@ export const WorkoutBuilder = ({
     builder.addNewSession({
       name: `Sessão ${sessionNumber}`,
       description: "",
+      session_type: "Musculação",
       exercises: [],
       isNew: true,
     });
