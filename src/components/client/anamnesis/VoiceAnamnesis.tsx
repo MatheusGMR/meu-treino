@@ -90,19 +90,33 @@ const VoiceAnamnesisInner = () => {
   const [isGeneratingWorkout, setIsGeneratingWorkout] = useState(false);
   const [trialWorkoutReady, setTrialWorkoutReady] = useState(false);
   const messagesRef = useRef<Array<{ role: string; content: string }>>([]);
-  const [conversationStarted, setConversationStarted] = useState(false);
+  const conversationStartedRef = useRef(false);
+  const isProcessingRef = useRef(false);
+  const showCompletionRef = useRef(false);
+  const connectedAtRef = useRef<number>(0);
   const [lastMessage, setLastMessage] = useState("");
 
   const conversation = useConversation({
     onConnect: () => {
       console.log("Connected to Júnior");
-      setConversationStarted(true);
+      conversationStartedRef.current = true;
+      connectedAtRef.current = Date.now();
     },
     onDisconnect: () => {
       console.log("Disconnected from Júnior");
-      if (conversationStarted && !isProcessing && !showCompletion) {
+      const connectionDuration = Date.now() - connectedAtRef.current;
+      // Only process if the conversation lasted at least 5 seconds
+      if (
+        conversationStartedRef.current &&
+        !isProcessingRef.current &&
+        !showCompletionRef.current &&
+        connectionDuration > 5000
+      ) {
         handleConversationEnd();
+      } else if (connectionDuration <= 5000 && conversationStartedRef.current) {
+        console.log("Connection too brief, ignoring disconnect");
       }
+      conversationStartedRef.current = false;
     },
     onMessage: (message: any) => {
       if (message.type === "user_transcript" && message.user_transcription_event?.user_transcript) {
