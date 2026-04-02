@@ -277,6 +277,12 @@ const ClientDashboard = () => {
       )}
 
       <BottomNavigation activeTab="plano" />
+
+      <DailyCheckinDialog
+        open={showCheckin}
+        onClose={handleCheckinClose}
+        sessionId={todayWorkout?.session_id}
+      />
     </div>
   );
 };
