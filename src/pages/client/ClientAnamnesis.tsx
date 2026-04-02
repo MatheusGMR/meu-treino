@@ -796,6 +796,19 @@ const ClientAnamnesis = () => {
 
   const userName = user?.user_metadata?.full_name || "Aluno";
 
+  if (mode === "choice") {
+    return (
+      <AnamnesisMethodChoice
+        onChooseWritten={() => setMode("written")}
+        onChooseVoice={() => setMode("voice")}
+      />
+    );
+  }
+
+  if (mode === "voice") {
+    return <VoiceAnamnesis />;
+  }
+
   if (showCompletion) {
     return (
       <AnamnesisCompletionScreen
