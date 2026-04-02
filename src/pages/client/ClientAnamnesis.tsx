@@ -16,6 +16,7 @@ import { AnamnesisProgress } from "@/components/client/anamnesis/AnamnesisProgre
 import { AnamnesisNavigation } from "@/components/client/anamnesis/AnamnesisNavigation";
 import { AnamnesisStepHeader } from "@/components/client/anamnesis/AnamnesisStepHeader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AnamnesisCompletionScreen } from "@/components/client/AnamnesisCompletionScreen";
 
 const ClientAnamnesis = () => {
   const navigate = useNavigate();
@@ -23,6 +24,9 @@ const ClientAnamnesis = () => {
   const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [showCompletion, setShowCompletion] = useState(false);
+  const [isGeneratingWorkout, setIsGeneratingWorkout] = useState(false);
+  const [trialWorkoutReady, setTrialWorkoutReady] = useState(false);
   const totalSteps = 8;
 
   // Form state - Anamnese 2.0
