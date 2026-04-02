@@ -231,6 +231,7 @@ const VoiceAnamnesisInner = () => {
       await queryClient.invalidateQueries({ queryKey: ["anamnesis-status", user?.id] });
 
       setShowCompletion(true);
+      showCompletionRef.current = true;
       setIsGeneratingWorkout(true);
 
       // Generate trial workout
