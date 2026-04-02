@@ -10,6 +10,8 @@ import { SubscriptionGuard } from "@/components/auth/SubscriptionGuard";
 import Index from "./pages/Index";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import ChoosePlan from "./pages/ChoosePlan";
 import Exercises from "./pages/personal/Exercises";
@@ -61,6 +63,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/register" element={<Register />} />
+            <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+            <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route
               path="/escolher-plano"
               element={
