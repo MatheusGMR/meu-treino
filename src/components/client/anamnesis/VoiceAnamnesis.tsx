@@ -198,7 +198,11 @@ const VoiceAnamnesisInner = () => {
   }, [conversation]);
 
   const handleConversationEnd = async () => {
-    if (messagesRef.current.length < 3) {
+    // With server-side fallback, we only need conversationId OR messages
+    const hasConversationId = !!conversationIdRef.current;
+    const hasMessages = messagesRef.current.length > 0;
+
+    if (!hasConversationId && !hasMessages) {
       toast({
         title: "Conversa muito curta",
         description: "Converse um pouco mais com o Júnior para completar a anamnese.",
@@ -213,7 +217,12 @@ const VoiceAnamnesisInner = () => {
     try {
       const { data, error } = await supabase.functions.invoke(
         "process-voice-anamnesis",
-        { body: { messages: messagesRef.current } }
+        {
+          body: {
+            messages: messagesRef.current,
+            conversationId: conversationIdRef.current,
+          },
+        }
       );
 
       if (error) throw error;
