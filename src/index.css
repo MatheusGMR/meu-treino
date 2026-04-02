@@ -126,8 +126,8 @@ All colors MUST be HSL.
 
     --background-section: 222 47% 12%;
     
-    --gradient-primary: linear-gradient(135deg, hsl(4 90% 58%), hsl(24 95% 53%));
-    --gradient-hero: linear-gradient(135deg, hsl(4 90% 58% / 0.95), hsl(24 95% 53% / 0.9));
+    --gradient-primary: linear-gradient(135deg, hsl(348 83% 47%), hsl(348 90% 60%));
+    --gradient-hero: linear-gradient(135deg, hsl(348 83% 47% / 0.95), hsl(348 90% 60% / 0.9));
     --gradient-card: linear-gradient(180deg, hsl(217 33% 17%), hsl(222 47% 11%));
     
     --shadow-glow: 0 0 40px hsl(4 90% 58% / 0.4);
