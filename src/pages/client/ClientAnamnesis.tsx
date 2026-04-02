@@ -272,6 +272,8 @@ const ClientAnamnesis = () => {
   const handleContinueToDashboard = () => {
     navigate("/client/dashboard", { replace: true });
   };
+
+  const renderStep = () => {
     switch (currentStep) {
       case 1: // Pilar 1: Identificação
         return (
