@@ -7,7 +7,7 @@ import logoJmFull from "@/assets/logo-jm-full.png";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background dark">
+    <div className="min-h-screen bg-background">
       <Navbar />
       
       <main>
@@ -16,11 +16,11 @@ const Index = () => {
         <Features />
         
         {/* Roles Section */}
-        <section id="roles" className="py-24">
+        <section id="roles" className="py-24 bg-muted/30">
           <div className="container px-4">
             <div className="text-center max-w-3xl mx-auto mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold mb-4">
-                Feito Para <span className="bg-gradient-primary bg-clip-text text-transparent">Todos</span>
+              <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+                Feito Para <span className="text-primary">Todos</span>
               </h2>
               <p className="text-xl text-muted-foreground">
                 Escolha sua jornada e comece a transformação hoje
@@ -75,10 +75,10 @@ const Index = () => {
 
         {/* CTA Section */}
         <section className="py-24 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-primary opacity-10" />
+          <div className="absolute inset-0 bg-primary/5" />
           <div className="container px-4 relative z-10">
             <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
                 Pronto Para Começar?
               </h2>
               <p className="text-xl text-muted-foreground mb-8">
@@ -86,12 +86,12 @@ const Index = () => {
               </p>
               <div className="flex flex-wrap gap-4 justify-center">
                 <a href="/auth/register">
-                  <button className="px-8 py-4 rounded-lg bg-gradient-primary text-primary-foreground font-bold text-lg shadow-glow hover:shadow-xl hover:scale-105 transition-all duration-300">
+                  <button className="px-8 py-4 rounded-lg bg-primary text-primary-foreground font-bold text-lg hover:bg-primary/90 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200">
                     Cadastre-se Gratuitamente
                   </button>
                 </a>
                 <a href="/auth/login">
-                  <button className="px-8 py-4 rounded-lg border-2 border-primary bg-transparent text-primary hover:bg-primary hover:text-primary-foreground font-bold text-lg transition-all duration-300">
+                  <button className="px-8 py-4 rounded-lg border-2 border-foreground bg-transparent text-foreground hover:bg-foreground hover:text-background font-bold text-lg transition-all duration-200">
                     Já tenho conta
                   </button>
                 </a>
@@ -102,7 +102,7 @@ const Index = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border py-12">
+      <footer className="bg-secondary text-secondary-foreground py-12">
         <div className="container px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
@@ -112,7 +112,7 @@ const Index = () => {
                 className="h-12 w-auto object-contain rounded-lg"
               />
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-secondary-foreground/70">
               © 2025 Todos os direitos reservados.
             </p>
           </div>

@@ -9,8 +9,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dumbbell, Users } from "lucide-react";
 import logoJmFull from "@/assets/logo-jm-full.png";
 import { toast } from "sonner";
-import { BackgroundWrapper } from "@/components/BackgroundWrapper";
-import { supabase } from "@/integrations/supabase/client";
 
 const Register = () => {
   const [email, setEmail] = useState("");
@@ -45,18 +43,17 @@ const Register = () => {
   };
 
   return (
-    <BackgroundWrapper overlayOpacity="medium">
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-lg hover:shadow-glow transition-all duration-300">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-muted">
+      <Card className="w-full max-w-lg border border-border shadow-lg hover:shadow-xl transition-shadow duration-300">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <img 
               src={logoJmFull} 
               alt="Junior Mello Treinamentos" 
-              className="h-24 w-auto object-contain rounded-xl"
+              className="h-20 w-auto object-contain rounded-xl"
             />
           </div>
-          <CardTitle className="text-2xl">Criar Conta</CardTitle>
+          <CardTitle className="text-2xl text-foreground">Criar Conta</CardTitle>
           <CardDescription>Escolha seu perfil e comece sua jornada</CardDescription>
         </CardHeader>
         <form onSubmit={handleRegister}>
@@ -69,6 +66,7 @@ const Register = () => {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 required
+                className="focus:border-primary focus:ring-primary"
               />
             </div>
             <div className="space-y-2">
@@ -80,6 +78,7 @@ const Register = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="focus:border-primary focus:ring-primary"
               />
             </div>
             <div className="space-y-2">
@@ -92,27 +91,28 @@ const Register = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
+                className="focus:border-primary focus:ring-primary"
               />
             </div>
             <div className="space-y-3">
               <Label>Tipo de Perfil</Label>
               <RadioGroup value={role} onValueChange={(value: any) => setRole(value)}>
-                <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-accent cursor-pointer">
+                <div className="flex items-center space-x-2 p-3 border border-border rounded-lg hover:border-primary hover:bg-primary/5 cursor-pointer transition-all">
                   <RadioGroupItem value="client" id="client" />
                   <Label htmlFor="client" className="flex items-center gap-2 cursor-pointer flex-1">
                     <Users className="w-5 h-5 text-primary" />
                     <div>
-                      <p className="font-medium">Cliente</p>
+                      <p className="font-semibold">Cliente</p>
                       <p className="text-xs text-muted-foreground">Treinar e acompanhar progresso</p>
                     </div>
                   </Label>
                 </div>
-                <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-accent cursor-pointer">
+                <div className="flex items-center space-x-2 p-3 border border-border rounded-lg hover:border-primary hover:bg-primary/5 cursor-pointer transition-all">
                   <RadioGroupItem value="personal" id="personal" />
                   <Label htmlFor="personal" className="flex items-center gap-2 cursor-pointer flex-1">
                     <Dumbbell className="w-5 h-5 text-primary" />
                     <div>
-                      <p className="font-medium">Personal Trainer</p>
+                      <p className="font-semibold">Personal Trainer</p>
                       <p className="text-xs text-muted-foreground">Gerenciar clientes e treinos</p>
                     </div>
                   </Label>
@@ -121,20 +121,19 @@ const Register = () => {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" variant="hero" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold hover:-translate-y-0.5 transition-all duration-200 hover:shadow-lg" disabled={loading}>
               {loading ? "Criando conta..." : "Criar Conta"}
             </Button>
             <p className="text-sm text-muted-foreground text-center">
               Já tem uma conta?{" "}
-              <Link to="/auth/login" className="text-primary hover:underline">
+              <Link to="/auth/login" className="text-primary hover:underline font-semibold">
                 Entrar
               </Link>
             </p>
           </CardFooter>
         </form>
       </Card>
-      </div>
-    </BackgroundWrapper>
+    </div>
   );
 };
 
