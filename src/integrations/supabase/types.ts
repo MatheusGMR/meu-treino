@@ -1273,6 +1273,63 @@ export type Database = {
           },
         ]
       }
+      post_workout_feedbacks: {
+        Row: {
+          ai_analysis: Json | null
+          client_id: string
+          created_at: string
+          difficulty_rating: string | null
+          feedback_date: string
+          id: string
+          mood_category: string | null
+          mood_summary: string | null
+          schedule_id: string | null
+          session_id: string | null
+          transcription: string | null
+        }
+        Insert: {
+          ai_analysis?: Json | null
+          client_id: string
+          created_at?: string
+          difficulty_rating?: string | null
+          feedback_date?: string
+          id?: string
+          mood_category?: string | null
+          mood_summary?: string | null
+          schedule_id?: string | null
+          session_id?: string | null
+          transcription?: string | null
+        }
+        Update: {
+          ai_analysis?: Json | null
+          client_id?: string
+          created_at?: string
+          difficulty_rating?: string | null
+          feedback_date?: string
+          id?: string
+          mood_category?: string | null
+          mood_summary?: string | null
+          schedule_id?: string | null
+          session_id?: string | null
+          transcription?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_workout_feedbacks_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "daily_workout_schedule"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_workout_feedbacks_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           anamnesis_completed: boolean | null
