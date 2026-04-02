@@ -1,14 +1,6 @@
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useState } from "react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { AlertTriangle, Clock, Plus, MoreHorizontal } from "lucide-react";
 
 interface AbandonWorkoutDialogProps {
   open: boolean;
@@ -17,54 +9,108 @@ interface AbandonWorkoutDialogProps {
 }
 
 const reasons = [
-  { id: "too_hard", label: "Muito difícil", emoji: "😰" },
-  { id: "too_long", label: "Muito longo", emoji: "⏰" },
-  { id: "pain", label: "Sentindo dor", emoji: "🤕" },
-  { id: "exploring", label: "Só conhecendo", emoji: "👀" },
-  { id: "other", label: "Outro motivo", emoji: "💭" },
+  {
+    id: "difficult",
+    icon: AlertTriangle,
+    title: "Muito difícil",
+    description: "Quero um treino mais fácil",
+  },
+  {
+    id: "long",
+    icon: Clock,
+    title: "Muito longo",
+    description: "Quero passar menos tempo me exercitando",
+  },
+  {
+    id: "exploring",
+    icon: Plus,
+    title: "Só estou conhecendo",
+    description: "Quero me exercitar mais tarde",
+  },
+  {
+    id: "other",
+    icon: MoreHorizontal,
+    title: "Outros",
+    description: "Motivos pessoais",
+  },
 ];
 
-export const AbandonWorkoutDialog = ({ open, onOpenChange, onConfirm }: AbandonWorkoutDialogProps) => {
+export const AbandonWorkoutDialog = ({
+  open,
+  onOpenChange,
+  onConfirm,
+}: AbandonWorkoutDialogProps) => {
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
+  const [step, setStep] = useState<'confirm' | 'reason'>('confirm');
+
+  const handleClose = () => {
+    setStep('confirm');
+    setSelectedReason(null);
+    onOpenChange(false);
+  };
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-sm">
-        <AlertDialogHeader>
-          <AlertDialogTitle className="text-foreground">Encerrar treino?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Seu progresso parcial será salvo. Nos diga o motivo para melhorarmos sua experiência.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="client-dark bg-card border-border text-foreground max-w-sm mx-auto p-0 gap-0 [&>button]:hidden">
+        {step === 'confirm' ? (
+          <div className="p-6 text-center">
+            <h2 className="text-xl font-bold text-foreground mb-6">Encerrar o treino?</h2>
+            <div className="flex gap-3">
+              <button
+                onClick={handleClose}
+                className="flex-1 py-3 rounded-lg border-2 border-border text-foreground font-bold text-sm uppercase tracking-wider hover:border-foreground transition-all"
+              >
+                NÃO
+              </button>
+              <button
+                onClick={() => setStep('reason')}
+                className="flex-1 py-3 rounded-lg bg-primary text-primary-foreground font-bold text-sm uppercase tracking-wider hover:bg-primary/90 transition-all"
+              >
+                SIM
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="p-6">
+            <h2 className="text-xl font-bold text-foreground text-center mb-1">
+              Já está saindo do treino?
+            </h2>
+            <p className="text-sm text-muted-foreground text-center mb-6">Nos ajude a melhorar</p>
 
-        <div className="space-y-2 py-2">
-          {reasons.map((reason) => (
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              {reasons.map((reason) => {
+                const Icon = reason.icon;
+                const isSelected = selectedReason === reason.id;
+                return (
+                  <button
+                    key={reason.id}
+                    onClick={() => setSelectedReason(reason.id)}
+                    className={`
+                      flex flex-col items-center justify-center p-5 rounded-xl border-2 transition-all text-center min-h-[120px]
+                      ${isSelected
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border bg-muted/50 hover:border-primary/50'
+                      }
+                    `}
+                  >
+                    <Icon className={`w-6 h-6 mb-2 ${isSelected ? 'text-primary' : 'text-primary/70'}`} />
+                    <span className="font-bold text-sm text-foreground">{reason.title}</span>
+                    <span className="text-[11px] text-muted-foreground mt-1 leading-tight">{reason.description}</span>
+                  </button>
+                );
+              })}
+            </div>
+
             <button
-              key={reason.id}
-              onClick={() => setSelectedReason(reason.id)}
-              className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left text-sm font-medium
-                ${selectedReason === reason.id 
-                  ? 'border-primary bg-primary/5 text-foreground' 
-                  : 'border-border text-muted-foreground hover:border-primary/50'
-                }`}
+              onClick={() => selectedReason && onConfirm(selectedReason)}
+              disabled={!selectedReason}
+              className="w-full py-3.5 rounded-lg bg-primary text-primary-foreground font-bold text-sm uppercase tracking-wider disabled:opacity-50 hover:bg-primary/90 transition-all"
             >
-              <span className="text-lg">{reason.emoji}</span>
-              {reason.label}
+              ENVIAR
             </button>
-          ))}
-        </div>
-
-        <AlertDialogFooter>
-          <AlertDialogCancel>Continuar treino</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={() => onConfirm(selectedReason || "other")}
-            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-            disabled={!selectedReason}
-          >
-            Encerrar
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 };

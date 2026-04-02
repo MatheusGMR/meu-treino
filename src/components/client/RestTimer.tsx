@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Pause, Play, SkipForward } from "lucide-react";
 
 interface RestTimerProps {
@@ -13,35 +12,18 @@ export const RestTimer = ({ restTime, onComplete }: RestTimerProps) => {
 
   useEffect(() => {
     if (!isRunning || timeLeft <= 0) return;
-
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
-        if (prev <= 1) {
-          setIsRunning(false);
-          onComplete();
-          return 0;
-        }
+        if (prev <= 1) { setIsRunning(false); onComplete(); return 0; }
         return prev - 1;
       });
     }, 1000);
-
     return () => clearInterval(interval);
   }, [isRunning, timeLeft, onComplete]);
 
-  const handleStart = () => {
-    setTimeLeft(restTime);
-    setIsRunning(true);
-  };
-
-  const handlePause = () => {
-    setIsRunning(false);
-  };
-
-  const handleSkip = () => {
-    setIsRunning(false);
-    setTimeLeft(0);
-    onComplete();
-  };
+  const handleStart = () => { setTimeLeft(restTime); setIsRunning(true); };
+  const handlePause = () => setIsRunning(false);
+  const handleSkip = () => { setIsRunning(false); setTimeLeft(0); onComplete(); };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -52,53 +34,43 @@ export const RestTimer = ({ restTime, onComplete }: RestTimerProps) => {
   const progress = ((restTime - timeLeft) / restTime) * 100;
 
   return (
-    <div className="space-y-4">
-      <div className="relative w-32 h-32 mx-auto">
-        <svg className="transform -rotate-90 w-32 h-32">
+    <div className="space-y-3">
+      <div className="relative w-28 h-28 mx-auto">
+        <svg className="transform -rotate-90 w-28 h-28">
+          <circle cx="56" cy="56" r="52" stroke="hsl(var(--border))" strokeWidth="5" fill="none" />
           <circle
-            cx="64"
-            cy="64"
-            r="60"
-            stroke="hsl(var(--border))"
-            strokeWidth="6"
-            fill="none"
-          />
-          <circle
-            cx="64"
-            cy="64"
-            r="60"
+            cx="56" cy="56" r="52"
             stroke="hsl(var(--primary))"
-            strokeWidth="6"
+            strokeWidth="5"
             fill="none"
             strokeLinecap="round"
-            strokeDasharray={`${2 * Math.PI * 60}`}
-            strokeDashoffset={`${2 * Math.PI * 60 * (1 - progress / 100)}`}
+            strokeDasharray={`${2 * Math.PI * 52}`}
+            strokeDashoffset={`${2 * Math.PI * 52 * (1 - progress / 100)}`}
             className="transition-all duration-1000"
+            style={{ filter: 'drop-shadow(0 0 8px hsl(var(--primary) / 0.4))' }}
           />
         </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-3xl font-bold text-foreground">{formatTime(timeLeft)}</span>
+          <span className="text-[10px] uppercase tracking-wider text-primary font-bold">Descanso</span>
         </div>
       </div>
 
       <div className="flex gap-2 justify-center">
         {!isRunning && timeLeft === restTime && (
-          <Button onClick={handleStart} size="lg" className="bg-primary hover:bg-primary/90">
-            <Play className="w-5 h-5 mr-2" />
-            Iniciar Descanso
-          </Button>
+          <button onClick={handleStart} className="px-5 py-2 rounded-lg bg-primary text-primary-foreground font-bold text-sm flex items-center gap-2">
+            <Play className="w-4 h-4" /> Iniciar
+          </button>
         )}
         {isRunning && (
-          <Button onClick={handlePause} variant="outline" size="lg">
-            <Pause className="w-5 h-5 mr-2" />
-            Pausar
-          </Button>
+          <button onClick={handlePause} className="px-5 py-2 rounded-lg border border-border text-foreground font-bold text-sm flex items-center gap-2">
+            <Pause className="w-4 h-4" /> Pausar
+          </button>
         )}
         {timeLeft > 0 && timeLeft < restTime && (
-          <Button onClick={handleSkip} variant="outline" size="lg">
-            <SkipForward className="w-5 h-5 mr-2" />
-            Pular
-          </Button>
+          <button onClick={handleSkip} className="px-5 py-2 rounded-lg border border-border text-foreground font-bold text-sm flex items-center gap-2">
+            <SkipForward className="w-4 h-4" /> Pular
+          </button>
         )}
       </div>
     </div>
