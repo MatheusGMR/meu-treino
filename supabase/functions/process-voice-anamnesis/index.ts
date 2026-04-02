@@ -106,112 +106,57 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `Você é um extrator de dados de anamnese. A partir de uma conversa entre um agente de voz (Júnior) e um cliente, extraia os dados estruturados da anamnese. Retorne APENAS o JSON, sem markdown.`
+            content: `Você é um extrator de dados de anamnese. A partir de uma conversa entre um agente de voz (Júnior) e um cliente, extraia os dados estruturados da anamnese. Retorne APENAS um objeto JSON válido, sem markdown, sem código, sem explicações.`
           },
           {
             role: "user",
             content: `Extraia os dados da anamnese desta conversa e retorne um JSON com os seguintes campos (use null para campos não mencionados):
 
 {
-  "age": number|null,
-  "gender": string|null,
-  "profession": string|null,
-  "contato": string|null,
-  "daily_sitting_hours": number|null,
-  "peso_kg": number|null,
-  "altura_cm": number|null,
-  "autoimagem": string|null,
-  "regioes_que_deseja_melhorar": string[]|null,
-  "treina_atualmente": boolean|null,
-  "frequencia_atual": string|null,
-  "tipos_de_treino_feitos": string[]|null,
-  "time_without_training": string|null,
-  "pain_details": string|null,
-  "escala_dor": number|null,
-  "lesoes": string|null,
-  "cirurgias": string|null,
-  "restricao_medica": string|null,
-  "liberacao_medica": string|null,
-  "pain_locations": string[]|null,
-  "has_joint_pain": boolean|null,
-  "primary_goal": string|null,
-  "objetivo_secundario": string|null,
-  "prazo": string|null,
-  "prioridade": number|null,
-  "evento_especifico": string|null,
-  "sono_horas": string|null,
-  "alimentacao": string|null,
-  "consumo_agua": string|null,
-  "estresse": string|null,
-  "alcool_cigarro": string|null,
-  "motivacao": string|null,
-  "preferencia_instrucao": string|null,
-  "local_treino": string|null,
-  "tempo_disponivel": string|null,
-  "horario_preferido": string|null,
-  "tipo_treino_preferido": string|null,
-  "comentarios_finais": string|null
+  "age": number ou null,
+  "gender": string ou null,
+  "profession": string ou null,
+  "contato": string ou null,
+  "daily_sitting_hours": number ou null,
+  "peso_kg": number ou null,
+  "altura_cm": number ou null,
+  "autoimagem": string ou null,
+  "regioes_que_deseja_melhorar": array de strings ou null,
+  "treina_atualmente": boolean ou null,
+  "frequencia_atual": string ou null,
+  "tipos_de_treino_feitos": array de strings ou null,
+  "time_without_training": string ou null,
+  "pain_details": string ou null,
+  "escala_dor": number ou null,
+  "lesoes": string ou null,
+  "cirurgias": string ou null,
+  "restricao_medica": string ou null,
+  "liberacao_medica": string ou null,
+  "pain_locations": array de strings ou null,
+  "has_joint_pain": boolean ou null,
+  "primary_goal": string ou null,
+  "objetivo_secundario": string ou null,
+  "prazo": string ou null,
+  "prioridade": number ou null,
+  "evento_especifico": string ou null,
+  "sono_horas": string ou null,
+  "alimentacao": string ou null,
+  "consumo_agua": string ou null,
+  "estresse": string ou null,
+  "alcool_cigarro": string ou null,
+  "motivacao": string ou null,
+  "preferencia_instrucao": string ou null,
+  "local_treino": string ou null,
+  "tempo_disponivel": string ou null,
+  "horario_preferido": string ou null,
+  "tipo_treino_preferido": string ou null,
+  "comentarios_finais": string ou null
 }
 
 Conversa:
 ${conversationText}`
           }
         ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "extract_anamnesis",
-              description: "Extract structured anamnesis data from conversation",
-              parameters: {
-                type: "object",
-                properties: {
-                  age: { type: ["number", "null"] },
-                  gender: { type: ["string", "null"] },
-                  profession: { type: ["string", "null"] },
-                  contato: { type: ["string", "null"] },
-                  daily_sitting_hours: { type: ["number", "null"] },
-                  peso_kg: { type: ["number", "null"] },
-                  altura_cm: { type: ["number", "null"] },
-                  autoimagem: { type: ["string", "null"] },
-                  regioes_que_deseja_melhorar: { type: ["array", "null"], items: { type: "string" } },
-                  treina_atualmente: { type: ["boolean", "null"] },
-                  frequencia_atual: { type: ["string", "null"] },
-                  tipos_de_treino_feitos: { type: ["array", "null"], items: { type: "string" } },
-                  time_without_training: { type: ["string", "null"] },
-                  pain_details: { type: ["string", "null"] },
-                  escala_dor: { type: ["number", "null"] },
-                  lesoes: { type: ["string", "null"] },
-                  cirurgias: { type: ["string", "null"] },
-                  restricao_medica: { type: ["string", "null"] },
-                  liberacao_medica: { type: ["string", "null"] },
-                  pain_locations: { type: ["array", "null"], items: { type: "string" } },
-                  has_joint_pain: { type: ["boolean", "null"] },
-                  primary_goal: { type: ["string", "null"] },
-                  objetivo_secundario: { type: ["string", "null"] },
-                  prazo: { type: ["string", "null"] },
-                  prioridade: { type: ["number", "null"] },
-                  evento_especifico: { type: ["string", "null"] },
-                  sono_horas: { type: ["string", "null"] },
-                  alimentacao: { type: ["string", "null"] },
-                  consumo_agua: { type: ["string", "null"] },
-                  estresse: { type: ["string", "null"] },
-                  alcool_cigarro: { type: ["string", "null"] },
-                  motivacao: { type: ["string", "null"] },
-                  preferencia_instrucao: { type: ["string", "null"] },
-                  local_treino: { type: ["string", "null"] },
-                  tempo_disponivel: { type: ["string", "null"] },
-                  horario_preferido: { type: ["string", "null"] },
-                  tipo_treino_preferido: { type: ["string", "null"] },
-                  comentarios_finais: { type: ["string", "null"] },
-                },
-                required: [],
-                additionalProperties: false,
-              },
-            },
-          },
-        ],
-        tool_choice: { type: "function", function: { name: "extract_anamnesis" } },
       }),
     });
 
@@ -224,19 +169,15 @@ ${conversationText}`
     const aiData = await aiResponse.json();
     let extractedData: any;
 
-    // Parse from tool call
-    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
-    if (toolCall?.function?.arguments) {
-      extractedData = JSON.parse(toolCall.function.arguments);
+    // Parse JSON from content
+    const content = aiData.choices?.[0]?.message?.content || "";
+    // Remove markdown code fences if present
+    const cleaned = content.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      extractedData = JSON.parse(jsonMatch[0]);
     } else {
-      // Fallback: try to parse from content
-      const content = aiData.choices?.[0]?.message?.content || "";
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        extractedData = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error("Could not extract structured data from AI response");
-      }
+      throw new Error("Could not extract structured data from AI response");
     }
 
     console.log("Extracted anamnesis data:", extractedData);
