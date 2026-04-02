@@ -8,6 +8,7 @@ import { ClientInfoForm } from "@/components/clients/ClientInfoForm";
 import { AssessmentsTab } from "@/components/clients/AssessmentsTab";
 import { WorkoutsTab } from "@/components/clients/WorkoutsTab";
 import { AnamnesisTab } from "@/components/clients/AnamnesisTab";
+import { EvolutionTab } from "@/components/clients/EvolutionTab";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ClientStatus } from "@/hooks/useClients";
 import { AppLayout } from "@/layouts/AppLayout";
@@ -86,8 +87,9 @@ const ClientDetails = () => {
         </div>
 
         <Tabs defaultValue="workouts" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="workouts">Treinos</TabsTrigger>
+            <TabsTrigger value="evolution">Evolução</TabsTrigger>
             <TabsTrigger value="anamnesis">Anamnese</TabsTrigger>
             <TabsTrigger value="assessments">Avaliações</TabsTrigger>
             <TabsTrigger value="info">Informações</TabsTrigger>
@@ -107,6 +109,10 @@ const ClientDetails = () => {
 
           <TabsContent value="workouts">
             <WorkoutsTab clientId={clientId!} />
+          </TabsContent>
+
+          <TabsContent value="evolution">
+            <EvolutionTab clientId={clientId!} />
           </TabsContent>
         </Tabs>
       </div>
