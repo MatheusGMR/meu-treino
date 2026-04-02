@@ -19,7 +19,10 @@ const ClientDashboard = () => {
   const { user } = useAuth();
   const { anamnesisCompleted, loading: anamnesisLoading } = useAnamnesisStatus();
   const { data: hasWorkout, isLoading: workoutLoading } = useHasWorkout();
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => {
+    const shown = sessionStorage.getItem("splash_shown");
+    return !shown;
+  });
 
   const { data: weeklySchedule = [] } = useWeeklySchedule();
   const { data: clientGoals } = useClientGoals();
@@ -44,9 +47,11 @@ const ClientDashboard = () => {
   const currentWeek = 1;
 
   useEffect(() => {
+    if (!showSplash) return;
+    sessionStorage.setItem("splash_shown", "true");
     const timer = setTimeout(() => setShowSplash(false), 3000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [showSplash]);
 
   useEffect(() => {
     if (!anamnesisLoading && anamnesisCompleted === false) {
