@@ -1,4 +1,4 @@
-import { LayoutGrid, TrendingUp, Menu } from "lucide-react";
+import { LayoutGrid, TrendingUp, MoreVertical } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 interface BottomNavigationProps {
@@ -21,7 +21,7 @@ export const BottomNavigation = ({ activeTab }: BottomNavigationProps) => {
   const tabs = [
     { id: 'plano' as const, label: 'Plano', icon: LayoutGrid, path: '/client/dashboard' },
     { id: 'progresso' as const, label: 'Progresso', icon: TrendingUp, path: '/client/progress' },
-    { id: 'mais' as const, label: 'Mais', icon: Menu, path: '/client/profile' },
+    { id: 'mais' as const, label: 'Mais', icon: MoreVertical, path: '/client/profile' },
   ];
 
   return (
@@ -29,22 +29,18 @@ export const BottomNavigation = ({ activeTab }: BottomNavigationProps) => {
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = currentTab === tab.id;
-        
+
         return (
           <button
             key={tab.id}
             onClick={() => navigate(tab.path)}
-            className="flex flex-col items-center gap-1 px-6 py-2 transition-all duration-200"
+            className="flex flex-col items-center gap-1 px-6 py-1 transition-all duration-200"
           >
-            <Icon 
-              className={`w-5 h-5 transition-colors ${
-                isActive ? 'text-primary' : 'text-muted-foreground'
-              }`}
+            <Icon
+              className={`w-5 h-5 transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
             />
-            <span 
-              className={`text-xs font-semibold transition-colors ${
-                isActive ? 'text-primary' : 'text-muted-foreground'
-              }`}
+            <span
+              className={`text-[11px] font-semibold transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
             >
               {tab.label}
             </span>

@@ -14,10 +14,13 @@ export const SessionProgressBar = ({ current, total }: SessionProgressBarProps) 
           {current} de {total} exercícios
         </span>
       </div>
-      <div className="h-2 bg-muted rounded-full overflow-hidden">
-        <div 
+      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+        <div
           className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
-          style={{ width: `${progress}%` }}
+          style={{
+            width: `${progress}%`,
+            boxShadow: '0 0 12px hsl(var(--primary) / 0.4)',
+          }}
         />
       </div>
     </div>

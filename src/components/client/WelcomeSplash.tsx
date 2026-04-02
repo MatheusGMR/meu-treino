@@ -1,5 +1,4 @@
 import { useAuth } from "@/hooks/useAuth";
-import logoJmIcon from "@/assets/logo-jm-icon.png";
 
 export const WelcomeSplash = () => {
   const { user } = useAuth();
@@ -13,7 +12,7 @@ export const WelcomeSplash = () => {
             <div className="text-6xl font-bold text-white">MT</div>
           </div>
         </div>
-        
+
         <div className="space-y-3">
           <h1 className="text-5xl md:text-6xl font-bold text-white">
             Olá, {userName}!
