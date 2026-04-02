@@ -298,3 +298,9 @@ const VoiceAnamnesisInner = () => {
     </div>
   );
 };
+
+export const VoiceAnamnesis = () => (
+  <ConversationProvider>
+    <VoiceAnamnesisInner />
+  </ConversationProvider>
+);
