@@ -372,6 +372,9 @@ const VoiceAnamnesisInner = () => {
             <p className="text-white/80 text-sm text-left">
               {lastMessage}
             </p>
+            <p className="text-white/40 text-xs mt-2 text-right">
+              {messageCount} mensagens capturadas
+            </p>
           </div>
         )}
 
