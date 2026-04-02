@@ -27,6 +27,7 @@ import ClientProfile from "./pages/client/ClientProfile";
 import WorkoutDetails from "./pages/client/WorkoutDetails";
 import WorkoutSessionExecution from "./pages/client/WorkoutSessionExecution";
 import ClientHistory from "./pages/client/ClientHistory";
+import WorkoutComplete from "./pages/client/WorkoutComplete";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import Professionals from "./pages/admin/Professionals";
 import AllClients from "./pages/admin/AllClients";
