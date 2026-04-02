@@ -242,6 +242,16 @@ const App = () => (
                 </AuthGuard>
               }
             />
+            <Route
+              path="/client/workout/complete/:scheduleId"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["client"]}>
+                    <WorkoutComplete />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
             {/* Admin routes */}
             <Route
               path="/admin/dashboard"
