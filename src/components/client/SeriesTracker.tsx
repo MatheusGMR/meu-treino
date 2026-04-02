@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -50,31 +49,33 @@ export const SeriesTracker = ({
 
   return (
     <div className="space-y-4">
-      <Card className="p-6 border-border">
-        <h3 className="font-semibold mb-4 text-foreground">
+      <div className="p-5 rounded-lg border border-border bg-card">
+        <h3 className="font-bold mb-4 text-foreground">
           Série {currentSet} de {sets}
         </h3>
 
-        <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-3 gap-3 mb-4">
           <div>
-            <Label>Sets</Label>
-            <Input value={sets} disabled />
+            <Label className="text-xs uppercase text-muted-foreground">Sets</Label>
+            <Input value={sets} disabled className="mt-1 bg-muted" />
           </div>
           <div>
-            <Label>Reps</Label>
+            <Label className="text-xs uppercase text-muted-foreground">Reps</Label>
             <Input 
               value={repsCompleted}
               onChange={(e) => setRepsCompleted(e.target.value)}
               placeholder={reps}
+              className="mt-1 focus:border-primary focus:ring-primary"
             />
           </div>
           <div>
-            <Label>Carga (kg)</Label>
+            <Label className="text-xs uppercase text-muted-foreground">Carga (kg)</Label>
             <Input 
               type="number"
               value={weight}
               onChange={(e) => setWeight(Number(e.target.value))}
               placeholder="0"
+              className="mt-1 focus:border-primary focus:ring-primary"
             />
           </div>
         </div>
@@ -87,9 +88,9 @@ export const SeriesTracker = ({
                 {isSetCompleted(setNum) ? (
                   <CheckCircle2 className="w-6 h-6 text-green-500" />
                 ) : (
-                  <Circle className="w-6 h-6 text-muted-foreground" />
+                  <Circle className={`w-6 h-6 ${setNum === currentSet ? 'text-primary' : 'text-muted-foreground'}`} />
                 )}
-                <span className="text-sm">{setNum}</span>
+                <span className="text-sm font-medium">{setNum}</span>
               </div>
             );
           })}
@@ -99,7 +100,7 @@ export const SeriesTracker = ({
           <Button 
             onClick={handleCompleteSet}
             disabled={completeSetMutation.isPending}
-            className="w-full"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             <CheckCircle2 className="w-5 h-5 mr-2" />
             Concluir Série {currentSet}
@@ -107,11 +108,11 @@ export const SeriesTracker = ({
         )}
 
         {allSetsCompleted && (
-          <div className="text-center py-2 text-green-500 font-semibold">
+          <div className="text-center py-3 text-green-600 font-bold bg-green-50 rounded-lg">
             ✓ Todas as séries concluídas!
           </div>
         )}
-      </Card>
+      </div>
     </div>
   );
 };

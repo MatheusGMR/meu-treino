@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Clock } from "lucide-react";
+import { CheckCircle2, Clock, ChevronRight } from "lucide-react";
 
 interface WorkoutCardProps {
   workoutName: string;
@@ -10,9 +10,9 @@ interface WorkoutCardProps {
 
 export const WorkoutCard = ({ workoutName, imageUrl, status, onClick }: WorkoutCardProps) => {
   const statusConfig = {
-    completed: { label: 'Concluído', icon: CheckCircle2, variant: 'success' as const },
-    'in-progress': { label: 'Em andamento', icon: Clock, variant: 'default' as const },
-    upcoming: { label: 'Próximo', icon: Clock, variant: 'secondary' as const },
+    completed: { label: 'Concluído', icon: CheckCircle2, badgeClass: 'bg-green-100 text-green-700 border-green-200' },
+    'in-progress': { label: 'Em andamento', icon: Clock, badgeClass: 'bg-primary/10 text-primary border-primary/20' },
+    upcoming: { label: 'Próximo', icon: Clock, badgeClass: 'bg-muted text-muted-foreground border-border' },
   };
 
   const config = statusConfig[status];
@@ -21,38 +21,40 @@ export const WorkoutCard = ({ workoutName, imageUrl, status, onClick }: WorkoutC
   return (
     <button
       onClick={onClick}
-      className="relative w-full rounded-[20px] overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] mx-5"
-      style={{ height: '240px', maxWidth: 'calc(100% - 40px)' }}
+      className="w-full rounded-lg overflow-hidden border border-border bg-card transition-all duration-300 hover:border-primary hover:shadow-[0_8px_30px_hsl(348_83%_47%/0.15)] hover:-translate-y-0.5 active:scale-[0.98] mx-5"
+      style={{ maxWidth: 'calc(100% - 40px)' }}
     >
-      {/* Background Image */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-primary/30">
-        {imageUrl && (
-          <img 
-            src={imageUrl} 
-            alt={workoutName}
-            className="w-full h-full object-cover"
-          />
-        )}
+      {/* Image */}
+      <div className="relative w-full" style={{ aspectRatio: '16/10' }}>
+        <div className="absolute inset-0 bg-muted">
+          {imageUrl ? (
+            <img 
+              src={imageUrl} 
+              alt={workoutName}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
+              <span className="text-4xl">🏋️</span>
+            </div>
+          )}
+        </div>
         
-        {/* Overlay gradient - stronger at bottom */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+        {/* Status badge overlay */}
+        <div className="absolute top-3 left-3">
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${config.badgeClass}`}>
+            <StatusIcon className="w-3.5 h-3.5" />
+            {config.label}
+          </span>
+        </div>
       </div>
 
       {/* Content */}
-      <div className="absolute inset-0 flex flex-col justify-end p-6">
-        {/* Status badge */}
-        <Badge 
-          variant={config.variant}
-          className="self-start mb-3 flex items-center gap-1.5 px-3 py-1"
-        >
-          <StatusIcon className="w-4 h-4" />
-          {config.label}
-        </Badge>
-
-        {/* Workout name */}
-        <h3 className="text-2xl font-bold text-white text-left drop-shadow-lg">
+      <div className="p-4 flex items-center justify-between">
+        <h3 className="text-lg font-bold text-foreground text-left">
           {workoutName}
         </h3>
+        <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
       </div>
     </button>
   );

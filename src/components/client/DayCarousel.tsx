@@ -1,5 +1,4 @@
 import { CheckCircle2, Lock, Dumbbell } from "lucide-react";
-import { AnimatedCheckmark } from "./AnimatedCheckmark";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 interface DayCarouselProps {
@@ -30,50 +29,27 @@ export const DayCarousel = ({ days, selectedDay, onSelectDay }: DayCarouselProps
                 onClick={() => !isLocked && onSelectDay(day.dayNumber)}
                 disabled={isLocked}
                 className={`
-                  relative flex-shrink-0 rounded-[16px] overflow-hidden transition-all duration-300
-                  ${isActive ? 'ring-4 ring-success shadow-lg scale-105' : 'shadow-md'}
-                  ${isLocked ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95'}
+                  relative flex-shrink-0 w-16 h-16 rounded-lg flex flex-col items-center justify-center
+                  border-2 transition-all duration-200
+                  ${isCompleted 
+                    ? 'bg-primary text-primary-foreground border-primary' 
+                    : isActive 
+                      ? 'bg-card border-primary border-[3px] text-foreground' 
+                      : 'bg-card border-border text-foreground hover:border-primary/50'
+                  }
+                  ${isLocked ? 'opacity-40 cursor-not-allowed' : 'hover:shadow-md active:scale-95'}
                 `}
-                style={{ width: '80px', height: '100px' }}
               >
-                {/* Thumbnail */}
-                <div className="absolute inset-0 bg-gradient-to-br from-muted to-muted/50">
-                  {day.thumbnailUrl ? (
-                    <img 
-                      src={day.thumbnailUrl} 
-                      alt={`Dia ${day.dayNumber}`}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                      <Dumbbell className="w-6 h-6 text-white/60" />
-                    </div>
-                  )}
-                  
-                  {/* Overlay gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                  
-                  {/* Locked overlay */}
-                  {isLocked && (
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center">
-                      <Lock className="w-6 h-6 text-white" />
-                    </div>
-                  )}
-                </div>
-
-                {/* Day label */}
-                <div className="absolute bottom-2 left-0 right-0 text-center">
-                  <span className="text-white font-bold text-xs drop-shadow-lg">
-                    Dia {day.dayNumber}
-                  </span>
-                </div>
-
-                {/* Completed indicator */}
-                {isCompleted && !isLocked && (
-                  <div className="absolute top-2 right-2 bg-success rounded-full p-1">
-                    <CheckCircle2 className="w-4 h-4 text-white" />
-                  </div>
+                {isLocked ? (
+                  <Lock className="w-4 h-4" />
+                ) : isCompleted ? (
+                  <CheckCircle2 className="w-5 h-5" />
+                ) : (
+                  <Dumbbell className="w-4 h-4 text-muted-foreground" />
                 )}
+                <span className={`text-xs font-bold mt-1 ${isCompleted ? 'text-primary-foreground' : ''}`}>
+                  Dia {day.dayNumber}
+                </span>
               </button>
             );
           })}
