@@ -74,6 +74,22 @@ const ClientDashboard = () => {
     return () => clearTimeout(timer);
   }, [showSplash]);
 
+  // Show checkin dialog after splash if not done today
+  useEffect(() => {
+    if (!showSplash && !todayCheckin && todayWorkout?.session_id && !showCheckin) {
+      const checkinShown = sessionStorage.getItem("checkin_shown_today");
+      if (!checkinShown) {
+        const timer = setTimeout(() => setShowCheckin(true), 800);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [showSplash, todayCheckin, todayWorkout, showCheckin]);
+
+  const handleCheckinClose = () => {
+    setShowCheckin(false);
+    sessionStorage.setItem("checkin_shown_today", new Date().toISOString().split("T")[0]);
+  };
+
   useEffect(() => {
     if (!anamnesisLoading && anamnesisCompleted === false) {
       navigate("/client/anamnesis", { replace: true });
