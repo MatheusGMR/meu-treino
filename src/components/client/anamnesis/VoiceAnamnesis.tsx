@@ -94,13 +94,25 @@ const VoiceAnamnesisInner = () => {
   const isProcessingRef = useRef(false);
   const showCompletionRef = useRef(false);
   const connectedAtRef = useRef<number>(0);
+  const conversationIdRef = useRef<string | null>(null);
   const [lastMessage, setLastMessage] = useState("");
+  const [messageCount, setMessageCount] = useState(0);
 
   const conversation = useConversation({
     onConnect: () => {
       console.log("Connected to Júnior");
       conversationStartedRef.current = true;
       connectedAtRef.current = Date.now();
+      // Capture conversation ID for server-side fallback
+      try {
+        const id = conversation.getId();
+        if (id) {
+          conversationIdRef.current = id;
+          console.log("Conversation ID:", id);
+        }
+      } catch (e) {
+        console.log("Could not get conversation ID on connect, will retry");
+      }
     },
     onDisconnect: () => {
       console.log("Disconnected from Júnior");
@@ -119,15 +131,25 @@ const VoiceAnamnesisInner = () => {
       conversationStartedRef.current = false;
     },
     onMessage: (message: any) => {
+      // Capture conversation ID from metadata if not yet captured
+      if (message.type === "conversation_initiation_metadata") {
+        const convId = message.conversation_initiation_metadata_event?.conversation_id;
+        if (convId) {
+          conversationIdRef.current = convId;
+          console.log("Got conversation ID from metadata:", convId);
+        }
+      }
       if (message.type === "user_transcript" && message.user_transcription_event?.user_transcript) {
         const text = message.user_transcription_event.user_transcript;
         messagesRef.current.push({ role: "user", content: text });
         setLastMessage(text);
+        setMessageCount(prev => prev + 1);
       }
       if (message.type === "agent_response" && message.agent_response_event?.agent_response) {
         const text = message.agent_response_event.agent_response;
         messagesRef.current.push({ role: "assistant", content: text });
         setLastMessage(text);
+        setMessageCount(prev => prev + 1);
       }
     },
     onError: (error: any) => {
@@ -176,7 +198,11 @@ const VoiceAnamnesisInner = () => {
   }, [conversation]);
 
   const handleConversationEnd = async () => {
-    if (messagesRef.current.length < 3) {
+    // With server-side fallback, we only need conversationId OR messages
+    const hasConversationId = !!conversationIdRef.current;
+    const hasMessages = messagesRef.current.length > 0;
+
+    if (!hasConversationId && !hasMessages) {
       toast({
         title: "Conversa muito curta",
         description: "Converse um pouco mais com o Júnior para completar a anamnese.",
@@ -191,7 +217,12 @@ const VoiceAnamnesisInner = () => {
     try {
       const { data, error } = await supabase.functions.invoke(
         "process-voice-anamnesis",
-        { body: { messages: messagesRef.current } }
+        {
+          body: {
+            messages: messagesRef.current,
+            conversationId: conversationIdRef.current,
+          },
+        }
       );
 
       if (error) throw error;
@@ -340,6 +371,9 @@ const VoiceAnamnesisInner = () => {
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 max-h-32 overflow-y-auto">
             <p className="text-white/80 text-sm text-left">
               {lastMessage}
+            </p>
+            <p className="text-white/40 text-xs mt-2 text-right">
+              {messageCount} mensagens capturadas
             </p>
           </div>
         )}
