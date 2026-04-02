@@ -131,15 +131,25 @@ const VoiceAnamnesisInner = () => {
       conversationStartedRef.current = false;
     },
     onMessage: (message: any) => {
+      // Capture conversation ID from metadata if not yet captured
+      if (message.type === "conversation_initiation_metadata") {
+        const convId = message.conversation_initiation_metadata_event?.conversation_id;
+        if (convId) {
+          conversationIdRef.current = convId;
+          console.log("Got conversation ID from metadata:", convId);
+        }
+      }
       if (message.type === "user_transcript" && message.user_transcription_event?.user_transcript) {
         const text = message.user_transcription_event.user_transcript;
         messagesRef.current.push({ role: "user", content: text });
         setLastMessage(text);
+        setMessageCount(prev => prev + 1);
       }
       if (message.type === "agent_response" && message.agent_response_event?.agent_response) {
         const text = message.agent_response_event.agent_response;
         messagesRef.current.push({ role: "assistant", content: text });
         setLastMessage(text);
+        setMessageCount(prev => prev + 1);
       }
     },
     onError: (error: any) => {
