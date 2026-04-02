@@ -47,9 +47,11 @@ const ClientDashboard = () => {
   const currentWeek = 1;
 
   useEffect(() => {
+    if (!showSplash) return;
+    sessionStorage.setItem("splash_shown", "true");
     const timer = setTimeout(() => setShowSplash(false), 3000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [showSplash]);
 
   useEffect(() => {
     if (!anamnesisLoading && anamnesisCompleted === false) {
