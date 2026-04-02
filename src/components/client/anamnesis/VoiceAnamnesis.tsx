@@ -116,17 +116,34 @@ const VoiceAnamnesisInner = () => {
     },
     onDisconnect: () => {
       console.log("Disconnected from Júnior");
+      // Last chance to capture conversation ID
+      if (!conversationIdRef.current) {
+        try {
+          const id = conversation.getId();
+          if (id) {
+            conversationIdRef.current = id;
+            console.log("Got conversation ID on disconnect:", id);
+          }
+        } catch (e) {
+          console.log("Could not get conversation ID on disconnect");
+        }
+      }
       const connectionDuration = Date.now() - connectedAtRef.current;
-      // Only process if the conversation lasted at least 5 seconds
+      // Process if conversation lasted at least 30 seconds (real conversation)
       if (
         conversationStartedRef.current &&
         !isProcessingRef.current &&
         !showCompletionRef.current &&
-        connectionDuration > 5000
+        connectionDuration > 30000
       ) {
         handleConversationEnd();
-      } else if (connectionDuration <= 5000 && conversationStartedRef.current) {
+      } else if (connectionDuration <= 30000 && conversationStartedRef.current) {
         console.log("Connection too brief, ignoring disconnect");
+        toast({
+          title: "Conversa muito curta",
+          description: "Converse um pouco mais com o Júnior para completar a anamnese.",
+          variant: "destructive",
+        });
       }
       conversationStartedRef.current = false;
     },
