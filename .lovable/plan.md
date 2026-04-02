@@ -1,143 +1,67 @@
 
 
-## Adotar Layout Visual do MeuTreino na Jornada do Cliente
+## Plan: Guarantee ElevenLabs Agent Transcribes and Inserts Data into Meu Treino
 
-### Contexto
+### Problem Analysis
 
-O repositorio MeuTreino usa um design system minimalista: fundo branco, vermelho primario (#DC143C), tipografia system-font, cards com bordas sutis, hover com sombra vermelha, e transicoes suaves. O layout e limpo, sem dark mode forcado, com foco em hierarquia visual clara.
+The current flow has a critical gap: the `onMessage` handler in `VoiceAnamnesis.tsx` relies on ElevenLabs sending `user_transcript` and `agent_response` events. These events must be **individually enabled** in the ElevenLabs dashboard. If they are not enabled, `messagesRef.current` stays empty, and the `process-voice-anamnesis` function receives no data to extract.
 
-O projeto atual ja tem backend robusto (auth, RLS, hooks, queries). A proposta e adotar o **visual language** do MeuTreino nas telas do cliente, mantendo toda a logica e integracao existentes.
+Additionally, the current flow depends entirely on client-side message capture, which is fragile (browser tab close, network issues, etc.).
 
----
+### Changes
 
-### Design System a Adotar
+#### 1. Add fallback: fetch conversation transcript from ElevenLabs API
 
-```text
-Cores:     Vermelho primario (#DC143C), preto, branco, cinza claro (#f5f5f5)
-Tipografia: System font stack, pesos 600-700 para titulos
-Cards:     Borda 1px cinza sutil, hover com borda vermelha + sombra vermelha
-Botoes:    Fundo vermelho, hover com translateY(-2px) + sombra
-Radius:    8px (mais contido que o atual 12-30px)
-Modo:      Light mode (remover dark mode forcado nas telas do cliente)
+After the conversation ends, if the client-side `messagesRef` has few messages, fetch the full transcript directly from the ElevenLabs API server-side. This acts as a safety net.
+
+**File:** `supabase/functions/process-voice-anamnesis/index.ts`
+- Accept an optional `conversationId` parameter alongside `messages`
+- If `messages` is empty/short but `conversationId` is provided, call the ElevenLabs API (`GET /v1/convai/conversations/{conversation_id}`) using `ELEVENLABS_API_KEY` to retrieve the full transcript
+- Use whichever source has more data (client messages vs API transcript)
+
+#### 2. Capture conversation ID on the client
+
+**File:** `src/components/client/anamnesis/VoiceAnamnesis.tsx`
+- Use `conversation.getId()` to capture the conversation ID after connection
+- Pass `conversationId` to `process-voice-anamnesis` alongside messages
+- This enables the server-side fallback
+
+#### 3. Improve client-side transcript resilience
+
+**File:** `src/components/client/anamnesis/VoiceAnamnesis.tsx`
+- In `onMessage`, also handle `conversation_initiation_metadata` to confirm events are streaming
+- Lower the "too short" threshold from 3 to 1 message (even partial data is valuable with the server-side fallback)
+- Add a visible message count indicator so the user knows data is being captured
+
+#### 4. Ensure `process-voice-anamnesis` handles upsert
+
+**File:** `supabase/functions/process-voice-anamnesis/index.ts`
+- Change `.insert()` to `.upsert()` with `onConflict: 'client_id'` so re-running the anamnesis updates instead of failing on duplicate
+
+### Technical Details
+
+**ElevenLabs Conversations API call (server-side fallback):**
+```typescript
+const convResponse = await fetch(
+  `https://api.elevenlabs.io/v1/convai/conversations/${conversationId}`,
+  { headers: { "xi-api-key": ELEVENLABS_API_KEY } }
+);
+const convData = await convResponse.json();
+// convData.transcript contains array of {role, message} objects
 ```
 
----
+**Conversation ID capture (client-side):**
+```typescript
+onConnect: () => {
+  const id = conversation.getId();
+  conversationIdRef.current = id;
+}
+```
 
-### Telas Afetadas e Alteracoes
+**Dashboard requirements (user action):**
+- Enable `user_transcript` and `agent_response` events in the ElevenLabs agent dashboard for agent `agent_2701kn7m5mm3fz990vpxgs8a9gwz`
 
-#### 1. Landing Page (`src/pages/Index.tsx`)
-- Adotar hero com grid 2 colunas (texto + imagem), gradiente sutil branco→cinza
-- Cards de recursos com borda vermelha, hover com sombra vermelha e translateY
-- CTA final com fundo gradiente vermelho, botoes invertidos (branco sobre vermelho)
-- Footer escuro (gray-dark) com links centralizados
-- Remover `dark` class forcada
-
-#### 2. Login/Register (`src/pages/auth/Login.tsx`, `Register.tsx`)
-- Card centralizado com sombra suave, borda cinza
-- Titulo em vermelho, input com focus border vermelho + glow sutil
-- Fundo gradiente branco→cinza claro
-
-#### 3. Dashboard do Cliente (`src/pages/client/ClientDashboard.tsx`)
-- Remover `dark` class e `SolidBackgroundWrapper`
-- Header branco sticky com borda inferior sutil
-- Card de treino principal: imagem 1:1, info-grid (tempo, reps, series) com cards cinza claro que ficam vermelhos no hover
-- Barra de progresso: gradient vermelho, grid de dias com cards quadrados (completed = fundo vermelho, today = borda vermelha grossa)
-- Seção "Treinos" com grid de workout-cards: imagem 16:10, hover com scale(1.03) e sombra vermelha
-
-#### 4. Detalhes do Treino (`src/pages/client/WorkoutDetails.tsx`)
-- Imagem hero quadrada com sombra
-- Info-grid: cards cinza claro com label uppercase, hover com borda vermelha
-- Lista de exercicios com thumbnail, nome em negrito, info em cinza
-- Botao "Comecar treino" vermelho full-width no footer fixo
-
-#### 5. Execucao do Treino (`src/pages/client/WorkoutSessionExecution.tsx`)
-- Remover dark mode forcado
-- Fundo branco, video/imagem no topo (aspect-ratio 1:1 ou 16:10 em card com sombra)
-- Nome do exercicio grande e preto (nao branco)
-- Control panel no bottom: card branco com sombra, borda sutil
-- Barra de progresso com gradiente vermelho
-- Series tracker: inputs com focus vermelho, botao "Concluir Serie" vermelho
-- Timer de descanso: circulo com stroke vermelho
-- Navegacao: botoes com borda preta (anterior) e fundo vermelho (proximo)
-
-#### 6. Tela de Conclusao (NOVA: `src/pages/client/WorkoutComplete.tsx`)
-- Fundo branco, checkmark animado verde
-- Resumo: tempo total, exercicios, series, volume total
-- Cards de metricas estilo info-card (cinza claro, hover vermelho)
-- Botoes: "Voltar ao Dashboard" (vermelho) e "Ver Historico" (outline preto)
-- Feedback de dificuldade: 3 opcoes com emoji (Facil/Ideal/Dificil)
-
-#### 7. Bottom Navigation (`src/components/client/BottomNavigation.tsx`)
-- Fundo branco, borda superior cinza sutil
-- Tab ativa: icone preenchido + texto em vermelho
-- Estilo limpo, sem sombra exagerada
-
-#### 8. Welcome Splash (`src/components/client/WelcomeSplash.tsx`)
-- Fundo gradiente vermelho (manter), tipografia branca grande
-- Transicao fade-in suave
-
----
-
-### Componentes a Atualizar (Estilo)
-
-| Componente | Mudanca principal |
-|------------|-------------------|
-| `WorkoutCard.tsx` | Card com imagem 16:10, borda sutil, hover com scale + sombra vermelha |
-| `SeriesTracker.tsx` | Input focus vermelho, botao vermelho, layout mais limpo |
-| `RestTimer.tsx` | Circulo com stroke vermelho sobre fundo branco |
-| `SessionProgressBar.tsx` | Barra com gradiente vermelho, texto preto |
-| `ExerciseListItem.tsx` | Thumbnail + nome em negrito + info cinza, hover com borda vermelha |
-| `DayCarousel.tsx` | Cards quadrados: completed=fundo vermelho, today=borda vermelha |
-
----
-
-### Ajustes no CSS Global (`src/index.css`)
-
-- Atualizar `--primary` para `348 83% 47%` (equivalente HSL de #DC143C)
-- Atualizar `--radius` para `0.5rem` (8px)
-- Remover ou ajustar variaveis de dark mode que forcam fundo escuro nas telas do cliente
-- Manter dark mode disponivel para as telas do personal/admin (nao afetadas)
-
----
-
-### Integracao com Backend
-
-Nenhuma alteracao no backend. Todas as queries, hooks, RLS policies e edge functions permanecem identicas. As mudancas sao puramente visuais/CSS nos componentes React existentes.
-
----
-
-### Nova Rota e Componentes
-
-| Arquivo | Acao |
-|---------|------|
-| `src/pages/client/WorkoutComplete.tsx` | Criar — tela de conclusao |
-| `src/components/client/WorkoutFeedbackDialog.tsx` | Criar — feedback de dificuldade |
-| `src/components/client/AbandonWorkoutDialog.tsx` | Criar — encerramento antecipado |
-| `src/App.tsx` | Adicionar rota `/client/workout/complete/:scheduleId` |
-
-**Migration SQL:** Adicionar `difficulty_rating text`, `abandon_reason text`, `completed_exercises_count integer`, `total_weight_lifted numeric` a `daily_workout_schedule`.
-
----
-
-### Arquivos a Modificar
-
-| Arquivo | Escopo |
-|---------|--------|
-| `src/index.css` | Ajustar primary color e radius |
-| `src/pages/Index.tsx` | Redesign visual completo (layout MeuTreino) |
-| `src/pages/auth/Login.tsx` | Estilo card centralizado light |
-| `src/pages/auth/Register.tsx` | Idem |
-| `src/pages/client/ClientDashboard.tsx` | Remover dark, adotar layout light |
-| `src/pages/client/WorkoutDetails.tsx` | Info-grid, imagem hero, estilo light |
-| `src/pages/client/WorkoutSessionExecution.tsx` | Layout light, control panel branco |
-| `src/pages/client/WorkoutComplete.tsx` | NOVO — tela de conclusao |
-| `src/components/client/WorkoutCard.tsx` | Card estilo MeuTreino |
-| `src/components/client/BottomNavigation.tsx` | Estilo light limpo |
-| `src/components/client/SeriesTracker.tsx` | Inputs/botoes estilo vermelho |
-| `src/components/client/RestTimer.tsx` | Circulo vermelho sobre branco |
-| `src/components/client/SessionProgressBar.tsx` | Gradiente vermelho |
-| `src/components/client/DayCarousel.tsx` | Cards dia com estilo MeuTreino |
-| `src/components/client/WorkoutFeedbackDialog.tsx` | NOVO |
-| `src/components/client/AbandonWorkoutDialog.tsx` | NOVO |
-| `src/App.tsx` | Nova rota |
+### Summary of files to modify
+1. `supabase/functions/process-voice-anamnesis/index.ts` — add ElevenLabs API fallback + upsert
+2. `src/components/client/anamnesis/VoiceAnamnesis.tsx` — capture conversation ID, pass to edge function, improve resilience
 
