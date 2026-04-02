@@ -679,37 +679,49 @@ export type Database = {
       }
       daily_workout_schedule: {
         Row: {
+          abandon_reason: string | null
           client_id: string | null
           client_workout_id: string | null
           completed: boolean | null
           completed_at: string | null
+          completed_exercises_count: number | null
           created_at: string | null
+          difficulty_rating: string | null
           id: string
           scheduled_for: string
           session_id: string | null
           session_order: number | null
+          total_weight_lifted: number | null
         }
         Insert: {
+          abandon_reason?: string | null
           client_id?: string | null
           client_workout_id?: string | null
           completed?: boolean | null
           completed_at?: string | null
+          completed_exercises_count?: number | null
           created_at?: string | null
+          difficulty_rating?: string | null
           id?: string
           scheduled_for: string
           session_id?: string | null
           session_order?: number | null
+          total_weight_lifted?: number | null
         }
         Update: {
+          abandon_reason?: string | null
           client_id?: string | null
           client_workout_id?: string | null
           completed?: boolean | null
           completed_at?: string | null
+          completed_exercises_count?: number | null
           created_at?: string | null
+          difficulty_rating?: string | null
           id?: string
           scheduled_for?: string
           session_id?: string | null
           session_order?: number | null
+          total_weight_lifted?: number | null
         }
         Relationships: [
           {
