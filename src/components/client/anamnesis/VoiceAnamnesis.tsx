@@ -267,6 +267,7 @@ const VoiceAnamnesisInner = () => {
       });
     } finally {
       setIsProcessing(false);
+      isProcessingRef.current = false;
     }
   };
 
