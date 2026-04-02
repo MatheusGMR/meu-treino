@@ -94,7 +94,9 @@ const VoiceAnamnesisInner = () => {
   const isProcessingRef = useRef(false);
   const showCompletionRef = useRef(false);
   const connectedAtRef = useRef<number>(0);
+  const conversationIdRef = useRef<string | null>(null);
   const [lastMessage, setLastMessage] = useState("");
+  const [messageCount, setMessageCount] = useState(0);
 
   const conversation = useConversation({
     onConnect: () => {
