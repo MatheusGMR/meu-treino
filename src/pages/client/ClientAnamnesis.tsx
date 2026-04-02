@@ -789,6 +789,19 @@ const ClientAnamnesis = () => {
     }
   };
 
+  const userName = user?.user_metadata?.full_name || "Aluno";
+
+  if (showCompletion) {
+    return (
+      <AnamnesisCompletionScreen
+        userName={userName}
+        isGeneratingWorkout={isGeneratingWorkout}
+        trialWorkoutReady={trialWorkoutReady}
+        onContinue={handleContinueToDashboard}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary via-primary-glow to-accent flex items-center justify-center p-2 sm:p-4 md:p-6">
       <Card className="w-full max-w-4xl shadow-2xl">
