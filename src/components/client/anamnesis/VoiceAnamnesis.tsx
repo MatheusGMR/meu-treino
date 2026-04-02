@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useConversation } from "@elevenlabs/react";
+import { useConversation, ConversationProvider } from "@elevenlabs/react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -11,7 +11,7 @@ import { AnamnesisCompletionScreen } from "@/components/client/AnamnesisCompleti
 
 const AGENT_ID = "agent_2701kn7m5mm3fz990vpxgs8a9gwz";
 
-export const VoiceAnamnesis = () => {
+const VoiceAnamnesisInner = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
