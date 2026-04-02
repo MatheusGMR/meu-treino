@@ -18,9 +18,9 @@ export const ExerciseListItem = ({
   onInfoClick 
 }: ExerciseListItemProps) => {
   return (
-    <div className="flex items-center gap-4 p-3 rounded-[12px] bg-card border border-border/50 shadow-sm transition-all duration-200 hover:shadow-md hover:border-border">
+    <div className="flex items-center gap-4 p-3 rounded-lg bg-card border border-border transition-all duration-200 hover:border-primary hover:shadow-[0_4px_16px_hsl(348_83%_47%/0.1)]">
       {/* Thumbnail */}
-      <div className="flex-shrink-0 w-16 h-16 rounded-[8px] overflow-hidden bg-muted">
+      <div className="flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-muted">
         {thumbnailUrl ? (
           <img 
             src={thumbnailUrl} 
@@ -28,13 +28,15 @@ export const ExerciseListItem = ({
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-primary/10 to-accent/10" />
+          <div className="w-full h-full bg-primary/5 flex items-center justify-center">
+            <span className="text-lg">💪</span>
+          </div>
         )}
       </div>
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <h4 className="font-semibold text-foreground text-sm truncate">
+        <h4 className="font-bold text-foreground text-sm truncate">
           {name}
         </h4>
         <div className="flex items-center gap-2 mt-1">

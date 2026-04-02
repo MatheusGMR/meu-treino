@@ -11,7 +11,6 @@ export const BottomNavigation = ({ activeTab }: BottomNavigationProps) => {
 
   const getActiveTab = (): 'plano' | 'progresso' | 'mais' => {
     if (activeTab) return activeTab;
-    
     if (location.pathname.includes('/progress')) return 'progresso';
     if (location.pathname.includes('/profile')) return 'mais';
     return 'plano';
@@ -26,7 +25,7 @@ export const BottomNavigation = ({ activeTab }: BottomNavigationProps) => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-border flex justify-around py-3 pb-safe z-50 shadow-lg">
+    <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border flex justify-around py-3 pb-safe z-50">
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = currentTab === tab.id;
@@ -35,16 +34,15 @@ export const BottomNavigation = ({ activeTab }: BottomNavigationProps) => {
           <button
             key={tab.id}
             onClick={() => navigate(tab.path)}
-            className="flex flex-col items-center gap-1 px-6 py-2 transition-all duration-300"
+            className="flex flex-col items-center gap-1 px-6 py-2 transition-all duration-200"
           >
             <Icon 
-              className={`w-6 h-6 transition-colors ${
-                isActive ? 'text-primary stroke-[2.5]' : 'text-muted-foreground'
+              className={`w-5 h-5 transition-colors ${
+                isActive ? 'text-primary' : 'text-muted-foreground'
               }`}
-              fill={isActive ? 'currentColor' : 'none'}
             />
             <span 
-              className={`text-xs font-medium transition-colors ${
+              className={`text-xs font-semibold transition-colors ${
                 isActive ? 'text-primary' : 'text-muted-foreground'
               }`}
             >

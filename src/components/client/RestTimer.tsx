@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Pause, Play, SkipForward } from "lucide-react";
 
 interface RestTimerProps {
-  restTime: number; // em segundos
+  restTime: number;
   onComplete: () => void;
 }
 
@@ -59,21 +59,21 @@ export const RestTimer = ({ restTime, onComplete }: RestTimerProps) => {
             cx="64"
             cy="64"
             r="60"
-            stroke="currentColor"
-            strokeWidth="8"
+            stroke="hsl(var(--border))"
+            strokeWidth="6"
             fill="none"
-            className="text-muted"
           />
           <circle
             cx="64"
             cy="64"
             r="60"
-            stroke="currentColor"
-            strokeWidth="8"
+            stroke="hsl(var(--primary))"
+            strokeWidth="6"
             fill="none"
+            strokeLinecap="round"
             strokeDasharray={`${2 * Math.PI * 60}`}
             strokeDashoffset={`${2 * Math.PI * 60 * (1 - progress / 100)}`}
-            className="text-primary transition-all duration-1000"
+            className="transition-all duration-1000"
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
@@ -83,7 +83,7 @@ export const RestTimer = ({ restTime, onComplete }: RestTimerProps) => {
 
       <div className="flex gap-2 justify-center">
         {!isRunning && timeLeft === restTime && (
-          <Button onClick={handleStart} size="lg">
+          <Button onClick={handleStart} size="lg" className="bg-primary hover:bg-primary/90">
             <Play className="w-5 h-5 mr-2" />
             Iniciar Descanso
           </Button>

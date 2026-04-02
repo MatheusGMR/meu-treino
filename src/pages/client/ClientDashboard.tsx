@@ -6,7 +6,6 @@ import { useTodayWorkout } from "@/hooks/useTodayWorkout";
 import { useWeeklySchedule } from "@/hooks/useWeeklySchedule";
 import { useClientGoals } from "@/hooks/useClientGoals";
 import { useHasWorkout } from "@/hooks/useHasWorkout";
-import { SolidBackgroundWrapper } from "@/components/SolidBackgroundWrapper";
 import { WelcomeSplash } from "@/components/client/WelcomeSplash";
 import { WaitingForWorkout } from "@/components/client/WaitingForWorkout";
 import { AnamnesisNotification } from "@/components/client/AnamnesisNotification";
@@ -14,7 +13,7 @@ import { DayCarousel } from "@/components/client/DayCarousel";
 import { GoalsDisplay } from "@/components/client/GoalsDisplay";
 import { WorkoutCard } from "@/components/client/WorkoutCard";
 import { BottomNavigation } from "@/components/client/BottomNavigation";
-import { MessageCircle, User } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -32,7 +31,6 @@ const ClientDashboard = () => {
   const { data: clientGoals } = useClientGoals();
   const { data: todayWorkout } = useTodayWorkout();
   
-  // Get profile for avatar
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
@@ -47,11 +45,9 @@ const ClientDashboard = () => {
     enabled: !!user,
   });
 
-  // Calculate stats
   const completedSessions = weeklySchedule.filter(d => d.completed).length;
   const totalSessions = weeklySchedule.length;
   
-  // Determine workout status
   const getWorkoutStatus = () => {
     if (todayWorkout?.completed) return 'completed';
     if (todayWorkout) return 'in-progress';
@@ -59,20 +55,12 @@ const ClientDashboard = () => {
   };
 
   useEffect(() => {
-    // Força dark mode
-    document.documentElement.classList.add('dark');
-    
     const timer = setTimeout(() => {
       setShowSplash(false);
     }, 3000);
-
-    return () => {
-      clearTimeout(timer);
-      document.documentElement.classList.remove('dark');
-    };
+    return () => clearTimeout(timer);
   }, []);
 
-  // Redirect to anamnesis if not completed
   useEffect(() => {
     if (!anamnesisLoading && anamnesisCompleted === false) {
       navigate("/client/anamnesis", { replace: true });
@@ -81,21 +69,17 @@ const ClientDashboard = () => {
 
   if (anamnesisLoading || workoutLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-primary-glow to-accent">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-background border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-background text-lg font-semibold">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-foreground text-lg font-semibold">
             {anamnesisLoading ? "Carregando perfil..." : "Verificando treinos..."}
-          </p>
-          <p className="text-background/80 text-sm mt-2">
-            Aguarde alguns instantes
           </p>
         </div>
       </div>
     );
   }
 
-  // Mostrar tela de espera se anamnese completa mas sem treino
   if (anamnesisCompleted && !hasWorkout) {
     return <WaitingForWorkout />;
   }
@@ -105,64 +89,64 @@ const ClientDashboard = () => {
   }
 
   return (
-    <SolidBackgroundWrapper>
-      <div className="min-h-screen bg-white pb-24">
-        {/* Simplified Header */}
-        <header className="sticky top-0 z-40 bg-white border-b border-border/50 shadow-sm">
-          <div className="px-5 py-4">
-            <div className="flex items-center justify-between mb-2">
-              <h1 className="text-2xl font-bold text-foreground">
-                Calisthenics
-              </h1>
-              <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <MessageCircle className="w-5 h-5 text-muted-foreground" />
-                </Button>
-                <Avatar className="w-9 h-9 border-2 border-primary/20">
-                  <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                    {profile?.full_name?.charAt(0) || 'M'}
-                  </AvatarFallback>
-                </Avatar>
-              </div>
+    <div className="min-h-screen bg-background pb-24">
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-card border-b border-border">
+        <div className="px-5 py-4">
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-xl font-bold text-foreground">
+              Meu Treino
+            </h1>
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <MessageCircle className="w-5 h-5 text-muted-foreground" />
+              </Button>
+              <Avatar className="w-9 h-9 border-2 border-primary/20">
+                <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm">
+                  {profile?.full_name?.charAt(0) || 'U'}
+                </AvatarFallback>
+              </Avatar>
             </div>
-            {anamnesisCompleted === false && <AnamnesisNotification />}
           </div>
-        </header>
+          {anamnesisCompleted === false && <AnamnesisNotification />}
+        </div>
+      </header>
 
-        {/* Day Carousel */}
+      {/* Day Carousel */}
+      <div className="pt-4">
         <DayCarousel 
           days={weeklySchedule}
           selectedDay={selectedDay}
           onSelectDay={setSelectedDay}
         />
-
-        {/* Goals */}
-        <GoalsDisplay
-          mainGoal={clientGoals?.goal || 'Não definido'}
-          targetWeight={clientGoals?.targetWeight || '0'}
-        />
-
-        {/* Progress Info */}
-        <div className="px-5 mb-3">
-          <p className="text-sm text-muted-foreground">
-            <span className="font-bold text-foreground">{completedSessions}</span> de{' '}
-            <span className="font-bold text-foreground">{totalSessions}</span> treinos
-          </p>
-        </div>
-
-        {/* Main Workout Card */}
-        {todayWorkout && (
-          <WorkoutCard
-            workoutName={todayWorkout.sessions?.name || 'Treino do Dia'}
-            imageUrl={todayWorkout.sessions?.session_exercises?.[0]?.exercises?.thumbnail_url}
-            status={getWorkoutStatus()}
-            onClick={() => navigate(`/client/workout/details/${todayWorkout.session_id}`)}
-          />
-        )}
-
-        <BottomNavigation activeTab="plano" />
       </div>
-    </SolidBackgroundWrapper>
+
+      {/* Goals */}
+      <GoalsDisplay
+        mainGoal={clientGoals?.goal || 'Não definido'}
+        targetWeight={clientGoals?.targetWeight || '0'}
+      />
+
+      {/* Progress Info */}
+      <div className="px-5 mb-3">
+        <p className="text-sm text-muted-foreground">
+          <span className="font-bold text-foreground">{completedSessions}</span> de{' '}
+          <span className="font-bold text-foreground">{totalSessions}</span> treinos concluídos
+        </p>
+      </div>
+
+      {/* Main Workout Card */}
+      {todayWorkout && (
+        <WorkoutCard
+          workoutName={todayWorkout.sessions?.name || 'Treino do Dia'}
+          imageUrl={todayWorkout.sessions?.session_exercises?.[0]?.exercises?.thumbnail_url}
+          status={getWorkoutStatus()}
+          onClick={() => navigate(`/client/workout/details/${todayWorkout.session_id}`)}
+        />
+      )}
+
+      <BottomNavigation activeTab="plano" />
+    </div>
   );
 };
 
