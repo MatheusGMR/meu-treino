@@ -78,19 +78,18 @@ const ClientDashboard = () => {
   const isTestUser = user?.email === "matheusmotaroldan@gmail.com";
   useEffect(() => {
     if (!showSplash && todayWorkout?.session_id && !showCheckin) {
+      const checkinShown = sessionStorage.getItem("checkin_shown_today");
+      if (checkinShown) return;
       if (isTestUser || !todayCheckin) {
-        const checkinShown = sessionStorage.getItem("checkin_shown_today");
-        if (isTestUser || !checkinShown) {
-          const timer = setTimeout(() => setShowCheckin(true), 800);
-          return () => clearTimeout(timer);
-        }
+        const timer = setTimeout(() => setShowCheckin(true), 800);
+        return () => clearTimeout(timer);
       }
     }
   }, [showSplash, todayCheckin, todayWorkout, showCheckin, isTestUser]);
 
   const handleCheckinClose = () => {
     setShowCheckin(false);
-    sessionStorage.setItem("checkin_shown_today", new Date().toISOString().split("T")[0]);
+    sessionStorage.setItem("checkin_shown_today", "true");
   };
 
   useEffect(() => {
