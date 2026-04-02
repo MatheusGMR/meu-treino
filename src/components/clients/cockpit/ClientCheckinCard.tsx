@@ -72,17 +72,12 @@ export const ClientCheckinCard = ({ clientId }: ClientCheckinCardProps) => {
           </div>
         )}
 
-        {/* Mood Summary */}
-        {checkin.mood_summary && (
-          <p className="text-foreground">{checkin.mood_summary}</p>
-        )}
-
-        {/* AI Suggestions */}
+        {/* AI Suggestions — prioritized over mood summary */}
         {analysis?.needs_adjustment && analysis.suggestions?.length > 0 && (
           <div className="space-y-1 pt-2 border-t">
             <div className="flex items-center gap-1.5 text-primary">
               <Sparkles className="w-3.5 h-3.5" />
-              <span className="font-medium">Sugestões IA</span>
+              <span className="font-medium">Adaptações Sugeridas</span>
               {checkin.suggestion_accepted !== null && (
                 <Badge variant={checkin.suggestion_accepted ? "default" : "outline"} className="ml-auto text-[10px]">
                   {checkin.suggestion_accepted ? "Aceito" : "Recusado"}
@@ -94,6 +89,13 @@ export const ClientCheckinCard = ({ clientId }: ClientCheckinCardProps) => {
                 • {s.exercise_name}: {s.details}
               </p>
             ))}
+          </div>
+        )}
+
+        {/* Overall recommendation */}
+        {analysis?.overall_recommendation && (
+          <div className="bg-primary/5 rounded-lg p-3 border border-primary/10">
+            <p className="text-foreground">{analysis.overall_recommendation}</p>
           </div>
         )}
       </CardContent>
