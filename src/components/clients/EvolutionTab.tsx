@@ -71,7 +71,21 @@ export const EvolutionTab = ({ clientId }: EvolutionTabProps) => {
     },
   });
 
-  const isLoading = loadingCheckins || loadingSessions;
+  // Post-workout feedbacks
+  const { data: postFeedbacks = [], isLoading: loadingFeedbacks } = useQuery({
+    queryKey: ["client-post-feedbacks", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("post_workout_feedbacks")
+        .select("*, sessions(name)")
+        .eq("client_id", clientId)
+        .order("created_at", { ascending: false })
+        .limit(30);
+      return data || [];
+    },
+  });
+
+  const isLoading = loadingCheckins || loadingSessions || loadingFeedbacks;
 
   // Build mood trend data (chronological)
   const moodTrendData = [...checkins].reverse().map((c) => {
