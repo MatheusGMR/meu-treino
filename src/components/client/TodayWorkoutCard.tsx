@@ -1,13 +1,34 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Play, CheckCircle2 } from "lucide-react";
+import { Play, CheckCircle2, AlertTriangle, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTodayWorkout } from "@/hooks/useTodayWorkout";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 export const TodayWorkoutCard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { data: todayWorkout, isLoading } = useTodayWorkout();
+
+  // Check if current workout is experimental (trial)
+  const { data: clientWorkout } = useQuery({
+    queryKey: ["client-workout-notes", todayWorkout?.client_workout_id],
+    queryFn: async () => {
+      if (!todayWorkout?.client_workout_id) return null;
+      const { data } = await supabase
+        .from("client_workouts")
+        .select("notes")
+        .eq("id", todayWorkout.client_workout_id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!todayWorkout?.client_workout_id,
+  });
+
+  const isTrialWorkout = clientWorkout?.notes?.includes("Treino experimental");
 
   if (isLoading) {
     return <Skeleton className="h-64" />;
@@ -30,6 +51,21 @@ export const TodayWorkoutCard = () => {
   return (
     <Card className="p-8">
       <div className="space-y-6">
+        {/* Trial workout banner */}
+        {isTrialWorkout && (
+          <div className="bg-accent/10 border border-accent/30 rounded-xl p-4 flex items-start gap-3">
+            <Sparkles className="w-5 h-5 text-accent mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-accent">
+                Treino Experimental
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Este é um treino de teste baseado na sua anamnese. Seu treino personalizado será criado pelo profissional em até 24 horas.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold text-foreground">Treino do Dia</h2>
           {isCompleted && (
