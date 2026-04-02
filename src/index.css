@@ -92,10 +92,10 @@ All colors MUST be HSL.
     --popover: 217 33% 14%;
     --popover-foreground: 0 0% 98%;
 
-    /* Primary agora é coral/vermelho */
-    --primary: 4 90% 58%;
+    /* Primary - Crimson Red */
+    --primary: 348 83% 47%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 4 100% 70%;
+    --primary-glow: 348 90% 60%;
 
     --secondary: 217 33% 18%;
     --secondary-foreground: 0 0% 100%;
