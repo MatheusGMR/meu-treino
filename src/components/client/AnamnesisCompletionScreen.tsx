@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, Gift, Sparkles, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logoJmFull from "@/assets/logo-jm-full.png";
+import meuTreinoLogo from "@/assets/meu-treino-logo.png";
 
 interface AnamnesisCompletionScreenProps {
   userName: string;

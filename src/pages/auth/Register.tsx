@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dumbbell, Users } from "lucide-react";
-import logoJmFull from "@/assets/logo-jm-full.png";
+import meuTreinoLogo from "@/assets/meu-treino-logo.png";
 import { toast } from "sonner";
 
 const Register = () => {
@@ -48,8 +48,8 @@ const Register = () => {
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <img 
-              src={logoJmFull} 
-              alt="Junior Mello Treinamentos" 
+              src={meuTreinoLogo} 
+              alt="Meu Treino"
               className="h-20 w-auto object-contain rounded-xl"
             />
           </div>

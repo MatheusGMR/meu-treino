@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { ClipboardList, Mic } from "lucide-react";
-import logoJmFull from "@/assets/logo-jm-full.png";
+import meuTreinoLogo from "@/assets/meu-treino-logo.png";
 
 interface AnamnesisMethodChoiceProps {
   onChooseWritten: () => void;
@@ -13,7 +13,7 @@ export const AnamnesisMethodChoice = ({ onChooseWritten, onChooseVoice }: Anamne
       <div className="w-full max-w-lg space-y-8">
         {/* Logo */}
         <div className="text-center">
-          <img src={logoJmFull} alt="Logo" className="h-16 mx-auto mb-6" />
+          <img src={meuTreinoLogo} alt="Meu Treino" className="h-16 mx-auto mb-6" />
           <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
             Vamos te conhecer melhor! 🎯
           </h1>

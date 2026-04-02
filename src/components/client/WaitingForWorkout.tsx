@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import logoJmFull from "@/assets/logo-jm-full.png";
+import meuTreinoLogo from "@/assets/meu-treino-logo.png";
 import { Dumbbell, Sparkles } from "lucide-react";
 
 export const WaitingForWorkout = () => {
@@ -8,7 +8,7 @@ export const WaitingForWorkout = () => {
       <Card className="w-full max-w-2xl shadow-2xl">
         <CardContent className="pt-12 pb-10 px-6 text-center">
           <div className="flex justify-center mb-6">
-            <img src={logoJmFull} alt="JM" className="h-16" />
+            <img src={meuTreinoLogo} alt="Meu Treino" className="h-16" />
           </div>
           
           {/* Ícone animado */}

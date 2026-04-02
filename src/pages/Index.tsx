@@ -3,7 +3,7 @@ import { Hero } from "@/components/Hero";
 import { Features } from "@/components/Features";
 import { RoleCard } from "@/components/RoleCard";
 import { Crown, Dumbbell, Users } from "lucide-react";
-import logoJmFull from "@/assets/logo-jm-full.png";
+import meuTreinoLogo from "@/assets/meu-treino-logo.png";
 
 const Index = () => {
   return (
@@ -107,8 +107,8 @@ const Index = () => {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
               <img 
-                src={logoJmFull} 
-                alt="Junior Mello Treinamentos" 
+                src={meuTreinoLogo} 
+                alt="Meu Treino"
                 className="h-12 w-auto object-contain rounded-lg"
               />
             </div>

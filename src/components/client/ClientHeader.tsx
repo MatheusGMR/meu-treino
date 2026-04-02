@@ -4,8 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAnamnesisStatus } from "@/hooks/useAnamnesisStatus";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import logoJmFull from "@/assets/logo-jm-full.png";
-import logoJmIcon from "@/assets/logo-jm-icon.png";
+import meuTreinoLogo from "@/assets/meu-treino-logo.png";
 import {
   Sheet,
   SheetContent,
