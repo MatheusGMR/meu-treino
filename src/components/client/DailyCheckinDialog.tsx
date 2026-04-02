@@ -204,7 +204,7 @@ export const DailyCheckinDialog = ({
       const today = new Date().toISOString().split("T")[0];
       await supabase
         .from("daily_checkins")
-        .update({ suggestion_accepted: true, adapted_session_data: analysis.suggestions })
+        .update({ suggestion_accepted: true, adapted_session_data: JSON.parse(JSON.stringify(analysis.suggestions)) })
         .eq("client_id", user?.id)
         .eq("checkin_date", today);
 
