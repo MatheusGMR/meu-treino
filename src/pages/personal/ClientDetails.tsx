@@ -85,12 +85,12 @@ const ClientDetails = () => {
           )}
         </div>
 
-        <Tabs defaultValue="info" className="space-y-6">
+        <Tabs defaultValue="workouts" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="info">Informações</TabsTrigger>
+            <TabsTrigger value="workouts">Treinos</TabsTrigger>
             <TabsTrigger value="anamnesis">Anamnese</TabsTrigger>
             <TabsTrigger value="assessments">Avaliações</TabsTrigger>
-            <TabsTrigger value="workouts">Treinos</TabsTrigger>
+            <TabsTrigger value="info">Informações</TabsTrigger>
           </TabsList>
 
           <TabsContent value="info">
