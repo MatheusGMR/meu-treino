@@ -1,7 +1,7 @@
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { CheckCircle2, Clock, Dumbbell } from "lucide-react";
-import { WorkoutFeedbackDialog } from "@/components/client/WorkoutFeedbackDialog";
+import { PostWorkoutFeedbackDialog } from "@/components/client/PostWorkoutFeedbackDialog";
 import { motion } from "framer-motion";
 
 const WorkoutComplete = () => {
@@ -10,14 +10,10 @@ const WorkoutComplete = () => {
   const location = useLocation();
   const [showFeedback, setShowFeedback] = useState(true);
 
-  const { startTime, exercisesCount, sessionName } = (location.state as any) || {};
+  const { startTime, exercisesCount, sessionName, sessionId } = (location.state as any) || {};
 
   const elapsedMs = startTime ? Date.now() - startTime : 0;
   const totalMinutes = Math.round(elapsedMs / 60000);
-
-  const handleFeedback = (rating: string) => {
-    setShowFeedback(false);
-  };
 
   return (
     <div className="client-dark min-h-screen bg-background flex flex-col items-center justify-center p-6">
@@ -90,10 +86,12 @@ const WorkoutComplete = () => {
         </button>
       </motion.div>
 
-      <WorkoutFeedbackDialog
+      <PostWorkoutFeedbackDialog
         open={showFeedback}
-        onOpenChange={setShowFeedback}
-        onSubmit={handleFeedback}
+        onClose={() => setShowFeedback(false)}
+        scheduleId={scheduleId}
+        sessionId={sessionId}
+        sessionName={sessionName}
       />
     </div>
   );
