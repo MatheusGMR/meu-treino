@@ -26,6 +26,7 @@ const ClientDashboard = () => {
   });
   const [isExpanding, setIsExpanding] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const [showCheckin, setShowCheckin] = useState(false);
 
   const { data: weeklySchedule = [] } = useWeeklySchedule();
   const { data: clientGoals } = useClientGoals();
