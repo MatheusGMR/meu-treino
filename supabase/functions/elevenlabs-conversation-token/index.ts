@@ -25,30 +25,44 @@ serve(async (req) => {
       });
     }
 
-    const response = await fetch(
+    // Get signed URL (WebSocket)
+    const signedUrlResponse = await fetch(
       `https://api.elevenlabs.io/v1/convai/conversation/get-signed-url?agent_id=${agentId}`,
       {
-        headers: {
-          "xi-api-key": ELEVENLABS_API_KEY,
-        },
+        headers: { "xi-api-key": ELEVENLABS_API_KEY },
       }
     );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("ElevenLabs API error:", response.status, errorText);
+    // Get conversation token (WebRTC) 
+    const tokenResponse = await fetch(
+      `https://api.elevenlabs.io/v1/convai/conversation/token?agent_id=${agentId}`,
+      {
+        headers: { "xi-api-key": ELEVENLABS_API_KEY },
+      }
+    );
+
+    const result: Record<string, string> = {};
+
+    if (signedUrlResponse.ok) {
+      const signedData = await signedUrlResponse.json();
+      result.signed_url = signedData.signed_url;
+    }
+
+    if (tokenResponse.ok) {
+      const tokenData = await tokenResponse.json();
+      result.token = tokenData.token;
+    }
+
+    if (!result.signed_url && !result.token) {
+      const errorText = await signedUrlResponse.text().catch(() => "unknown");
+      console.error("ElevenLabs API error:", errorText);
       return new Response(
-        JSON.stringify({ error: `ElevenLabs API error: ${response.status}` }),
-        {
-          status: response.status,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ error: "Failed to get conversation credentials" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const data = await response.json();
-
-    return new Response(JSON.stringify({ signed_url: data.signed_url }), {
+    return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

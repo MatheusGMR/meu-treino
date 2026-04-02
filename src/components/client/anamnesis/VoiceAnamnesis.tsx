@@ -142,6 +142,7 @@ const VoiceAnamnesisInner = () => {
 
   const startConversation = useCallback(async () => {
     setIsConnecting(true);
+    messagesRef.current = [];
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
 
@@ -150,21 +151,39 @@ const VoiceAnamnesisInner = () => {
         { body: { agentId: AGENT_ID } }
       );
 
-      if (error || !data?.signed_url) {
+      if (error) {
         throw new Error("Não foi possível conectar ao Júnior");
       }
 
-      await conversation.startSession({
-        signedUrl: data.signed_url,
-        overrides: {
-          agent: {
-            prompt: {
-              prompt: JUNIOR_SYSTEM_PROMPT,
+      // Prefer WebRTC token, fallback to signed URL
+      if (data?.token) {
+        await conversation.startSession({
+          conversationToken: data.token,
+          connectionType: "webrtc",
+          overrides: {
+            agent: {
+              prompt: {
+                prompt: JUNIOR_SYSTEM_PROMPT,
+              },
+              firstMessage: "Olá! Eu sou o Júnior, assistente da plataforma Meu Treino. Vou te fazer algumas perguntas pra gente conhecer melhor você e montar o treino ideal. Vamos lá?",
             },
-            firstMessage: "Olá! Eu sou o Júnior, assistente da plataforma Meu Treino. Vou te fazer algumas perguntas pra gente conhecer melhor você e montar o treino ideal. Vamos lá?",
           },
-        },
-      });
+        });
+      } else if (data?.signed_url) {
+        await conversation.startSession({
+          signedUrl: data.signed_url,
+          overrides: {
+            agent: {
+              prompt: {
+                prompt: JUNIOR_SYSTEM_PROMPT,
+              },
+              firstMessage: "Olá! Eu sou o Júnior, assistente da plataforma Meu Treino. Vou te fazer algumas perguntas pra gente conhecer melhor você e montar o treino ideal. Vamos lá?",
+            },
+          },
+        });
+      } else {
+        throw new Error("Nenhuma credencial recebida");
+      }
     } catch (error: any) {
       console.error("Failed to start:", error);
       toast({
