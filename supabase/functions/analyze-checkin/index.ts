@@ -56,6 +56,17 @@ serve(async (req) => {
       .eq("id", session_id)
       .single();
 
+    // Build exercise list with original values for before/after comparison
+    const exercisesList = sessionData?.session_exercises?.map(se => ({
+      nome: se.exercises?.name || "Exercício",
+      grupo: se.exercises?.exercise_group || "",
+      musculo: se.exercises?.primary_muscle || "",
+      series_original: se.volumes?.num_series || 3,
+      reps_original: `${se.methods?.reps_min || 8}-${se.methods?.reps_max || 12}`,
+      carga_original: se.methods?.load_level || "Moderada",
+      descanso_original: se.methods?.rest_seconds || 60,
+    })) || [];
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
@@ -63,10 +74,8 @@ serve(async (req) => {
 
 1. Resuma o humor/estado físico em 1-2 frases (campo "mood_summary")
 2. Determine uma categoria: "otimo", "bem", "cansado", "com_dor", "indisposto"
-3. Se necessário, sugira ajustes específicos para o treino de hoje. Considere:
-   - Se o cliente mencionou dor, cansaço ou mal-estar, sugira redução de carga (%), troca de exercícios ou redução de séries
-   - Se está bem, confirme que o treino original está adequado
-4. Retorne as sugestões como array de objetos com: exercise_name, adjustment_type (reduce_load|swap_exercise|reduce_sets|skip), details
+3. Se necessário, sugira ajustes específicos para o treino de hoje. Para cada exercício que precisa de ajuste, forneça os valores ORIGINAIS e SUGERIDOS para que o cliente veja o antes e depois.
+4. Inclua estimativa de tempo total do treino original vs adaptado (em minutos).
 
 Contexto do cliente:
 - Objetivo: ${anamnesis?.primary_goal || "não informado"}
@@ -75,14 +84,7 @@ Contexto do cliente:
 - Lesões: ${anamnesis?.injury_type || "nenhuma"}
 
 Treino de hoje: ${sessionData?.name || "não disponível"}
-Exercícios: ${JSON.stringify(sessionData?.session_exercises?.map(se => ({
-  nome: se.exercises?.name,
-  grupo: se.exercises?.exercise_group,
-  musculo: se.exercises?.primary_muscle,
-  series: se.volumes?.num_series,
-  reps: `${se.methods?.reps_min}-${se.methods?.reps_max}`,
-  carga: se.methods?.load_level
-})) || [])}`;
+Exercícios com valores originais: ${JSON.stringify(exercisesList)}`;
 
     const aiResponse = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -103,13 +105,15 @@ Exercícios: ${JSON.stringify(sessionData?.session_exercises?.map(se => ({
               type: "function",
               function: {
                 name: "analyze_mood_and_suggest",
-                description: "Analyze client mood and suggest workout adjustments",
+                description: "Analyze client mood and suggest workout adjustments with before/after comparison",
                 parameters: {
                   type: "object",
                   properties: {
                     mood_summary: { type: "string", description: "1-2 sentence mood summary in Portuguese" },
                     mood_category: { type: "string", enum: ["otimo", "bem", "cansado", "com_dor", "indisposto"] },
                     needs_adjustment: { type: "boolean" },
+                    estimated_time_original: { type: "number", description: "Estimated original workout time in minutes" },
+                    estimated_time_adapted: { type: "number", description: "Estimated adapted workout time in minutes" },
                     suggestions: {
                       type: "array",
                       items: {
@@ -118,13 +122,19 @@ Exercícios: ${JSON.stringify(sessionData?.session_exercises?.map(se => ({
                           exercise_name: { type: "string" },
                           adjustment_type: { type: "string", enum: ["reduce_load", "swap_exercise", "reduce_sets", "skip"] },
                           details: { type: "string" },
+                          original_series: { type: "number", description: "Original number of sets" },
+                          suggested_series: { type: "number", description: "Suggested number of sets" },
+                          original_reps: { type: "string", description: "Original reps range e.g. 8-12" },
+                          suggested_reps: { type: "string", description: "Suggested reps range" },
+                          original_load: { type: "string", description: "Original load level" },
+                          suggested_load: { type: "string", description: "Suggested load level" },
                         },
-                        required: ["exercise_name", "adjustment_type", "details"],
+                        required: ["exercise_name", "adjustment_type", "details", "original_series", "suggested_series", "original_reps", "suggested_reps", "original_load", "suggested_load"],
                       },
                     },
                     overall_recommendation: { type: "string", description: "Overall recommendation message in Portuguese" },
                   },
-                  required: ["mood_summary", "mood_category", "needs_adjustment", "suggestions", "overall_recommendation"],
+                  required: ["mood_summary", "mood_category", "needs_adjustment", "suggestions", "overall_recommendation", "estimated_time_original", "estimated_time_adapted"],
                 },
               },
             },
@@ -162,6 +172,8 @@ Exercícios: ${JSON.stringify(sessionData?.session_exercises?.map(se => ({
         needs_adjustment: false,
         suggestions: [],
         overall_recommendation: "Treino pode seguir normalmente.",
+        estimated_time_original: 45,
+        estimated_time_adapted: 45,
       };
     }
 

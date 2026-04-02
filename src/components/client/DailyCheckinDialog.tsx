@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Mic, MicOff, X, Sparkles, Check, Loader2 } from "lucide-react";
+import { Mic, MicOff, X, Sparkles, Check, ArrowRight, ArrowDown, Clock, Dumbbell, ChevronLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -8,6 +8,12 @@ interface AISuggestion {
   exercise_name: string;
   adjustment_type: "reduce_load" | "swap_exercise" | "reduce_sets" | "skip";
   details: string;
+  original_series: number;
+  suggested_series: number;
+  original_reps: string;
+  suggested_reps: string;
+  original_load: string;
+  suggested_load: string;
 }
 
 interface AnalysisResult {
@@ -16,6 +22,8 @@ interface AnalysisResult {
   needs_adjustment: boolean;
   suggestions: AISuggestion[];
   overall_recommendation: string;
+  estimated_time_original: number;
+  estimated_time_adapted: number;
 }
 
 interface DailyCheckinDialogProps {
@@ -25,11 +33,18 @@ interface DailyCheckinDialogProps {
   onSuggestionAccepted?: (analysis: AnalysisResult) => void;
 }
 
+const ADJUSTMENT_ICONS: Record<string, string> = {
+  reduce_load: "⚖️",
+  swap_exercise: "🔄",
+  reduce_sets: "📉",
+  skip: "⏭️",
+};
+
 const ADJUSTMENT_LABELS: Record<string, string> = {
   reduce_load: "Reduzir carga",
   swap_exercise: "Trocar exercício",
   reduce_sets: "Reduzir séries",
-  skip: "Pular exercício",
+  skip: "Pular",
 };
 
 const MOOD_EMOJIS: Record<string, string> = {
@@ -47,7 +62,7 @@ export const DailyCheckinDialog = ({
   onSuggestionAccepted,
 }: DailyCheckinDialogProps) => {
   const { user } = useAuth();
-  const [step, setStep] = useState<"record" | "transcribing" | "analyzing" | "result">("record");
+  const [step, setStep] = useState<"record" | "transcribing" | "analyzing" | "result" | "suggestions">("record");
   const [isRecording, setIsRecording] = useState(false);
   const [transcription, setTranscription] = useState("");
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
@@ -55,6 +70,9 @@ export const DailyCheckinDialog = ({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [showTextInput, setShowTextInput] = useState(false);
+  const [textInput, setTextInput] = useState("");
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     if (!open) {
@@ -63,88 +81,10 @@ export const DailyCheckinDialog = ({
       setTranscription("");
       setAnalysis(null);
       setRecordingTime(0);
+      setShowTextInput(false);
+      setTextInput("");
     }
   }, [open]);
-
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      chunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data);
-      };
-
-      mediaRecorder.onstop = () => {
-        stream.getTracks().forEach((t) => t.stop());
-        processAudio();
-      };
-
-      mediaRecorder.start();
-      setIsRecording(true);
-      setRecordingTime(0);
-      timerRef.current = setInterval(() => setRecordingTime((t) => t + 1), 1000);
-    } catch {
-      toast.error("Não foi possível acessar o microfone.");
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current?.state === "recording") {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      if (timerRef.current) clearInterval(timerRef.current);
-    }
-  };
-
-  const processAudio = async () => {
-    setStep("transcribing");
-    const blob = new Blob(chunksRef.current, { type: "audio/webm" });
-
-    // Use Web Speech API for transcription (browser-native, free)
-    if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
-      // Fallback: since we already recorded, we'll use a simpler approach
-      // Convert audio to text via a prompt to AI
-    }
-
-    // Read audio as base64 and send to AI for transcription via edge function
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      // For now, use a text input fallback — real transcription would need STT
-      // We'll show a text input for the user to type/confirm what they said
-      setStep("record");
-      setShowTextInput(true);
-    };
-    reader.readAsDataURL(blob);
-  };
-
-  const [showTextInput, setShowTextInput] = useState(false);
-  const [textInput, setTextInput] = useState("");
-
-  const analyzeCheckin = async (text: string) => {
-    if (!text.trim() || !sessionId) return;
-    setTranscription(text);
-    setStep("analyzing");
-
-    try {
-      const { data, error } = await supabase.functions.invoke("analyze-checkin", {
-        body: { transcription: text, session_id: sessionId },
-      });
-
-      if (error) throw error;
-      setAnalysis(data.analysis);
-      setStep("result");
-    } catch (e: any) {
-      console.error(e);
-      toast.error("Erro ao analisar check-in.");
-      setStep("record");
-    }
-  };
-
-  // Use SpeechRecognition API for live transcription
-  const recognitionRef = useRef<any>(null);
 
   const startVoiceRecognition = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -197,6 +137,26 @@ export const DailyCheckinDialog = ({
     if (timerRef.current) clearInterval(timerRef.current);
   };
 
+  const analyzeCheckin = async (text: string) => {
+    if (!text.trim() || !sessionId) return;
+    setTranscription(text);
+    setStep("analyzing");
+
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-checkin", {
+        body: { transcription: text, session_id: sessionId },
+      });
+
+      if (error) throw error;
+      setAnalysis(data.analysis);
+      setStep("result");
+    } catch (e: any) {
+      console.error(e);
+      toast.error("Erro ao analisar check-in.");
+      setStep("record");
+    }
+  };
+
   const handleAcceptSuggestions = async () => {
     if (!analysis) return;
 
@@ -234,12 +194,20 @@ export const DailyCheckinDialog = ({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="w-full max-w-md bg-card rounded-t-3xl border-t border-border p-6 pb-10 animate-in slide-in-from-bottom duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]">
+      <div className={`w-full max-w-md bg-card rounded-t-3xl border-t border-border p-6 pb-10 animate-in slide-in-from-bottom duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${step === "suggestions" ? "max-h-[90vh] overflow-y-auto" : ""}`}>
         {/* Close */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary" />
-            <span className="text-sm font-semibold text-primary uppercase tracking-wider">Check-in diário</span>
+            {step === "suggestions" ? (
+              <button onClick={() => setStep("result")} className="p-1 rounded-full hover:bg-muted transition-colors">
+                <ChevronLeft className="w-5 h-5 text-primary" />
+              </button>
+            ) : (
+              <Sparkles className="w-5 h-5 text-primary" />
+            )}
+            <span className="text-sm font-semibold text-primary uppercase tracking-wider">
+              {step === "suggestions" ? "Comparação do treino" : "Check-in diário"}
+            </span>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors">
             <X className="w-4 h-4 text-muted-foreground" />
@@ -247,27 +215,22 @@ export const DailyCheckinDialog = ({
         </div>
 
         {/* Step: Record */}
-        {(step === "record") && (
+        {step === "record" && (
           <div className="text-center space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-foreground mb-2">
-                Como você está hoje?
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Conte como está se sentindo antes do treino
-              </p>
+              <h2 className="text-2xl font-bold text-foreground mb-2">Como você está hoje?</h2>
+              <p className="text-sm text-muted-foreground">Conte como está se sentindo antes do treino</p>
             </div>
 
             {!showTextInput ? (
               <>
-                {/* Mic Button */}
                 <div className="flex justify-center">
                   <button
                     onClick={isRecording ? stopVoiceRecognition : startVoiceRecognition}
                     className={`relative w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 ${
                       isRecording
-                        ? "bg-primary shadow-[0_0_40px_hsl(348_83%_47%/0.5)]"
-                        : "bg-muted hover:bg-primary/20 hover:shadow-[0_0_20px_hsl(348_83%_47%/0.3)]"
+                        ? "bg-primary shadow-[0_0_40px_hsl(var(--primary)/0.5)]"
+                        : "bg-muted hover:bg-primary/20 hover:shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
                     }`}
                   >
                     {isRecording && (
@@ -283,13 +246,9 @@ export const DailyCheckinDialog = ({
 
                 {isRecording && (
                   <div className="space-y-2">
-                    <p className="text-sm text-primary font-medium animate-pulse">
-                      Gravando... {formatTime(recordingTime)}
-                    </p>
+                    <p className="text-sm text-primary font-medium animate-pulse">Gravando... {formatTime(recordingTime)}</p>
                     {textInput && (
-                      <p className="text-sm text-muted-foreground italic px-4 line-clamp-3">
-                        "{textInput}"
-                      </p>
+                      <p className="text-sm text-muted-foreground italic px-4 line-clamp-3">"{textInput}"</p>
                     )}
                   </div>
                 )}
@@ -308,10 +267,7 @@ export const DailyCheckinDialog = ({
                   </div>
                 )}
 
-                <button
-                  onClick={() => setShowTextInput(true)}
-                  className="text-xs text-muted-foreground underline"
-                >
+                <button onClick={() => setShowTextInput(true)} className="text-xs text-muted-foreground underline">
                   Prefiro digitar
                 </button>
               </>
@@ -331,10 +287,7 @@ export const DailyCheckinDialog = ({
                 >
                   Enviar
                 </button>
-                <button
-                  onClick={() => setShowTextInput(false)}
-                  className="text-xs text-muted-foreground underline"
-                >
+                <button onClick={() => setShowTextInput(false)} className="text-xs text-muted-foreground underline">
                   Usar microfone
                 </button>
               </div>
@@ -359,15 +312,14 @@ export const DailyCheckinDialog = ({
           </div>
         )}
 
-        {/* Step: Result */}
+        {/* Step: Result — Summary with "Ver Sugestões" CTA */}
         {step === "result" && analysis && (
           <div className="space-y-5">
             {/* Mood */}
             <div className="bg-muted/50 rounded-xl p-4 flex items-start gap-3">
               <span className="text-3xl">{MOOD_EMOJIS[analysis.mood_category] || "😊"}</span>
-              <div>
-                <p className="text-foreground font-semibold text-sm">{analysis.mood_summary}</p>
-                <p className="text-xs text-muted-foreground mt-1">"{transcription}"</p>
+              <div className="flex-1">
+                <p className="text-sm text-muted-foreground mt-0.5">"{transcription}"</p>
               </div>
             </div>
 
@@ -376,53 +328,159 @@ export const DailyCheckinDialog = ({
               <p className="text-sm text-foreground">{analysis.overall_recommendation}</p>
             </div>
 
-            {/* Suggestions */}
-            {analysis.needs_adjustment && analysis.suggestions.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Ajustes sugeridos
-                </p>
-                {analysis.suggestions.map((s, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-3 bg-muted/30 rounded-lg p-3 border border-border"
-                  >
-                    <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-foreground font-medium truncate">{s.exercise_name}</p>
-                      <p className="text-xs text-muted-foreground">{ADJUSTMENT_LABELS[s.adjustment_type]}: {s.details}</p>
+            {/* Actions */}
+            <div className="space-y-3 pt-2">
+              {analysis.needs_adjustment && analysis.suggestions.length > 0 ? (
+                <>
+                  {/* Time comparison preview */}
+                  <div className="flex items-center justify-center gap-4 py-3">
+                    <div className="text-center">
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span className="text-xs">Original</span>
+                      </div>
+                      <p className="text-lg font-bold text-foreground">{analysis.estimated_time_original || 45} min</p>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-primary" />
+                    <div className="text-center">
+                      <div className="flex items-center gap-1.5 text-primary">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span className="text-xs font-medium">Adaptado</span>
+                      </div>
+                      <p className="text-lg font-bold text-primary">{analysis.estimated_time_adapted || 40} min</p>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
 
-            {/* Actions */}
-            <div className="flex gap-3 pt-2">
-              {analysis.needs_adjustment ? (
-                <>
+                  <button
+                    onClick={() => setStep("suggestions")}
+                    className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm uppercase tracking-wider hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Ver sugestões ({analysis.suggestions.length} ajustes)
+                  </button>
+
                   <button
                     onClick={handleDeclineSuggestions}
-                    className="flex-1 py-3 rounded-xl border border-border text-foreground font-semibold text-sm hover:bg-muted transition-all"
+                    className="w-full py-3 rounded-xl border border-border text-foreground font-semibold text-sm hover:bg-muted transition-all"
                   >
-                    Manter original
-                  </button>
-                  <button
-                    onClick={handleAcceptSuggestions}
-                    className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
-                  >
-                    <Check className="w-4 h-4" />
-                    Adaptar treino
+                    Manter treino original
                   </button>
                 </>
               ) : (
                 <button
                   onClick={onClose}
-                  className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm uppercase tracking-wider hover:bg-primary/90 transition-all"
+                  className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm uppercase tracking-wider hover:bg-primary/90 transition-all"
                 >
                   Vamos treinar! 💪
                 </button>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Step: Suggestions — Before/After Comparison */}
+        {step === "suggestions" && analysis && (
+          <div className="space-y-4">
+            {/* Summary bar */}
+            <div className="flex items-center gap-3 bg-muted/50 rounded-xl p-3">
+              <Dumbbell className="w-5 h-5 text-primary shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-foreground">
+                  {analysis.suggestions.length} exercício{analysis.suggestions.length > 1 ? "s" : ""} ajustado{analysis.suggestions.length > 1 ? "s" : ""}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {analysis.estimated_time_original} min → {analysis.estimated_time_adapted} min
+                </p>
+              </div>
+            </div>
+
+            {/* Exercise-by-exercise comparison */}
+            {analysis.suggestions.map((s, i) => (
+              <div key={i} className="rounded-xl border border-border overflow-hidden">
+                {/* Exercise header */}
+                <div className="bg-muted/50 px-4 py-2.5 flex items-center gap-2">
+                  <span className="text-base">{ADJUSTMENT_ICONS[s.adjustment_type] || "🔧"}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground truncate">{s.exercise_name}</p>
+                    <p className="text-[11px] text-primary font-medium">{ADJUSTMENT_LABELS[s.adjustment_type]}</p>
+                  </div>
+                </div>
+
+                {/* Before / After grid */}
+                {s.adjustment_type !== "skip" ? (
+                  <div className="grid grid-cols-2 divide-x divide-border">
+                    {/* Before */}
+                    <div className="p-3 space-y-2">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Antes</p>
+                      <div className="space-y-1.5">
+                        <div>
+                          <p className="text-[10px] text-muted-foreground">Séries</p>
+                          <p className="text-sm font-bold text-foreground">{s.original_series}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-muted-foreground">Reps</p>
+                          <p className="text-sm font-bold text-foreground">{s.original_reps}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-muted-foreground">Carga</p>
+                          <p className="text-sm font-bold text-foreground">{s.original_load}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* After */}
+                    <div className="p-3 space-y-2 bg-primary/5">
+                      <p className="text-[10px] font-bold text-primary uppercase tracking-wider">Depois</p>
+                      <div className="space-y-1.5">
+                        <div>
+                          <p className="text-[10px] text-muted-foreground">Séries</p>
+                          <p className={`text-sm font-bold ${s.suggested_series !== s.original_series ? "text-primary" : "text-foreground"}`}>
+                            {s.suggested_series}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-muted-foreground">Reps</p>
+                          <p className={`text-sm font-bold ${s.suggested_reps !== s.original_reps ? "text-primary" : "text-foreground"}`}>
+                            {s.suggested_reps}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-muted-foreground">Carga</p>
+                          <p className={`text-sm font-bold ${s.suggested_load !== s.original_load ? "text-primary" : "text-foreground"}`}>
+                            {s.suggested_load}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-3 text-center">
+                    <p className="text-sm text-muted-foreground italic">Este exercício será removido do treino</p>
+                  </div>
+                )}
+
+                {/* Details */}
+                <div className="px-4 py-2 bg-muted/30 border-t border-border">
+                  <p className="text-xs text-muted-foreground">{s.details}</p>
+                </div>
+              </div>
+            ))}
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-2 sticky bottom-0 bg-card pb-2">
+              <button
+                onClick={handleDeclineSuggestions}
+                className="flex-1 py-3 rounded-xl border border-border text-foreground font-semibold text-sm hover:bg-muted transition-all"
+              >
+                Manter original
+              </button>
+              <button
+                onClick={handleAcceptSuggestions}
+                className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
+              >
+                <Check className="w-4 h-4" />
+                Adaptar treino
+              </button>
             </div>
           </div>
         )}
