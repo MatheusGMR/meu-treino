@@ -19,7 +19,10 @@ const ClientDashboard = () => {
   const { user } = useAuth();
   const { anamnesisCompleted, loading: anamnesisLoading } = useAnamnesisStatus();
   const { data: hasWorkout, isLoading: workoutLoading } = useHasWorkout();
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => {
+    const shown = sessionStorage.getItem("splash_shown");
+    return !shown;
+  });
 
   const { data: weeklySchedule = [] } = useWeeklySchedule();
   const { data: clientGoals } = useClientGoals();
