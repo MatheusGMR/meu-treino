@@ -181,10 +181,7 @@ export const useAddClient = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
-      toast({
-        title: "Cliente adicionado com sucesso!",
-        description: "O novo cliente foi criado e pode fazer login no sistema.",
-      });
+      // Toast is handled by the dialog success screen
     },
     onError: (error: any) => {
       toast({

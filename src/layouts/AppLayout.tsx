@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { SidebarWithBackground } from "@/components/sidebar/SidebarWithBackground";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { useAnamnesisCompletionNotifier } from "@/hooks/useAnamnesisCompletionNotifier";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -17,6 +18,9 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   }, [collapsed]);
 
   const toggleCollapsed = () => setCollapsed(prev => !prev);
+
+  // Listen for anamnesis completion notifications from clients
+  useAnamnesisCompletionNotifier();
 
   return (
     <SidebarProvider>

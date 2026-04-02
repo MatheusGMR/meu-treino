@@ -51,12 +51,14 @@ serve(async (req) => {
     console.log('Creating client with data:', { email: clientData.email, full_name: clientData.full_name });
 
     // Criar usuário usando Admin API
+    // O trigger handle_new_user já cria o profile e o role 'client' automaticamente
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email: clientData.email,
       password: clientData.password,
       email_confirm: true,
       user_metadata: {
-        full_name: clientData.full_name
+        full_name: clientData.full_name,
+        role: 'client'
       }
     });
 
@@ -67,7 +69,10 @@ serve(async (req) => {
 
     console.log('User created:', newUser.user.id);
 
-    // Atualizar profile com dados adicionais
+    // Aguardar um momento para o trigger handle_new_user finalizar
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Atualizar profile com dados adicionais (trigger já criou o perfil base)
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .update({
@@ -105,20 +110,8 @@ serve(async (req) => {
 
     console.log('Assignment created');
 
-    // Criar role de cliente
-    const { error: roleError } = await supabaseAdmin
-      .from('user_roles')
-      .insert({
-        user_id: newUser.user.id,
-        role: 'client'
-      });
-
-    if (roleError) {
-      console.error('Error creating role:', roleError);
-      throw roleError;
-    }
-
-    console.log('Role created');
+    // NÃO inserir role aqui - o trigger handle_new_user já faz isso automaticamente
+    // A inserção duplicada causava erro de unique constraint
 
     return new Response(
       JSON.stringify({ 
