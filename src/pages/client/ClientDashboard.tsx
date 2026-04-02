@@ -148,9 +148,17 @@ const ClientDashboard = () => {
         <h2 className="text-lg font-bold text-foreground mb-4">Seu treino de hoje</h2>
 
         {todayWorkout ? (
-          <div className="rounded-xl overflow-hidden bg-card border border-border">
+          <div
+            ref={cardRef}
+            className={`rounded-xl overflow-hidden bg-card border border-border transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+              isExpanding
+                ? 'fixed inset-0 z-50 rounded-none border-none'
+                : 'relative'
+            }`}
+            style={isExpanding ? { borderRadius: 0 } : {}}
+          >
             {/* Workout Image */}
-            <div className="w-full aspect-[16/10] bg-muted overflow-hidden">
+            <div className={`w-full bg-muted overflow-hidden transition-all duration-500 ${isExpanding ? 'h-[45vh]' : 'aspect-[16/10]'}`}>
               {todayWorkout.sessions?.session_exercises?.[0]?.exercises?.thumbnail_url ? (
                 <img
                   src={todayWorkout.sessions.session_exercises[0].exercises.thumbnail_url}
@@ -165,8 +173,8 @@ const ClientDashboard = () => {
             </div>
 
             {/* Workout Info */}
-            <div className="p-5">
-              <h3 className="text-xl font-bold text-foreground mb-2">
+            <div className={`p-5 transition-all duration-500 ${isExpanding ? 'flex flex-col justify-center flex-1' : ''}`}>
+              <h3 className={`font-bold text-foreground mb-2 transition-all duration-500 ${isExpanding ? 'text-2xl' : 'text-xl'}`}>
                 {todayWorkout.sessions?.name || 'Treino do Dia'}
               </h3>
 
@@ -192,8 +200,18 @@ const ClientDashboard = () => {
               )}
 
               <button
-                onClick={() => navigate(`/client/workout/details/${todayWorkout.session_id}`)}
-                className="w-full py-3.5 rounded-lg bg-primary text-primary-foreground font-bold text-sm uppercase tracking-wider hover:bg-primary/90 transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_30px_hsl(348_83%_47%/0.4)]"
+                onClick={() => {
+                  if (isExpanding) return;
+                  setIsExpanding(true);
+                  setTimeout(() => {
+                    navigate(`/client/workout/details/${todayWorkout.session_id}`);
+                  }, 550);
+                }}
+                className={`w-full py-3.5 rounded-lg bg-primary text-primary-foreground font-bold text-sm uppercase tracking-wider transition-all ${
+                  isExpanding
+                    ? 'opacity-0 scale-95'
+                    : 'hover:bg-primary/90 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_hsl(348_83%_47%/0.4)]'
+                }`}
               >
                 IR PARA O TREINO
               </button>
