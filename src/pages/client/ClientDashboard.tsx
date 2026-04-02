@@ -90,7 +90,7 @@ const ClientDashboard = () => {
 
   const handleCheckinClose = () => {
     setShowCheckin(false);
-    sessionStorage.setItem("checkin_shown_today", new Date().toISOString().split("T")[0]);
+    sessionStorage.setItem("checkin_shown_today", "true");
   };
 
   useEffect(() => {
