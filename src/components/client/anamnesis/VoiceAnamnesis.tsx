@@ -215,19 +215,21 @@ const VoiceAnamnesisInner = () => {
   }, [conversation]);
 
   const handleConversationEnd = async () => {
-    // With server-side fallback, we only need conversationId OR messages
     const hasConversationId = !!conversationIdRef.current;
     const hasMessages = messagesRef.current.length > 0;
 
+    // If we have neither messages nor conversation ID, we can't process
     if (!hasConversationId && !hasMessages) {
+      console.log("No conversation ID and no messages - cannot process");
       toast({
-        title: "Conversa muito curta",
-        description: "Converse um pouco mais com o Júnior para completar a anamnese.",
+        title: "Não foi possível processar",
+        description: "Não conseguimos capturar a conversa. Tente novamente ou use o formulário escrito.",
         variant: "destructive",
       });
       return;
     }
 
+    console.log(`Processing anamnesis: ${messagesRef.current.length} local messages, conversationId: ${conversationIdRef.current}`);
     setIsProcessing(true);
     isProcessingRef.current = true;
 
