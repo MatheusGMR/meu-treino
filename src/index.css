@@ -60,8 +60,8 @@ All colors MUST be HSL.
     --gradient-hero: linear-gradient(135deg, hsl(348 83% 47% / 0.95), hsl(348 90% 60% / 0.9));
     --gradient-card: linear-gradient(180deg, hsl(217 33% 17%), hsl(222 47% 11%));
     
-    --shadow-glow: 0 0 40px hsl(4 90% 58% / 0.3);
-    --shadow-card: 0 10px 30px -10px hsl(222 84% 5% / 0.3);
+    --shadow-glow: 0 0 40px hsl(348 83% 47% / 0.3);
+    --shadow-card: 0 10px 30px -10px hsl(222 84% 5% / 0.15);
     
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
