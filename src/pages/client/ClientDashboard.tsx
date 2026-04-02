@@ -74,13 +74,19 @@ const ClientDashboard = () => {
     return () => clearTimeout(timer);
   }, [showSplash]);
 
-  // Show checkin dialog after splash whenever there's a workout for today
+  // Show checkin dialog after splash if not done today (test user always sees it)
+  const isTestUser = user?.email === "matheusmotaroldan@gmail.com";
   useEffect(() => {
     if (!showSplash && todayWorkout?.session_id && !showCheckin) {
-      const timer = setTimeout(() => setShowCheckin(true), 800);
-      return () => clearTimeout(timer);
+      if (isTestUser || !todayCheckin) {
+        const checkinShown = sessionStorage.getItem("checkin_shown_today");
+        if (isTestUser || !checkinShown) {
+          const timer = setTimeout(() => setShowCheckin(true), 800);
+          return () => clearTimeout(timer);
+        }
+      }
     }
-  }, [showSplash, todayWorkout, showCheckin]);
+  }, [showSplash, todayCheckin, todayWorkout, showCheckin, isTestUser]);
 
   const handleCheckinClose = () => {
     setShowCheckin(false);
