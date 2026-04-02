@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
-import logoJmFull from "@/assets/logo-jm-full.png";
-import logoJmIcon from "@/assets/logo-jm-icon.png";
+import meuTreinoLogo from "@/assets/meu-treino-logo.png";
 
 export const Navbar = () => {
   return (
@@ -11,14 +10,9 @@ export const Navbar = () => {
           {/* Logo */}
           <div className="flex items-center">
             <img 
-              src={logoJmFull} 
-              alt="Junior Mello Treinamentos" 
-              className="h-10 w-auto hidden sm:block rounded-lg"
-            />
-            <img 
-              src={logoJmIcon} 
-              alt="JM" 
-              className="h-10 w-10 sm:hidden rounded-lg"
+              src={meuTreinoLogo} 
+              alt="Meu Treino" 
+              className="h-10 w-auto rounded-lg"
             />
           </div>
 
