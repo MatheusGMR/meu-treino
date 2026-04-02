@@ -53,81 +53,57 @@ serve(async (req) => {
       "Postura": ["Lombar", "Costas"],
     };
 
-    const regioes = anamnesis.regioes_que_deseja_melhorar || [];
-    const targetGroups: string[] = [];
-    for (const regiao of regioes) {
-      const mapped = regioesMap[regiao];
-      if (mapped) {
-        for (const g of mapped) {
-          if (!targetGroups.includes(g)) targetGroups.push(g);
+    // 2. Buscar exercícios de mobilidade e alongamento prioritariamente
+    console.log("🧘 Buscando exercícios de mobilidade e alongamento...");
+
+    // Priorizar exercícios de Mobilidade e Alongamento
+    const { data: mobilityExercises, error: mobError } = await supabase
+      .from("exercises")
+      .select("id, name, exercise_group, level, exercise_type")
+      .in("exercise_type", ["Mobilidade", "Alongamento"])
+      .limit(30);
+
+    if (mobError) throw mobError;
+
+    let finalExercises = mobilityExercises || [];
+
+    // Se não tiver exercícios suficientes de mobilidade/alongamento, buscar gerais leves
+    if (finalExercises.length < 4) {
+      console.log("⚠️ Poucos exercícios de mobilidade, complementando...");
+      const { data: fallbackExercises, error: fbError } = await supabase
+        .from("exercises")
+        .select("id, name, exercise_group, level, exercise_type")
+        .limit(20);
+
+      if (!fbError && fallbackExercises) {
+        // Adicionar exercícios que não são duplicados
+        const existingIds = new Set(finalExercises.map(e => e.id));
+        for (const ex of fallbackExercises) {
+          if (!existingIds.has(ex.id)) {
+            finalExercises.push(ex);
+          }
         }
       }
     }
 
-    // Fallback: grupos básicos se nenhum foi selecionado
-    if (targetGroups.length === 0) {
-      targetGroups.push("Peito", "Costas", "Pernas", "Ombros");
-    }
+    // Ordenar: mobilidade primeiro, depois alongamento, depois outros
+    finalExercises.sort((a, b) => {
+      const priority: Record<string, number> = { "Mobilidade": 0, "Alongamento": 1, "Musculação": 2, "Cardio": 3 };
+      return (priority[a.exercise_type] ?? 4) - (priority[b.exercise_type] ?? 4);
+    });
 
-    // Limitar a 4 grupos para um treino experimental
-    const selectedGroups = targetGroups.slice(0, 4);
-    console.log("🎯 Grupos selecionados:", selectedGroups);
-
-    // 3. Buscar exercícios para os grupos (1-2 por grupo, nível adequado)
-    const nivel = anamnesis.nivel_experiencia || "Iniciante";
-    const exerciseLevel = nivel === "Avançado" ? undefined : "Iniciante";
-
-    const { data: exercises, error: exError } = await supabase
-      .from("exercises")
-      .select("id, name, exercise_group, level")
-      .in("exercise_group", selectedGroups)
-      .limit(50);
-
-    if (exError) throw exError;
-
-    if (!exercises || exercises.length === 0) {
-      console.log("⚠️ Nenhum exercício encontrado nos grupos, buscando qualquer exercício...");
-      const { data: fallbackExercises, error: fbError } = await supabase
-        .from("exercises")
-        .select("id, name, exercise_group, level")
-        .limit(8);
-
-      if (fbError) throw fbError;
-      if (!fallbackExercises || fallbackExercises.length === 0) {
-        return new Response(
-          JSON.stringify({ success: false, error: "Nenhum exercício disponível na base" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      exercises.push(...fallbackExercises);
-    }
-
-    // Selecionar 1-2 exercícios por grupo
-    const selectedExercises: typeof exercises = [];
-    for (const group of selectedGroups) {
-      const groupExercises = exercises.filter(e => e.exercise_group === group);
-      // Preferir exercícios de nível iniciante
-      const sorted = groupExercises.sort((a, b) => {
-        if (a.level === exerciseLevel) return -1;
-        if (b.level === exerciseLevel) return 1;
-        return 0;
-      });
-      const count = sorted.length >= 2 ? 2 : sorted.length;
-      selectedExercises.push(...sorted.slice(0, count));
-    }
-
-    // Limitar a 6 exercícios total
-    const finalExercises = selectedExercises.slice(0, 6);
-    console.log("💪 Exercícios selecionados:", finalExercises.map(e => e.name));
+    // Limitar a 6 exercícios
+    finalExercises = finalExercises.slice(0, 6);
+    console.log("🧘 Exercícios selecionados:", finalExercises.map(e => `${e.name} (${e.exercise_type})`));
 
     if (finalExercises.length === 0) {
       return new Response(
-        JSON.stringify({ success: false, error: "Não foi possível selecionar exercícios adequados" }),
+        JSON.stringify({ success: false, error: "Nenhum exercício disponível na base" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // 4. Buscar método e volume padrão (primeiro de cada)
+    // 3. Buscar método e volume padrão
     const { data: defaultMethod } = await supabase
       .from("methods")
       .select("id")
@@ -147,16 +123,21 @@ serve(async (req) => {
       );
     }
 
+    // 4. Determinar tipo de sessão
+    const hasMobility = finalExercises.some(e => e.exercise_type === "Mobilidade");
+    const hasStretching = finalExercises.some(e => e.exercise_type === "Alongamento");
+    const sessionType = hasMobility ? "Mobilidade" : hasStretching ? "Alongamento" : "Musculação";
+
     // 5. Criar sessão
-    const sessionName = "Sessão Experimental";
-    const sessionDesc = `Treino experimental baseado na sua anamnese - focado em: ${selectedGroups.join(", ")}`;
+    const sessionName = "Mobilidade & Bem-estar";
+    const sessionDesc = "Sessão experimental de mobilidade e alongamento para preparar seu corpo para os treinos personalizados.";
 
     const { data: session, error: sessionError } = await supabase
       .from("sessions")
       .insert({
         name: sessionName,
         description: sessionDesc,
-        session_type: "Musculação",
+        session_type: sessionType,
       })
       .select()
       .single();
@@ -179,12 +160,13 @@ serve(async (req) => {
     if (seError) throw seError;
 
     // 7. Criar workout
+    const nivel = anamnesis.nivel_experiencia || "Iniciante";
     const { data: workout, error: wError } = await supabase
       .from("workouts")
       .insert({
-        name: `Treino Experimental - ${anamnesis.primary_goal || "Geral"}`,
-        training_type: "Musculação",
-        level: nivel === "Avançado" ? "Avançado" : "Iniciante",
+        name: "Treino Experimental - Mobilidade & Bem-estar",
+        training_type: "Funcional",
+        level: "Iniciante",
       })
       .select()
       .single();
