@@ -221,13 +221,42 @@ const ClientAnamnesis = () => {
       await queryClient.invalidateQueries({ queryKey: ["has-workout", user.id] });
       await queryClient.invalidateQueries({ queryKey: ["anamnesis-status", user.id] });
 
-      toast({
-        title: "Anamnese concluída!",
-        description: "Suas informações foram salvas com sucesso.",
-      });
+      // Mostrar tela de conclusão
+      setShowCompletion(true);
+      setIsGeneratingWorkout(true);
 
-      // Redirecionar DIRETAMENTE para o dashboard do cliente
-      navigate("/client/dashboard", { replace: true });
+      // Gerar treino experimental em background
+      try {
+        const { data: trialData, error: trialError } = await supabase.functions.invoke(
+          'generate-trial-workout',
+          { body: { clientId: user.id } }
+        );
+        if (trialError) {
+          console.error("Erro ao gerar treino experimental:", trialError);
+        } else {
+          console.log("✅ Treino experimental gerado:", trialData);
+        }
+      } catch (e) {
+        console.error("Erro no treino experimental:", e);
+      }
+
+      // Enviar email de boas-vindas em background
+      try {
+        await supabase.functions.invoke('send-welcome-email', {
+          body: { 
+            clientId: user.id,
+            platformUrl: window.location.origin + '/auth/login',
+          }
+        });
+      } catch (e) {
+        console.error("Erro ao enviar email:", e);
+      }
+
+      // Invalidar novamente após gerar treino
+      await queryClient.invalidateQueries({ queryKey: ["has-workout", user.id] });
+      setTrialWorkoutReady(true);
+      setIsGeneratingWorkout(false);
+
     } catch (error: any) {
       console.error("Error submitting anamnesis:", error);
       toast({
@@ -240,7 +269,9 @@ const ClientAnamnesis = () => {
     }
   };
 
-  const renderStep = () => {
+  const handleContinueToDashboard = () => {
+    navigate("/client/dashboard", { replace: true });
+  };
     switch (currentStep) {
       case 1: // Pilar 1: Identificação
         return (
