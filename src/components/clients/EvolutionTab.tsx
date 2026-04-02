@@ -8,7 +8,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar,
 } from "recharts";
 import {
-  MessageCircle, TrendingUp, Activity, Heart, Brain, Dumbbell, AlertTriangle, CheckCircle2, XCircle,
+  MessageCircle, TrendingUp, Activity, Heart, Brain, Dumbbell, AlertTriangle, CheckCircle2, XCircle, ClipboardCheck,
 } from "lucide-react";
 
 const MOOD_LABELS: Record<string, string> = {
