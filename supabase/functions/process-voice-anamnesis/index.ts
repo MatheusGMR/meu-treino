@@ -73,8 +73,8 @@ serve(async (req) => {
     // If client messages are empty/short and we have a conversationId, fetch from ElevenLabs API
     if (clientMessages.length < 2 && conversationId && ELEVENLABS_API_KEY) {
       console.log("Client messages insufficient, fetching from ElevenLabs API...");
-      // Wait a bit for ElevenLabs to process the conversation
-      await new Promise(r => setTimeout(r, 3000));
+      // Small delay for ElevenLabs to finalize transcript
+      await new Promise(r => setTimeout(r, 1500));
       const apiMessages = await fetchTranscriptFromElevenLabs(conversationId, ELEVENLABS_API_KEY);
       if (apiMessages.length > clientMessages.length) {
         finalMessages = apiMessages;
