@@ -16,6 +16,7 @@ import { AnamnesisProgress } from "@/components/client/anamnesis/AnamnesisProgre
 import { AnamnesisNavigation } from "@/components/client/anamnesis/AnamnesisNavigation";
 import { AnamnesisStepHeader } from "@/components/client/anamnesis/AnamnesisStepHeader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AnamnesisCompletionScreen } from "@/components/client/AnamnesisCompletionScreen";
 
 const ClientAnamnesis = () => {
   const navigate = useNavigate();
@@ -23,6 +24,9 @@ const ClientAnamnesis = () => {
   const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [showCompletion, setShowCompletion] = useState(false);
+  const [isGeneratingWorkout, setIsGeneratingWorkout] = useState(false);
+  const [trialWorkoutReady, setTrialWorkoutReady] = useState(false);
   const totalSteps = 8;
 
   // Form state - Anamnese 2.0
@@ -217,13 +221,42 @@ const ClientAnamnesis = () => {
       await queryClient.invalidateQueries({ queryKey: ["has-workout", user.id] });
       await queryClient.invalidateQueries({ queryKey: ["anamnesis-status", user.id] });
 
-      toast({
-        title: "Anamnese concluída!",
-        description: "Suas informações foram salvas com sucesso.",
-      });
+      // Mostrar tela de conclusão
+      setShowCompletion(true);
+      setIsGeneratingWorkout(true);
 
-      // Redirecionar DIRETAMENTE para o dashboard do cliente
-      navigate("/client/dashboard", { replace: true });
+      // Gerar treino experimental em background
+      try {
+        const { data: trialData, error: trialError } = await supabase.functions.invoke(
+          'generate-trial-workout',
+          { body: { clientId: user.id } }
+        );
+        if (trialError) {
+          console.error("Erro ao gerar treino experimental:", trialError);
+        } else {
+          console.log("✅ Treino experimental gerado:", trialData);
+        }
+      } catch (e) {
+        console.error("Erro no treino experimental:", e);
+      }
+
+      // Enviar email de boas-vindas em background
+      try {
+        await supabase.functions.invoke('send-welcome-email', {
+          body: { 
+            clientId: user.id,
+            platformUrl: window.location.origin + '/auth/login',
+          }
+        });
+      } catch (e) {
+        console.error("Erro ao enviar email:", e);
+      }
+
+      // Invalidar novamente após gerar treino
+      await queryClient.invalidateQueries({ queryKey: ["has-workout", user.id] });
+      setTrialWorkoutReady(true);
+      setIsGeneratingWorkout(false);
+
     } catch (error: any) {
       console.error("Error submitting anamnesis:", error);
       toast({
@@ -234,6 +267,10 @@ const ClientAnamnesis = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleContinueToDashboard = () => {
+    navigate("/client/dashboard", { replace: true });
   };
 
   const renderStep = () => {
@@ -751,6 +788,19 @@ const ClientAnamnesis = () => {
         return null;
     }
   };
+
+  const userName = user?.user_metadata?.full_name || "Aluno";
+
+  if (showCompletion) {
+    return (
+      <AnamnesisCompletionScreen
+        userName={userName}
+        isGeneratingWorkout={isGeneratingWorkout}
+        trialWorkoutReady={trialWorkoutReady}
+        onContinue={handleContinueToDashboard}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary via-primary-glow to-accent flex items-center justify-center p-2 sm:p-4 md:p-6">
