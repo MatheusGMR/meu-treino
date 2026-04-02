@@ -23,6 +23,8 @@ const ClientDashboard = () => {
     const shown = sessionStorage.getItem("splash_shown");
     return !shown;
   });
+  const [isExpanding, setIsExpanding] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const { data: weeklySchedule = [] } = useWeeklySchedule();
   const { data: clientGoals } = useClientGoals();
