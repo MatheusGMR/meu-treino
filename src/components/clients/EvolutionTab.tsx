@@ -334,6 +334,70 @@ export const EvolutionTab = ({ clientId }: EvolutionTabProps) => {
         </CardContent>
       </Card>
 
+      {/* Post-Workout Feedbacks */}
+      {postFeedbacks.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <ClipboardCheck className="w-4 h-4 text-primary" />
+              Feedback Pós-Treino
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {postFeedbacks.slice(0, 15).map((fb: any) => {
+                const aiData = fb.ai_analysis as any;
+                const mood = fb.mood_category || "bem";
+                const attentionPoints = aiData?.attention_points || [];
+                return (
+                  <div key={fb.id} className="flex gap-3 p-3 rounded-lg bg-muted/50 border">
+                    <div className="text-2xl">{MOOD_EMOJIS[mood] || "😊"}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="text-xs font-medium">
+                          {format(new Date(fb.feedback_date), "dd 'de' MMM", { locale: ptBR })}
+                        </span>
+                        <Badge variant="outline" className="text-[10px]">
+                          {MOOD_LABELS[mood] || mood}
+                        </Badge>
+                        {fb.difficulty_rating && (
+                          <Badge variant="secondary" className="text-[10px]">
+                            {fb.difficulty_rating === "facil" ? "Fácil" : fb.difficulty_rating === "ideal" ? "Ideal" : fb.difficulty_rating === "dificil" ? "Difícil" : "Muito Difícil"}
+                          </Badge>
+                        )}
+                        {(fb as any).sessions?.name && (
+                          <span className="text-[10px] text-muted-foreground">{(fb as any).sessions.name}</span>
+                        )}
+                      </div>
+                      {fb.mood_summary && (
+                        <p className="text-xs text-muted-foreground">{fb.mood_summary}</p>
+                      )}
+                      {attentionPoints.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {attentionPoints.map((ap: any, idx: number) => (
+                            <span key={idx} className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                              ap.severity === "alta" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"
+                            }`}>
+                              {ap.category === "dor" ? "🤕" : ap.category === "cansaco" ? "😴" : ap.category === "sono" ? "🌙" : ap.category === "trabalho" ? "💼" : "📝"} {ap.description}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {fb.transcription && (
+                        <p className="text-xs text-muted-foreground italic mt-1 truncate">"{fb.transcription}"</p>
+                      )}
+                      {aiData?.trainer_insights && (
+                        <p className="text-xs text-primary mt-1 font-medium">💡 {aiData.trainer_insights}</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Abandoned Sessions */}
       {abandonedSessions.length > 0 && (
         <Card className="border-destructive/30">
