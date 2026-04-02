@@ -46,6 +46,23 @@ const ClientDashboard = () => {
     enabled: !!user,
   });
 
+  // Check if already did check-in today
+  const { data: todayCheckin } = useQuery({
+    queryKey: ["today-checkin", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const today = new Date().toISOString().split("T")[0];
+      const { data } = await supabase
+        .from("daily_checkins")
+        .select("*")
+        .eq("client_id", user.id)
+        .eq("checkin_date", today)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user,
+  });
+
   const completedSessions = weeklySchedule.filter(d => d.completed).length;
   const totalSessions = weeklySchedule.length;
   const currentWeek = 1;
