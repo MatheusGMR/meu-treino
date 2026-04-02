@@ -103,30 +103,54 @@ const VoiceAnamnesisInner = () => {
       console.log("Connected to Júnior");
       conversationStartedRef.current = true;
       connectedAtRef.current = Date.now();
-      // Capture conversation ID for server-side fallback
-      try {
-        const id = conversation.getId();
-        if (id) {
-          conversationIdRef.current = id;
-          console.log("Conversation ID:", id);
+      // Try to capture conversation ID with retries
+      const tryGetId = (attempts: number) => {
+        try {
+          const id = conversation.getId();
+          if (id) {
+            conversationIdRef.current = id;
+            console.log("Conversation ID:", id);
+            return;
+          }
+        } catch (e) { /* ignore */ }
+        if (attempts > 0) {
+          setTimeout(() => tryGetId(attempts - 1), 1000);
+        } else {
+          console.log("Could not get conversation ID after retries");
         }
-      } catch (e) {
-        console.log("Could not get conversation ID on connect, will retry");
-      }
+      };
+      tryGetId(10);
     },
     onDisconnect: () => {
       console.log("Disconnected from Júnior");
+      // Last chance to capture conversation ID
+      if (!conversationIdRef.current) {
+        try {
+          const id = conversation.getId();
+          if (id) {
+            conversationIdRef.current = id;
+            console.log("Got conversation ID on disconnect:", id);
+          }
+        } catch (e) {
+          console.log("Could not get conversation ID on disconnect");
+        }
+      }
       const connectionDuration = Date.now() - connectedAtRef.current;
-      // Only process if the conversation lasted at least 5 seconds
+      // Process if conversation lasted at least 30 seconds (real conversation)
       if (
         conversationStartedRef.current &&
         !isProcessingRef.current &&
         !showCompletionRef.current &&
-        connectionDuration > 5000
+        connectionDuration > 30000
       ) {
         handleConversationEnd();
-      } else if (connectionDuration <= 5000 && conversationStartedRef.current) {
+      } else if (connectionDuration <= 30000 && conversationStartedRef.current) {
         console.log("Connection too brief, ignoring disconnect");
+        toast({
+          title: "Conversa muito curta",
+          description: "Converse um pouco mais com o Júnior para completar a anamnese.",
+          variant: "destructive",
+        });
       }
       conversationStartedRef.current = false;
     },
@@ -198,19 +222,21 @@ const VoiceAnamnesisInner = () => {
   }, [conversation]);
 
   const handleConversationEnd = async () => {
-    // With server-side fallback, we only need conversationId OR messages
     const hasConversationId = !!conversationIdRef.current;
     const hasMessages = messagesRef.current.length > 0;
 
+    // If we have neither messages nor conversation ID, we can't process
     if (!hasConversationId && !hasMessages) {
+      console.log("No conversation ID and no messages - cannot process");
       toast({
-        title: "Conversa muito curta",
-        description: "Converse um pouco mais com o Júnior para completar a anamnese.",
+        title: "Não foi possível processar",
+        description: "Não conseguimos capturar a conversa. Tente novamente ou use o formulário escrito.",
         variant: "destructive",
       });
       return;
     }
 
+    console.log(`Processing anamnesis: ${messagesRef.current.length} local messages, conversationId: ${conversationIdRef.current}`);
     setIsProcessing(true);
     isProcessingRef.current = true;
 
