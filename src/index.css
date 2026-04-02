@@ -17,8 +17,8 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Primary agora é coral/vermelho - CTA principal */
-    --primary: 4 90% 58%;
+    /* Primary - Crimson Red (#DC143C) */
+    --primary: 348 83% 47%;
     --primary-foreground: 0 0% 100%;
     --primary-glow: 4 100% 70%;
 
