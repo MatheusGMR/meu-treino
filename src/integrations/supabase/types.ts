@@ -677,6 +677,42 @@ export type Database = {
           },
         ]
       }
+      daily_checkins: {
+        Row: {
+          adapted_session_data: Json | null
+          ai_suggestions: Json | null
+          checkin_date: string
+          client_id: string
+          created_at: string
+          id: string
+          mood_summary: string | null
+          suggestion_accepted: boolean | null
+          transcription: string | null
+        }
+        Insert: {
+          adapted_session_data?: Json | null
+          ai_suggestions?: Json | null
+          checkin_date?: string
+          client_id: string
+          created_at?: string
+          id?: string
+          mood_summary?: string | null
+          suggestion_accepted?: boolean | null
+          transcription?: string | null
+        }
+        Update: {
+          adapted_session_data?: Json | null
+          ai_suggestions?: Json | null
+          checkin_date?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          mood_summary?: string | null
+          suggestion_accepted?: boolean | null
+          transcription?: string | null
+        }
+        Relationships: []
+      }
       daily_workout_schedule: {
         Row: {
           abandon_reason: string | null

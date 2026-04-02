@@ -10,6 +10,7 @@ import { WelcomeSplash } from "@/components/client/WelcomeSplash";
 import { WaitingForWorkout } from "@/components/client/WaitingForWorkout";
 import { AnamnesisNotification } from "@/components/client/AnamnesisNotification";
 import { BottomNavigation } from "@/components/client/BottomNavigation";
+import { DailyCheckinDialog } from "@/components/client/DailyCheckinDialog";
 import { Clock, Dumbbell } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +26,7 @@ const ClientDashboard = () => {
   });
   const [isExpanding, setIsExpanding] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const [showCheckin, setShowCheckin] = useState(false);
 
   const { data: weeklySchedule = [] } = useWeeklySchedule();
   const { data: clientGoals } = useClientGoals();
@@ -44,6 +46,23 @@ const ClientDashboard = () => {
     enabled: !!user,
   });
 
+  // Check if already did check-in today
+  const { data: todayCheckin } = useQuery({
+    queryKey: ["today-checkin", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const today = new Date().toISOString().split("T")[0];
+      const { data } = await supabase
+        .from("daily_checkins")
+        .select("*")
+        .eq("client_id", user.id)
+        .eq("checkin_date", today)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user,
+  });
+
   const completedSessions = weeklySchedule.filter(d => d.completed).length;
   const totalSessions = weeklySchedule.length;
   const currentWeek = 1;
@@ -54,6 +73,22 @@ const ClientDashboard = () => {
     const timer = setTimeout(() => setShowSplash(false), 3000);
     return () => clearTimeout(timer);
   }, [showSplash]);
+
+  // Show checkin dialog after splash if not done today
+  useEffect(() => {
+    if (!showSplash && !todayCheckin && todayWorkout?.session_id && !showCheckin) {
+      const checkinShown = sessionStorage.getItem("checkin_shown_today");
+      if (!checkinShown) {
+        const timer = setTimeout(() => setShowCheckin(true), 800);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [showSplash, todayCheckin, todayWorkout, showCheckin]);
+
+  const handleCheckinClose = () => {
+    setShowCheckin(false);
+    sessionStorage.setItem("checkin_shown_today", new Date().toISOString().split("T")[0]);
+  };
 
   useEffect(() => {
     if (!anamnesisLoading && anamnesisCompleted === false) {
@@ -242,6 +277,12 @@ const ClientDashboard = () => {
       )}
 
       <BottomNavigation activeTab="plano" />
+
+      <DailyCheckinDialog
+        open={showCheckin}
+        onClose={handleCheckinClose}
+        sessionId={todayWorkout?.session_id}
+      />
     </div>
   );
 };
