@@ -17,8 +17,13 @@ import { AnamnesisNavigation } from "@/components/client/anamnesis/AnamnesisNavi
 import { AnamnesisStepHeader } from "@/components/client/anamnesis/AnamnesisStepHeader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AnamnesisCompletionScreen } from "@/components/client/AnamnesisCompletionScreen";
+import { AnamnesisMethodChoice } from "@/components/client/anamnesis/AnamnesisMethodChoice";
+import { VoiceAnamnesis } from "@/components/client/anamnesis/VoiceAnamnesis";
+
+type AnamnesisMode = "choice" | "written" | "voice";
 
 const ClientAnamnesis = () => {
+  const [mode, setMode] = useState<AnamnesisMode>("choice");
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
