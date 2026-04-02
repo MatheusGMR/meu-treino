@@ -247,7 +247,7 @@ export const EvolutionTab = ({ clientId }: EvolutionTabProps) => {
               <>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    <CheckCircle2 className="w-4 h-4 text-primary" />
                     <span>Aceitas</span>
                   </div>
                   <span className="font-bold">{acceptedCount}</span>
