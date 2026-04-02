@@ -90,19 +90,33 @@ const VoiceAnamnesisInner = () => {
   const [isGeneratingWorkout, setIsGeneratingWorkout] = useState(false);
   const [trialWorkoutReady, setTrialWorkoutReady] = useState(false);
   const messagesRef = useRef<Array<{ role: string; content: string }>>([]);
-  const [conversationStarted, setConversationStarted] = useState(false);
+  const conversationStartedRef = useRef(false);
+  const isProcessingRef = useRef(false);
+  const showCompletionRef = useRef(false);
+  const connectedAtRef = useRef<number>(0);
   const [lastMessage, setLastMessage] = useState("");
 
   const conversation = useConversation({
     onConnect: () => {
       console.log("Connected to Júnior");
-      setConversationStarted(true);
+      conversationStartedRef.current = true;
+      connectedAtRef.current = Date.now();
     },
     onDisconnect: () => {
       console.log("Disconnected from Júnior");
-      if (conversationStarted && !isProcessing && !showCompletion) {
+      const connectionDuration = Date.now() - connectedAtRef.current;
+      // Only process if the conversation lasted at least 5 seconds
+      if (
+        conversationStartedRef.current &&
+        !isProcessingRef.current &&
+        !showCompletionRef.current &&
+        connectionDuration > 5000
+      ) {
         handleConversationEnd();
+      } else if (connectionDuration <= 5000 && conversationStartedRef.current) {
+        console.log("Connection too brief, ignoring disconnect");
       }
+      conversationStartedRef.current = false;
     },
     onMessage: (message: any) => {
       if (message.type === "user_transcript" && message.user_transcription_event?.user_transcript) {
@@ -128,6 +142,7 @@ const VoiceAnamnesisInner = () => {
 
   const startConversation = useCallback(async () => {
     setIsConnecting(true);
+    messagesRef.current = [];
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
 
@@ -136,21 +151,39 @@ const VoiceAnamnesisInner = () => {
         { body: { agentId: AGENT_ID } }
       );
 
-      if (error || !data?.signed_url) {
+      if (error) {
         throw new Error("Não foi possível conectar ao Júnior");
       }
 
-      await conversation.startSession({
-        signedUrl: data.signed_url,
-        overrides: {
-          agent: {
-            prompt: {
-              prompt: JUNIOR_SYSTEM_PROMPT,
+      // Prefer WebRTC token, fallback to signed URL
+      if (data?.token) {
+        await conversation.startSession({
+          conversationToken: data.token,
+          connectionType: "webrtc",
+          overrides: {
+            agent: {
+              prompt: {
+                prompt: JUNIOR_SYSTEM_PROMPT,
+              },
+              firstMessage: "Olá! Eu sou o Júnior, assistente da plataforma Meu Treino. Vou te fazer algumas perguntas pra gente conhecer melhor você e montar o treino ideal. Vamos lá?",
             },
-            firstMessage: "Olá! Eu sou o Júnior, assistente da plataforma Meu Treino. Vou te fazer algumas perguntas pra gente conhecer melhor você e montar o treino ideal. Vamos lá?",
           },
-        },
-      });
+        });
+      } else if (data?.signed_url) {
+        await conversation.startSession({
+          signedUrl: data.signed_url,
+          overrides: {
+            agent: {
+              prompt: {
+                prompt: JUNIOR_SYSTEM_PROMPT,
+              },
+              firstMessage: "Olá! Eu sou o Júnior, assistente da plataforma Meu Treino. Vou te fazer algumas perguntas pra gente conhecer melhor você e montar o treino ideal. Vamos lá?",
+            },
+          },
+        });
+      } else {
+        throw new Error("Nenhuma credencial recebida");
+      }
     } catch (error: any) {
       console.error("Failed to start:", error);
       toast({
@@ -178,6 +211,7 @@ const VoiceAnamnesisInner = () => {
     }
 
     setIsProcessing(true);
+    isProcessingRef.current = true;
 
     try {
       const { data, error } = await supabase.functions.invoke(
@@ -216,6 +250,7 @@ const VoiceAnamnesisInner = () => {
       await queryClient.invalidateQueries({ queryKey: ["anamnesis-status", user?.id] });
 
       setShowCompletion(true);
+      showCompletionRef.current = true;
       setIsGeneratingWorkout(true);
 
       // Generate trial workout
@@ -251,6 +286,7 @@ const VoiceAnamnesisInner = () => {
       });
     } finally {
       setIsProcessing(false);
+      isProcessingRef.current = false;
     }
   };
 
