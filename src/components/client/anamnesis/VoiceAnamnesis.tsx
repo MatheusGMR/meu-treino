@@ -151,39 +151,14 @@ const VoiceAnamnesisInner = () => {
         { body: { agentId: AGENT_ID } }
       );
 
-      if (error) {
+      if (error || !data?.signed_url) {
         throw new Error("Não foi possível conectar ao Júnior");
       }
 
-      // Prefer WebRTC token, fallback to signed URL
-      if (data?.token) {
-        await conversation.startSession({
-          conversationToken: data.token,
-          connectionType: "webrtc",
-          overrides: {
-            agent: {
-              prompt: {
-                prompt: JUNIOR_SYSTEM_PROMPT,
-              },
-              firstMessage: "Olá! Eu sou o Júnior, assistente da plataforma Meu Treino. Vou te fazer algumas perguntas pra gente conhecer melhor você e montar o treino ideal. Vamos lá?",
-            },
-          },
-        });
-      } else if (data?.signed_url) {
-        await conversation.startSession({
-          signedUrl: data.signed_url,
-          overrides: {
-            agent: {
-              prompt: {
-                prompt: JUNIOR_SYSTEM_PROMPT,
-              },
-              firstMessage: "Olá! Eu sou o Júnior, assistente da plataforma Meu Treino. Vou te fazer algumas perguntas pra gente conhecer melhor você e montar o treino ideal. Vamos lá?",
-            },
-          },
-        });
-      } else {
-        throw new Error("Nenhuma credencial recebida");
-      }
+      // Use signed URL (WebSocket) - agent config is in ElevenLabs dashboard
+      await conversation.startSession({
+        signedUrl: data.signed_url,
+      });
     } catch (error: any) {
       console.error("Failed to start:", error);
       toast({
