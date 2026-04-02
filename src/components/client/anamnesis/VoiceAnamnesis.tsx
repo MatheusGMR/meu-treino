@@ -103,6 +103,16 @@ const VoiceAnamnesisInner = () => {
       console.log("Connected to Júnior");
       conversationStartedRef.current = true;
       connectedAtRef.current = Date.now();
+      // Capture conversation ID for server-side fallback
+      try {
+        const id = conversation.getId();
+        if (id) {
+          conversationIdRef.current = id;
+          console.log("Conversation ID:", id);
+        }
+      } catch (e) {
+        console.log("Could not get conversation ID on connect, will retry");
+      }
     },
     onDisconnect: () => {
       console.log("Disconnected from Júnior");
