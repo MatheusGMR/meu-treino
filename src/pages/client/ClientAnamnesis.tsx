@@ -11,7 +11,7 @@ import { RadioCardGroup, RadioCardItem } from "@/components/ui/radio-card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
-import logoJmFull from "@/assets/logo-jm-full.png";
+import meuTreinoLogo from "@/assets/meu-treino-logo.png";
 import { AnamnesisProgress } from "@/components/client/anamnesis/AnamnesisProgress";
 import { AnamnesisNavigation } from "@/components/client/anamnesis/AnamnesisNavigation";
 import { AnamnesisStepHeader } from "@/components/client/anamnesis/AnamnesisStepHeader";

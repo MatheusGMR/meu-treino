@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import logoJmFull from "@/assets/logo-jm-full.png";
+import meuTreinoLogo from "@/assets/meu-treino-logo.png";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -77,7 +77,7 @@ const ResetPassword = () => {
       <Card className="w-full max-w-md border border-border shadow-lg">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <img src={logoJmFull} alt="Logo" className="h-20 w-auto object-contain rounded-xl" />
+            <img src={meuTreinoLogo} alt="Meu Treino" className="h-20 w-auto object-contain rounded-xl" />
           </div>
           <CardTitle className="text-2xl text-foreground">Nova Senha</CardTitle>
           <CardDescription>Defina sua nova senha abaixo</CardDescription>

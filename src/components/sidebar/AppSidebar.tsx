@@ -9,8 +9,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import logoJmFull from "@/assets/logo-jm-full.png";
-import logoJmIcon from "@/assets/logo-jm-icon.png";
+import meuTreinoLogo from "@/assets/meu-treino-logo.png";
 
 interface AppSidebarProps {
   collapsed?: boolean;
@@ -80,9 +79,9 @@ export const AppSidebar = ({ collapsed = false, onToggle }: AppSidebarProps) => 
         <div className={cn("p-4 border-b border-sidebar-border flex items-center", collapsed ? "justify-center" : "justify-between")}>
           <Link to="/dashboard" className="flex items-center justify-center">
             <img 
-              src={collapsed ? logoJmIcon : logoJmFull} 
-              alt="Junior Mello Treinamentos" 
-              className={collapsed ? "h-8 w-8 rounded-lg" : "h-12 w-auto rounded-lg"}
+              src={meuTreinoLogo} 
+              alt="Meu Treino" 
+              className={collapsed ? "h-8 w-auto rounded-lg" : "h-12 w-auto rounded-lg"}
             />
           </Link>
           {onToggle && (
