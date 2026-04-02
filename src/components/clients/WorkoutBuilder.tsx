@@ -17,6 +17,7 @@ import { RestrictionsCard } from "./cockpit/RestrictionsCard";
 import { QualityScoresCard } from "./cockpit/QualityScoresCard";
 import { WorkoutProgressCard } from "./cockpit/WorkoutProgressCard";
 import { AISuggestionsCard } from "./cockpit/AISuggestionsCard";
+import { ClientCheckinCard } from "./cockpit/ClientCheckinCard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
