@@ -195,7 +195,11 @@ export const AddClientDialog = () => {
                   Próximo
                 </Button>
               ) : (
-                <Button type="submit" disabled={addClient.isPending}>
+                <Button
+                  type="button"
+                  disabled={addClient.isPending}
+                  onClick={form.handleSubmit(onSubmit)}
+                >
                   {addClient.isPending ? "Criando..." : "Criar Cliente"}
                 </Button>
               )}
