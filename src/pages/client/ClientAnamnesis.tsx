@@ -1,86 +1,109 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioCardGroup, RadioCardItem } from "@/components/ui/radio-card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import meuTreinoLogo from "@/assets/meu-treino-logo.png";
-import { AnamnesisProgress } from "@/components/client/anamnesis/AnamnesisProgress";
-import { AnamnesisNavigation } from "@/components/client/anamnesis/AnamnesisNavigation";
-import { AnamnesisStepHeader } from "@/components/client/anamnesis/AnamnesisStepHeader";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AnamnesisCompletionScreen } from "@/components/client/AnamnesisCompletionScreen";
+import { ChevronRight, ChevronLeft, Loader2, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import meuTreinoLogo from "@/assets/meu-treino-logo.png";
+
+interface QuestionDef {
+  id: string;
+  section: string;
+  label: string;
+  subtitle?: string;
+  type: "text" | "number" | "radio" | "checkbox" | "textarea";
+  options?: string[];
+  field: string;
+  placeholder?: string;
+  required?: boolean;
+  numberProps?: { min?: number; max?: number; step?: string };
+}
+
+const QUESTIONS: QuestionDef[] = [
+  // Identificação
+  { id: "age", section: "Identificação", label: "Qual sua idade?", type: "number", field: "age", placeholder: "Ex: 29", required: true },
+  { id: "gender", section: "Identificação", label: "Qual seu gênero?", type: "radio", field: "gender", options: ["Masculino", "Feminino", "Não-binário", "Prefiro não dizer"], required: true },
+  { id: "profession", section: "Identificação", label: "Qual sua profissão?", type: "text", field: "profession", placeholder: "Ex: Engenheiro, Professor..." },
+  { id: "contato", section: "Identificação", label: "Seu contato telefônico", type: "text", field: "contato", placeholder: "(99) 99999-9999" },
+  { id: "tempo_sentado", section: "Identificação", label: "Quanto tempo fica sentado por dia?", type: "radio", field: "tempo_sentado_dia", options: ["Menos de 2 horas", "2 a 4 horas", "4 a 6 horas", "6 a 8 horas", "Mais de 8 horas"] },
+
+  // Composição Corporal
+  { id: "peso", section: "Composição Corporal", label: "Qual seu peso? (kg)", type: "number", field: "peso_kg", placeholder: "Ex: 75.5", numberProps: { step: "0.1" } },
+  { id: "altura", section: "Composição Corporal", label: "Qual sua altura? (cm)", type: "number", field: "altura_cm", placeholder: "Ex: 175" },
+  { id: "autoimagem", section: "Composição Corporal", label: "Como você se enxerga hoje?", type: "radio", field: "autoimagem", options: ["Abaixo do peso", "Peso normal", "Sobrepeso", "Obesidade", "Não sei avaliar"] },
+  { id: "regioes", section: "Composição Corporal", label: "Quais regiões deseja melhorar?", subtitle: "Selecione todas que se aplicam", type: "checkbox", field: "regioes_que_deseja_melhorar", options: ["Peito", "Costas", "Ombros", "Braços", "Abdômen", "Quadríceps", "Posterior de coxa", "Glúteos", "Panturrilhas", "Mobilidade", "Postura"] },
+
+  // Histórico de Treino
+  { id: "treina", section: "Histórico de Treino", label: "Você treina atualmente?", type: "radio", field: "treina_atualmente", options: ["Sim", "Não"] },
+  { id: "frequencia", section: "Histórico de Treino", label: "Com qual frequência?", type: "radio", field: "frequencia_atual", options: ["0 vezes/semana", "1 vez/semana", "2 vezes/semana", "3 vezes/semana", "4 vezes/semana", "5 vezes/semana", "6+ vezes/semana"] },
+  { id: "tipos_treino", section: "Histórico de Treino", label: "Quais tipos de treino já realizou?", subtitle: "Selecione todos que se aplicam", type: "checkbox", field: "tipos_de_treino_feitos", options: ["Musculação", "Funcional", "Crossfit", "Corrida", "Lutas", "Pilates", "Yoga", "HIIT", "Esportes coletivos"] },
+  { id: "tempo_parado", section: "Histórico de Treino", label: "Caso esteja parado, há quanto tempo?", type: "radio", field: "tempo_parado", options: ["Não estou parado", "Menos de 1 mês", "1 a 3 meses", "3 a 6 meses", "6 a 12 meses", "Mais de 1 ano"] },
+
+  // Limitações e Segurança
+  { id: "dores", section: "Limitações", label: "Possui alguma dor atualmente?", subtitle: "Descreva qualquer dor que esteja sentindo", type: "textarea", field: "dores_atuais", placeholder: "Descreva aqui ou escreva 'Nenhuma'" },
+  { id: "escala_dor", section: "Limitações", label: "Escala de dor (0 a 10)", subtitle: "0 = sem dor | 10 = dor extrema", type: "number", field: "escala_dor", placeholder: "0", numberProps: { min: 0, max: 10 } },
+  { id: "lesoes", section: "Limitações", label: "Possui ou já teve alguma lesão?", type: "textarea", field: "lesoes", placeholder: "Descreva aqui ou escreva 'Nenhuma'" },
+  { id: "cirurgias", section: "Limitações", label: "Já realizou alguma cirurgia?", type: "textarea", field: "cirurgias", placeholder: "Descreva aqui ou escreva 'Nenhuma'" },
+  { id: "restricao", section: "Limitações", label: "Possui alguma restrição médica?", type: "radio", field: "restricao_medica", options: ["Sim", "Não", "Não sei"] },
+  { id: "liberacao", section: "Limitações", label: "Possui liberação médica para treinar?", type: "radio", field: "liberacao_medica", options: ["Sim", "Não", "Não se aplica"] },
+  { id: "articulares", section: "Limitações", label: "Problemas articulares ou posturais?", subtitle: "Selecione todos que se aplicam", type: "checkbox", field: "problemas_articulares", options: ["Lombar", "Joelho", "Quadril", "Ombro", "Cervical", "Tornozelo", "Nenhum"] },
+
+  // Objetivos
+  { id: "obj_principal", section: "Objetivos", label: "Qual seu objetivo principal?", type: "radio", field: "objetivo_principal", options: ["Emagrecimento", "Hipertrofia", "Condicionamento", "Saúde", "Performance", "Mobilidade"] },
+  { id: "obj_secundario", section: "Objetivos", label: "Tem algum objetivo secundário?", type: "radio", field: "objetivo_secundario", options: ["Nenhum", "Emagrecimento", "Hipertrofia", "Condicionamento", "Saúde", "Performance", "Mobilidade"] },
+  { id: "prazo", section: "Objetivos", label: "Qual prazo desejado?", type: "radio", field: "prazo", options: ["30 dias", "3 meses", "6 meses", "1 ano", "Sem prazo"] },
+  { id: "prioridade", section: "Objetivos", label: "Quanto isso é prioritário para você?", subtitle: "1 = Mínima | 5 = Máxima", type: "radio", field: "prioridade", options: ["1", "2", "3", "4", "5"] },
+  { id: "evento", section: "Objetivos", label: "Treina para algum evento específico?", type: "text", field: "evento_especifico", placeholder: "Ex: Casamento, competição, viagem..." },
+
+  // Hábitos e Comportamento
+  { id: "sono", section: "Hábitos", label: "Quantas horas de sono por noite?", type: "radio", field: "sono_horas", options: ["Menos de 5 horas", "5 a 6 horas", "6 a 7 horas", "7 a 8 horas", "Mais de 8 horas"] },
+  { id: "alimentacao", section: "Hábitos", label: "Como avalia sua alimentação?", type: "radio", field: "alimentacao", options: ["Muito ruim", "Ruim", "Regular", "Boa", "Muito boa"] },
+  { id: "agua", section: "Hábitos", label: "Qual seu consumo diário de água?", type: "radio", field: "consumo_agua", options: ["Menos de 1 litro", "1 a 2 litros", "2 a 3 litros", "Mais de 3 litros"] },
+  { id: "estresse", section: "Hábitos", label: "Qual seu nível de estresse?", type: "radio", field: "estresse", options: ["Baixo", "Moderado", "Alto"] },
+  { id: "alcool", section: "Hábitos", label: "Consumo de álcool ou cigarro?", type: "radio", field: "alcool_cigarro", options: ["Não consumo", "Álcool ocasional", "Álcool frequente", "Cigarro", "Álcool e cigarro"] },
+  { id: "motivacao", section: "Hábitos", label: "O que mais te motiva?", type: "radio", field: "motivacao", options: ["Resultados", "Saúde", "Estética", "Disciplina", "Bem-estar", "Performance"] },
+  { id: "instrucao", section: "Hábitos", label: "Como prefere receber instruções?", type: "radio", field: "preferencia_instrucao", options: ["Explicado em detalhes", "Direto ao ponto"] },
+
+  // Logística
+  { id: "local", section: "Logística", label: "Onde pretende treinar?", type: "radio", field: "local_treino", options: ["Academia", "Condomínio", "Casa", "Estúdio", "Ar livre"] },
+  { id: "tempo_sessao", section: "Logística", label: "Tempo disponível por sessão?", type: "radio", field: "tempo_disponivel", options: ["30 minutos", "45 minutos", "60 minutos", "Mais de 60 minutos"] },
+  { id: "horario", section: "Logística", label: "Qual horário preferido?", type: "radio", field: "horario_preferido", options: ["Manhã", "Tarde", "Noite", "Horários flexíveis"] },
+  { id: "tipo_preferido", section: "Logística", label: "Tipo de treino preferido?", type: "radio", field: "tipo_treino_preferido", options: ["Musculação", "Funcional", "Cardio", "Mobilidade", "HIIT", "Mix combinado"] },
+
+  // Final
+  { id: "comentarios", section: "Final", label: "Algo mais que gostaria de compartilhar?", subtitle: "Escreva algo que não foi perguntado, mas é importante", type: "textarea", field: "comentarios_finais", placeholder: "Suas observações finais..." },
+];
+
 const ClientAnamnesis = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentQ, setCurrentQ] = useState(0);
+  const [direction, setDirection] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
   const [isGeneratingWorkout, setIsGeneratingWorkout] = useState(false);
   const [trialWorkoutReady, setTrialWorkoutReady] = useState(false);
-  const totalSteps = 8;
 
-  // Form state - Anamnese 2.0
-  const [formData, setFormData] = useState({
-    // Pilar 1: Identificação
-    age: "",
-    gender: "",
-    profession: "",
-    contato: "",
-    tempo_sentado_dia: "",
-    
-    // Pilar 2: Composição Corporal
-    peso_kg: "",
-    altura_cm: "",
-    autoimagem: "",
-    regioes_que_deseja_melhorar: [] as string[],
-    
-    // Pilar 3: Histórico de Treino
-    treina_atualmente: "",
-    frequencia_atual: "",
-    tipos_de_treino_feitos: [] as string[],
-    tempo_parado: "",
-    
-    // Pilar 4: Limitações e Segurança
-    dores_atuais: "",
-    escala_dor: "",
-    lesoes: "",
-    cirurgias: "",
-    restricao_medica: "",
-    liberacao_medica: "",
-    problemas_articulares: [] as string[],
-    
-    // Pilar 5: Objetivos
-    objetivo_principal: "",
-    objetivo_secundario: "",
-    prazo: "",
-    prioridade: "",
-    evento_especifico: "",
-    
-    // Pilar 6: Hábitos e Comportamento
-    sono_horas: "",
-    alimentacao: "",
-    consumo_agua: "",
-    estresse: "",
-    alcool_cigarro: "",
-    motivacao: "",
-    preferencia_instrucao: "",
-    
-    // Pilar 7: Logística
-    local_treino: "",
-    tempo_disponivel: "",
-    horario_preferido: "",
-    tipo_treino_preferido: "",
-    
-    // Pilar 8: Final
+  const [formData, setFormData] = useState<Record<string, any>>({
+    age: "", gender: "", profession: "", contato: "", tempo_sentado_dia: "",
+    peso_kg: "", altura_cm: "", autoimagem: "", regioes_que_deseja_melhorar: [],
+    treina_atualmente: "", frequencia_atual: "", tipos_de_treino_feitos: [], tempo_parado: "",
+    dores_atuais: "", escala_dor: "", lesoes: "", cirurgias: "",
+    restricao_medica: "", liberacao_medica: "", problemas_articulares: [],
+    objetivo_principal: "", objetivo_secundario: "", prazo: "", prioridade: "", evento_especifico: "",
+    sono_horas: "", alimentacao: "", consumo_agua: "", estresse: "",
+    alcool_cigarro: "", motivacao: "", preferencia_instrucao: "",
+    local_treino: "", tempo_disponivel: "", horario_preferido: "", tipo_treino_preferido: "",
     comentarios_finais: "",
   });
 
@@ -89,44 +112,71 @@ const ClientAnamnesis = () => {
   };
 
   const toggleArrayField = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: (prev[field as keyof typeof prev] as string[]).includes(value)
-        ? (prev[field as keyof typeof prev] as string[]).filter(v => v !== value)
-        : [...(prev[field as keyof typeof prev] as string[]), value]
-    }));
+    setFormData(prev => {
+      const arr = (prev[field] as string[]) || [];
+      return {
+        ...prev,
+        [field]: arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value],
+      };
+    });
   };
+
+  const question = QUESTIONS[currentQ];
+  const totalQ = QUESTIONS.length;
+  const progress = ((currentQ + 1) / totalQ) * 100;
+
+  // Get unique sections for section label
+  const sections = [...new Set(QUESTIONS.map(q => q.section))];
+  const currentSection = question.section;
+  const sectionIndex = sections.indexOf(currentSection) + 1;
+
+  const goNext = useCallback(() => {
+    if (currentQ < totalQ - 1) {
+      setDirection(1);
+      setCurrentQ(prev => prev + 1);
+    }
+  }, [currentQ, totalQ]);
+
+  const goPrev = useCallback(() => {
+    if (currentQ > 0) {
+      setDirection(-1);
+      setCurrentQ(prev => prev - 1);
+    }
+  }, [currentQ]);
+
+  // Auto-advance on radio selection
+  const handleRadioChange = useCallback((field: string, value: string) => {
+    updateField(field, value);
+    // Small delay for visual feedback before advancing
+    setTimeout(() => {
+      if (currentQ < totalQ - 1) {
+        setDirection(1);
+        setCurrentQ(prev => prev + 1);
+      }
+    }, 350);
+  }, [currentQ, totalQ]);
 
   const handleSubmit = async () => {
     if (!user?.id) return;
-
     setLoading(true);
     try {
-      // Insert anamnesis data with new fields
       const { error: anamnesisError } = await supabase
         .from("anamnesis")
         .insert([{
           client_id: user.id,
-          // Pilar 1
           age: parseInt(formData.age) || null,
           gender: formData.gender || null,
           profession: formData.profession || null,
           contato: formData.contato || null,
           daily_sitting_hours: formData.tempo_sentado_dia ? parseInt(formData.tempo_sentado_dia.split(' ')[0]) : null,
-          
-          // Pilar 2
           peso_kg: parseFloat(formData.peso_kg) || null,
           altura_cm: parseFloat(formData.altura_cm) || null,
           autoimagem: formData.autoimagem || null,
           regioes_que_deseja_melhorar: formData.regioes_que_deseja_melhorar.length > 0 ? formData.regioes_que_deseja_melhorar : null,
-          
-          // Pilar 3
           treina_atualmente: formData.treina_atualmente === "Sim",
           frequencia_atual: formData.frequencia_atual || null,
           tipos_de_treino_feitos: formData.tipos_de_treino_feitos.length > 0 ? formData.tipos_de_treino_feitos : null,
           time_without_training: formData.tempo_parado || null,
-          
-          // Pilar 4
           pain_details: formData.dores_atuais || null,
           escala_dor: parseInt(formData.escala_dor) || null,
           lesoes: formData.lesoes || null,
@@ -135,15 +185,11 @@ const ClientAnamnesis = () => {
           liberacao_medica: formData.liberacao_medica || null,
           pain_locations: formData.problemas_articulares.length > 0 ? formData.problemas_articulares : null,
           has_joint_pain: formData.problemas_articulares.length > 0 && !formData.problemas_articulares.includes("Nenhum"),
-          
-          // Pilar 5
           primary_goal: formData.objetivo_principal || null,
           objetivo_secundario: formData.objetivo_secundario || null,
           prazo: formData.prazo || null,
           prioridade: parseInt(formData.prioridade) || 3,
           evento_especifico: formData.evento_especifico || null,
-          
-          // Pilar 6
           sono_horas: formData.sono_horas || null,
           alimentacao: formData.alimentacao || null,
           consumo_agua: formData.consumo_agua || null,
@@ -151,20 +197,15 @@ const ClientAnamnesis = () => {
           alcool_cigarro: formData.alcool_cigarro || null,
           motivacao: formData.motivacao || null,
           preferencia_instrucao: formData.preferencia_instrucao || null,
-          
-          // Pilar 7
           local_treino: formData.local_treino || null,
           tempo_disponivel: formData.tempo_disponivel || null,
           horario_preferido: formData.horario_preferido || null,
           tipo_treino_preferido: formData.tipo_treino_preferido || null,
-          
-          // Pilar 8
           comentarios_finais: formData.comentarios_finais || null,
         }]);
 
       if (anamnesisError) throw anamnesisError;
 
-      // Update profile to mark anamnesis as completed
       const { error: profileError } = await supabase
         .from("profiles")
         .update({
@@ -175,616 +216,60 @@ const ClientAnamnesis = () => {
 
       if (profileError) throw profileError;
 
-      // Mostrar loading state para o usuário
-      toast({
-        title: "Processando...",
-        description: "Estamos analisando suas informações. Aguarde alguns instantes...",
-      });
+      toast({ title: "Processando...", description: "Estamos analisando suas informações..." });
 
-      // Chamar edge function para calcular perfil da anamnese com retry automático
       let retries = 3;
       let profileCalculated = false;
-
       while (retries > 0 && !profileCalculated) {
-        console.log(`🔄 Calculando perfil (tentativa ${4 - retries}/3)...`);
-        
-        const { data: profileData, error: profileCalcError } = await supabase.functions.invoke(
+        const { error: profileCalcError } = await supabase.functions.invoke(
           'calculate-anamnesis-profile',
           { body: { clientId: user.id } }
         );
-
         if (profileCalcError) {
-          console.error(`❌ Tentativa ${4 - retries} falhou:`, profileCalcError);
           retries--;
-          
           if (retries === 0) {
-            // ÚLTIMA tentativa falhou - BLOQUEAR progressão
-            toast({
-              title: "Erro ao processar anamnese",
-              description: "Não foi possível calcular seu perfil. Entre em contato com seu personal.",
-              variant: "destructive",
-            });
+            toast({ title: "Erro ao processar anamnese", description: "Entre em contato com seu personal.", variant: "destructive" });
             setLoading(false);
-            return; // ✅ Bloquear fluxo
+            return;
           }
-          
-          // Aguardar 2s antes de tentar novamente
           await new Promise(resolve => setTimeout(resolve, 2000));
         } else {
-          console.log("✅ Perfil calculado com sucesso:", profileData);
           profileCalculated = true;
         }
       }
 
-      // Invalidar cache para forçar reload
       await queryClient.invalidateQueries({ queryKey: ["has-workout", user.id] });
       await queryClient.invalidateQueries({ queryKey: ["anamnesis-status", user.id] });
 
-      // Mostrar tela de conclusão
       setShowCompletion(true);
       setIsGeneratingWorkout(true);
 
-      // Gerar treino experimental em background
       try {
-        const { data: trialData, error: trialError } = await supabase.functions.invoke(
+        const { error: trialError } = await supabase.functions.invoke(
           'generate-trial-workout',
           { body: { clientId: user.id } }
         );
-        if (trialError) {
-          console.error("Erro ao gerar treino experimental:", trialError);
-        } else {
-          console.log("✅ Treino experimental gerado:", trialData);
-        }
+        if (trialError) console.error("Erro treino experimental:", trialError);
       } catch (e) {
-        console.error("Erro no treino experimental:", e);
+        console.error("Erro treino experimental:", e);
       }
 
-      // Enviar email de boas-vindas em background
       try {
         await supabase.functions.invoke('send-welcome-email', {
-          body: { 
-            clientId: user.id,
-            platformUrl: window.location.origin + '/auth/login',
-          }
+          body: { clientId: user.id, platformUrl: window.location.origin + '/auth/login' }
         });
       } catch (e) {
-        console.error("Erro ao enviar email:", e);
+        console.error("Erro email:", e);
       }
 
-      // Invalidar novamente após gerar treino
       await queryClient.invalidateQueries({ queryKey: ["has-workout", user.id] });
       setTrialWorkoutReady(true);
       setIsGeneratingWorkout(false);
-
     } catch (error: any) {
       console.error("Error submitting anamnesis:", error);
-      toast({
-        title: "Erro ao salvar",
-        description: error.message || "Não foi possível salvar suas informações.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro ao salvar", description: error.message || "Não foi possível salvar.", variant: "destructive" });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleContinueToDashboard = () => {
-    navigate("/client/dashboard", { replace: true });
-  };
-
-  const renderStep = () => {
-    switch (currentStep) {
-      case 1: // Pilar 1: Identificação
-        return (
-          <div className="space-y-4">
-            <AnamnesisStepHeader
-              title="Identificação"
-              description="Vamos começar conhecendo você melhor"
-            />
-
-            <div className="space-y-2">
-              <Label htmlFor="age">Idade *</Label>
-              <Input
-                id="age"
-                type="number"
-                value={formData.age}
-                onChange={(e) => updateField("age", e.target.value)}
-                placeholder="Ex: 29"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Gênero *</Label>
-              <RadioCardGroup value={formData.gender} onValueChange={(value) => updateField("gender", value)}>
-                {["Masculino", "Feminino", "Não-binário", "Prefiro não dizer"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="profession">Profissão</Label>
-              <Input
-                id="profession"
-                value={formData.profession}
-                onChange={(e) => updateField("profession", e.target.value)}
-                placeholder="Qual sua profissão?"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="contato">Contato telefônico</Label>
-              <Input
-                id="contato"
-                value={formData.contato}
-                onChange={(e) => updateField("contato", e.target.value)}
-                placeholder="(99) 99999-9999 ou email@exemplo.com"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Tempo sentado por dia</Label>
-              <RadioCardGroup value={formData.tempo_sentado_dia} onValueChange={(value) => updateField("tempo_sentado_dia", value)}>
-                {["Menos de 2 horas", "2 a 4 horas", "4 a 6 horas", "6 a 8 horas", "Mais de 8 horas"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-          </div>
-        );
-
-      case 2: // Pilar 2: Composição Corporal
-        return (
-          <div className="space-y-4">
-            <AnamnesisStepHeader
-              title="Composição Corporal"
-              description="Informações sobre seu corpo atual"
-            />
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="peso">Peso (kg)</Label>
-                <Input
-                  id="peso"
-                  type="number"
-                  step="0.1"
-                  value={formData.peso_kg}
-                  onChange={(e) => updateField("peso_kg", e.target.value)}
-                  placeholder="Ex: 75.5"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="altura">Altura (cm)</Label>
-                <Input
-                  id="altura"
-                  type="number"
-                  value={formData.altura_cm}
-                  onChange={(e) => updateField("altura_cm", e.target.value)}
-                  placeholder="Ex: 175"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Como você se enxerga hoje?</Label>
-              <RadioCardGroup value={formData.autoimagem} onValueChange={(value) => updateField("autoimagem", value)}>
-                {["Abaixo do peso", "Peso normal", "Sobrepeso", "Obesidade", "Não sei avaliar"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Regiões que deseja melhorar</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                {["Peito", "Costas", "Ombros", "Braços", "Abdômen", "Quadríceps", "Posterior de coxa", "Glúteos", "Panturrilhas", "Mobilidade", "Postura"].map((regiao) => (
-                  <div key={regiao} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`regiao-${regiao}`}
-                      checked={formData.regioes_que_deseja_melhorar.includes(regiao)}
-                      onCheckedChange={() => toggleArrayField("regioes_que_deseja_melhorar", regiao)}
-                    />
-                    <Label htmlFor={`regiao-${regiao}`} className="text-sm">{regiao}</Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
-
-      case 3: // Pilar 3: Histórico de Treino
-        return (
-          <div className="space-y-4">
-            <AnamnesisStepHeader
-              title="Histórico de Treino"
-              description="Conte-nos sobre sua experiência com atividades físicas"
-            />
-
-            <div className="space-y-2">
-              <Label>Você treina atualmente?</Label>
-              <RadioCardGroup value={formData.treina_atualmente} onValueChange={(value) => updateField("treina_atualmente", value)}>
-                {["Sim", "Não"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Frequência atual</Label>
-              <RadioCardGroup value={formData.frequencia_atual} onValueChange={(value) => updateField("frequencia_atual", value)}>
-                {["0 vezes/semana", "1 vez/semana", "2 vezes/semana", "3 vezes/semana", "4 vezes/semana", "5 vezes/semana", "6+ vezes/semana"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Tipos de treino que já realizou</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                {["Musculação", "Funcional", "Crossfit", "Corrida", "Lutas", "Pilates", "Yoga", "HIIT", "Esportes coletivos"].map((tipo) => (
-                  <div key={tipo} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`tipo-${tipo}`}
-                      checked={formData.tipos_de_treino_feitos.includes(tipo)}
-                      onCheckedChange={() => toggleArrayField("tipos_de_treino_feitos", tipo)}
-                    />
-                    <Label htmlFor={`tipo-${tipo}`} className="text-sm">{tipo}</Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Caso esteja parado, há quanto tempo?</Label>
-              <RadioCardGroup value={formData.tempo_parado} onValueChange={(value) => updateField("tempo_parado", value)}>
-                {["Não estou parado", "Menos de 1 mês", "1 a 3 meses", "3 a 6 meses", "6 a 12 meses", "Mais de 1 ano"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-          </div>
-        );
-
-      case 4: // Pilar 4: Limitações e Segurança
-        return (
-          <div className="space-y-4">
-            <AnamnesisStepHeader
-              title="Limitações e Segurança"
-              description="Informações importantes para sua segurança no treino"
-            />
-
-            <div className="space-y-2">
-              <Label htmlFor="dores">Dores atuais</Label>
-              <Textarea
-                id="dores"
-                value={formData.dores_atuais}
-                onChange={(e) => updateField("dores_atuais", e.target.value)}
-                placeholder="Descreva qualquer dor que esteja sentindo..."
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="escala_dor">Escala de dor (0 a 10)</Label>
-              <p className="text-sm text-muted-foreground">0 = sem dor | 10 = dor extrema</p>
-              <Input
-                id="escala_dor"
-                type="number"
-                min="0"
-                max="10"
-                value={formData.escala_dor}
-                onChange={(e) => updateField("escala_dor", e.target.value)}
-                placeholder="0"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="lesoes">Lesões</Label>
-              <Textarea
-                id="lesoes"
-                value={formData.lesoes}
-                onChange={(e) => updateField("lesoes", e.target.value)}
-                placeholder="Descreva lesões que já teve..."
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="cirurgias">Cirurgias</Label>
-              <Textarea
-                id="cirurgias"
-                value={formData.cirurgias}
-                onChange={(e) => updateField("cirurgias", e.target.value)}
-                placeholder="Descreva cirurgias que já fez..."
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Possui alguma restrição médica?</Label>
-              <RadioCardGroup value={formData.restricao_medica} onValueChange={(value) => updateField("restricao_medica", value)}>
-                {["Sim", "Não", "Não sei"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Possui liberação médica?</Label>
-              <RadioCardGroup value={formData.liberacao_medica} onValueChange={(value) => updateField("liberacao_medica", value)}>
-                {["Sim", "Não", "Não se aplica"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Problemas articulares / posturais</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                {["Lombar", "Joelho", "Quadril", "Ombro", "Cervical", "Tornozelo", "Nenhum"].map((problema) => (
-                  <div key={problema} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`problema-${problema}`}
-                      checked={formData.problemas_articulares.includes(problema)}
-                      onCheckedChange={() => toggleArrayField("problemas_articulares", problema)}
-                    />
-                    <Label htmlFor={`problema-${problema}`} className="text-sm">{problema}</Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
-
-      case 5: // Pilar 5: Objetivos
-        return (
-          <div className="space-y-4">
-            <AnamnesisStepHeader
-              title="Objetivos"
-              description="Defina suas metas e expectativas"
-            />
-
-            <div className="space-y-2">
-              <Label>Objetivo principal</Label>
-              <RadioCardGroup value={formData.objetivo_principal} onValueChange={(value) => updateField("objetivo_principal", value)}>
-                {["Emagrecimento", "Hipertrofia", "Condicionamento", "Saúde", "Performance", "Mobilidade"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Objetivo secundário</Label>
-              <RadioCardGroup value={formData.objetivo_secundario} onValueChange={(value) => updateField("objetivo_secundario", value)}>
-                {["Nenhum", "Emagrecimento", "Hipertrofia", "Condicionamento", "Saúde", "Performance", "Mobilidade"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Prazo desejado</Label>
-              <RadioCardGroup value={formData.prazo} onValueChange={(value) => updateField("prazo", value)}>
-                {["30 dias", "3 meses", "6 meses", "1 ano", "Sem prazo"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Prioridade (1 a 5)</Label>
-              <p className="text-sm text-muted-foreground">Quanto isso é prioritário para você?</p>
-              <RadioCardGroup value={formData.prioridade} onValueChange={(value) => updateField("prioridade", value)}>
-                {["1", "2", "3", "4", "5"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option} {option === "5" ? "(Máxima)" : option === "1" ? "(Mínima)" : ""}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="evento">Treina para algum evento específico?</Label>
-              <Input
-                id="evento"
-                value={formData.evento_especifico}
-                onChange={(e) => updateField("evento_especifico", e.target.value)}
-                placeholder="Ex: Casamento, competição, viagem..."
-              />
-            </div>
-          </div>
-        );
-
-      case 6: // Pilar 6: Hábitos e Comportamento
-        return (
-          <div className="space-y-4">
-            <AnamnesisStepHeader
-              title="Hábitos e Comportamento"
-              description="Entenda como seu estilo de vida impacta seus resultados"
-            />
-
-            <div className="space-y-2">
-              <Label>Horas de sono por noite</Label>
-              <RadioCardGroup value={formData.sono_horas} onValueChange={(value) => updateField("sono_horas", value)}>
-                {["Menos de 5 horas", "5 a 6 horas", "6 a 7 horas", "7 a 8 horas", "Mais de 8 horas"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Como avalia sua alimentação?</Label>
-              <RadioCardGroup value={formData.alimentacao} onValueChange={(value) => updateField("alimentacao", value)}>
-                {["Muito ruim", "Ruim", "Regular", "Boa", "Muito boa"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Consumo diário de água</Label>
-              <RadioCardGroup value={formData.consumo_agua} onValueChange={(value) => updateField("consumo_agua", value)}>
-                {["Menos de 1 litro", "1 a 2 litros", "2 a 3 litros", "Mais de 3 litros"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Nível de estresse</Label>
-              <RadioCardGroup value={formData.estresse} onValueChange={(value) => updateField("estresse", value)}>
-                {["Baixo", "Moderado", "Alto"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Consumo de álcool / cigarro</Label>
-              <RadioCardGroup value={formData.alcool_cigarro} onValueChange={(value) => updateField("alcool_cigarro", value)}>
-                {["Não consumo", "Álcool ocasional", "Álcool frequente", "Cigarro", "Álcool e cigarro"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label>O que mais te motiva?</Label>
-              <RadioCardGroup value={formData.motivacao} onValueChange={(value) => updateField("motivacao", value)}>
-                {["Resultados", "Saúde", "Estética", "Disciplina", "Bem-estar", "Performance"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Como prefere receber instruções?</Label>
-              <RadioCardGroup value={formData.preferencia_instrucao} onValueChange={(value) => updateField("preferencia_instrucao", value)}>
-                {["Explicado em detalhes", "Direto ao ponto"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-          </div>
-        );
-
-      case 7: // Pilar 7: Logística
-        return (
-          <div className="space-y-4">
-            <AnamnesisStepHeader
-              title="Logística"
-              description="Organize sua rotina de treinos"
-            />
-
-            <div className="space-y-2">
-              <Label>Onde pretende treinar?</Label>
-              <RadioCardGroup value={formData.local_treino} onValueChange={(value) => updateField("local_treino", value)}>
-                {["Academia", "Condomínio", "Casa", "Estúdio", "Ar livre"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Tempo disponível por sessão</Label>
-              <RadioCardGroup value={formData.tempo_disponivel} onValueChange={(value) => updateField("tempo_disponivel", value)}>
-                {["30 minutos", "45 minutos", "60 minutos", "Mais de 60 minutos"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Horário preferido</Label>
-              <RadioCardGroup value={formData.horario_preferido} onValueChange={(value) => updateField("horario_preferido", value)}>
-                {["Manhã", "Tarde", "Noite", "Horários flexíveis"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Tipo de treino preferido</Label>
-              <RadioCardGroup value={formData.tipo_treino_preferido} onValueChange={(value) => updateField("tipo_treino_preferido", value)}>
-                {["Musculação", "Funcional", "Cardio", "Mobilidade", "HIIT", "Mix combinado"].map((option) => (
-                  <RadioCardItem key={option} value={option}>
-                    {option}
-                  </RadioCardItem>
-                ))}
-              </RadioCardGroup>
-            </div>
-          </div>
-        );
-
-      case 8: // Pilar 8: Final
-        return (
-          <div className="space-y-4">
-            <AnamnesisStepHeader
-              title="Comentários Finais"
-              description="Algo mais que gostaria de compartilhar?"
-            />
-
-            <div className="space-y-2">
-              <Label htmlFor="comentarios">Comentários finais</Label>
-              <Textarea
-                id="comentarios"
-                value={formData.comentarios_finais}
-                onChange={(e) => updateField("comentarios_finais", e.target.value)}
-                placeholder="Escreva algo que não foi perguntado, mas é importante..."
-                rows={6}
-              />
-            </div>
-
-            <div className="rounded-lg bg-primary/10 p-4 mt-6">
-              <p className="text-sm text-center">
-                🎯 Você está quase lá! Revise suas respostas e clique em <strong>Concluir</strong> para finalizar sua anamnese.
-              </p>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
     }
   };
 
@@ -796,42 +281,209 @@ const ClientAnamnesis = () => {
         userName={userName}
         isGeneratingWorkout={isGeneratingWorkout}
         trialWorkoutReady={trialWorkoutReady}
-        onContinue={handleContinueToDashboard}
+        onContinue={() => navigate("/client/dashboard", { replace: true })}
       />
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-primary via-primary-glow to-accent flex items-center justify-center p-2 sm:p-4 md:p-6">
-      <Card className="w-full max-w-4xl shadow-2xl">
-        <CardHeader className="text-center px-4 sm:px-6 py-6">
-          <CardTitle className="text-2xl sm:text-3xl">Queremos conhecer você melhor</CardTitle>
-          <CardDescription className="text-sm sm:text-base mt-2">
-            Responda algumas perguntas para personalizarmos seu treino
-          </CardDescription>
-        </CardHeader>
+  const isLastQuestion = currentQ === totalQ - 1;
+  const currentValue = formData[question.field];
+  const hasValue = question.type === "checkbox"
+    ? (currentValue as string[])?.length > 0
+    : !!currentValue;
 
-        <CardContent className="space-y-6 px-4 sm:px-6 pb-6">
-          <AnamnesisProgress currentStep={currentStep} totalSteps={totalSteps} />
-          
-          {renderStep()}
+  const slideVariants = {
+    enter: (d: number) => ({ x: d > 0 ? 300 : -300, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (d: number) => ({ x: d > 0 ? -300 : 300, opacity: 0 }),
+  };
 
-          <AnamnesisNavigation
-            currentStep={currentStep}
-            totalSteps={totalSteps}
-            onPrevious={() => {
-              setCurrentStep(prev => Math.max(1, prev - 1));
-              setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }), 0);
-            }}
-            onNext={() => {
-              setCurrentStep(prev => Math.min(totalSteps, prev + 1));
-              setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }), 0);
-            }}
-            onSubmit={handleSubmit}
-            loading={loading}
+  const renderInput = () => {
+    switch (question.type) {
+      case "text":
+        return (
+          <Input
+            value={currentValue || ""}
+            onChange={(e) => updateField(question.field, e.target.value)}
+            placeholder={question.placeholder}
+            className="text-lg h-14 bg-card border-border"
+            autoFocus
+            onKeyDown={(e) => e.key === "Enter" && hasValue && goNext()}
           />
-        </CardContent>
-      </Card>
+        );
+      case "number":
+        return (
+          <Input
+            type="number"
+            value={currentValue || ""}
+            onChange={(e) => updateField(question.field, e.target.value)}
+            placeholder={question.placeholder}
+            className="text-lg h-14 bg-card border-border"
+            min={question.numberProps?.min}
+            max={question.numberProps?.max}
+            step={question.numberProps?.step}
+            autoFocus
+            onKeyDown={(e) => e.key === "Enter" && hasValue && goNext()}
+          />
+        );
+      case "radio":
+        return (
+          <RadioCardGroup
+            value={currentValue || ""}
+            onValueChange={(value) => handleRadioChange(question.field, value)}
+          >
+            {question.options!.map((option) => (
+              <RadioCardItem key={option} value={option}>
+                {option}
+              </RadioCardItem>
+            ))}
+          </RadioCardGroup>
+        );
+      case "checkbox":
+        return (
+          <div className="grid grid-cols-2 gap-3">
+            {question.options!.map((option) => (
+              <label
+                key={option}
+                className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                  (currentValue as string[])?.includes(option)
+                    ? "border-primary bg-primary/10"
+                    : "border-border bg-card hover:border-primary/40"
+                }`}
+              >
+                <Checkbox
+                  checked={(currentValue as string[])?.includes(option)}
+                  onCheckedChange={() => toggleArrayField(question.field, option)}
+                />
+                <span className="text-sm font-medium text-foreground">{option}</span>
+              </label>
+            ))}
+          </div>
+        );
+      case "textarea":
+        return (
+          <Textarea
+            value={currentValue || ""}
+            onChange={(e) => updateField(question.field, e.target.value)}
+            placeholder={question.placeholder}
+            className="text-base bg-card border-border min-h-[120px]"
+            autoFocus
+          />
+        );
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Top bar */}
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
+        <div className="max-w-lg mx-auto flex items-center justify-between">
+          <img src={meuTreinoLogo} alt="Meu Treino" className="h-8" />
+          <span className="text-xs font-medium text-muted-foreground">
+            {currentQ + 1} / {totalQ}
+          </span>
+        </div>
+        {/* Progress bar */}
+        <div className="max-w-lg mx-auto mt-2">
+          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-primary rounded-full"
+              initial={false}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Question area */}
+      <div className="flex-1 flex items-center justify-center px-4 py-8">
+        <div className="w-full max-w-lg">
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={currentQ}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="space-y-6"
+            >
+              {/* Section label */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-primary uppercase tracking-widest">
+                  {currentSection}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  ({sectionIndex}/{sections.length})
+                </span>
+              </div>
+
+              {/* Question */}
+              <div className="space-y-2">
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground leading-tight">
+                  {question.label}
+                </h2>
+                {question.subtitle && (
+                  <p className="text-muted-foreground text-sm">
+                    {question.subtitle}
+                  </p>
+                )}
+              </div>
+
+              {/* Input */}
+              <div className="pt-2">
+                {renderInput()}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Bottom navigation */}
+      <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-4">
+        <div className="max-w-lg mx-auto flex items-center justify-between gap-3">
+          <Button
+            variant="ghost"
+            onClick={goPrev}
+            disabled={currentQ === 0 || loading}
+            className="min-w-[100px]"
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Voltar
+          </Button>
+
+          {isLastQuestion ? (
+            <Button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="min-w-[140px]"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  Concluir
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button
+              onClick={goNext}
+              disabled={loading}
+              className="min-w-[140px]"
+            >
+              {question.type === "radio" ? "Pular" : "Próximo"}
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
