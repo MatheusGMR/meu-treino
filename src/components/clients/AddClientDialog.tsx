@@ -20,6 +20,7 @@ export const AddClientDialog = () => {
   const [successData, setSuccessData] = useState<{ clientId: string; clientName: string; email: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const addClient = useAddClient();
+  const queryClient = useQueryClient();
 
   const form = useForm<AddClient>({
     resolver: zodResolver(addClientSchema),
@@ -78,6 +79,8 @@ export const AddClientDialog = () => {
     setStep(1);
     setSuccessData(null);
     setCopied(false);
+    // Force refetch clients list
+    queryClient.invalidateQueries({ queryKey: ["clients"] });
   };
 
   const nextStep = async () => {
