@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,13 +37,17 @@ export const AddClientDialog = () => {
   };
 
   const onSubmit = async (data: AddClient) => {
-    const result = await addClient.mutateAsync(data);
-    setSuccessData({
-      clientId: result.clientId,
-      clientName: data.full_name,
-      email: data.email,
-    });
-    setStep(4); // Go to success/share step
+    try {
+      const result = await addClient.mutateAsync(data);
+      setSuccessData({
+        clientId: result.clientId,
+        clientName: data.full_name,
+        email: data.email,
+      });
+      setStep(4); // Go to success/share step
+    } catch (err) {
+      // Error is handled by onError in the mutation
+    }
   };
 
   const handleCopyLink = () => {
