@@ -41,3 +41,6 @@ verify_jwt = true
 
 [functions.calculate-anamnesis-profile]
 verify_jwt = true
+
+[functions.generate-trial-workout]
+verify_jwt = true
