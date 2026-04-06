@@ -35,6 +35,7 @@ export const addClientSchema = z.object({
   start_date: z.string(),
 });
 
+
 export type ClientProfile = z.infer<typeof clientProfileSchema>;
 export type ClientAssignment = z.infer<typeof clientAssignmentSchema>;
 export type AddClient = z.infer<typeof addClientSchema>;

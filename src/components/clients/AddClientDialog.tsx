@@ -98,7 +98,7 @@ export const AddClientDialog = () => {
         </DialogHeader>
 
         {step <= 3 ? (
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
             {step === 1 && (
               <>
                 <div className="space-y-2">
@@ -195,7 +195,11 @@ export const AddClientDialog = () => {
                   Próximo
                 </Button>
               ) : (
-                <Button type="submit" disabled={addClient.isPending}>
+                <Button
+                  type="button"
+                  disabled={addClient.isPending}
+                  onClick={form.handleSubmit(onSubmit)}
+                >
                   {addClient.isPending ? "Criando..." : "Criar Cliente"}
                 </Button>
               )}
