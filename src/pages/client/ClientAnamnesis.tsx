@@ -821,11 +821,11 @@ const ClientAnamnesis = () => {
             totalSteps={totalSteps}
             onPrevious={() => {
               setCurrentStep(prev => Math.max(1, prev - 1));
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+              setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }), 0);
             }}
             onNext={() => {
               setCurrentStep(prev => Math.min(totalSteps, prev + 1));
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+              setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }), 0);
             }}
             onSubmit={handleSubmit}
             loading={loading}
