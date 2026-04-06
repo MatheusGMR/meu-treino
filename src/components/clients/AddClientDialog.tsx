@@ -98,7 +98,7 @@ export const AddClientDialog = () => {
         </DialogHeader>
 
         {step <= 3 ? (
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
             {step === 1 && (
               <>
                 <div className="space-y-2">
