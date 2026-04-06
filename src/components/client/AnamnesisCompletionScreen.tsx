@@ -104,7 +104,10 @@ export const AnamnesisCompletionScreen = ({
               transition={{ duration: 0.7, type: "spring" }}
               className="space-y-6"
             >
-              <div className="bg-white/15 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+              <button
+                onClick={onContinue}
+                className="w-full text-left bg-white/15 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/25 transition-colors cursor-pointer"
+              >
                 <div className="flex items-center justify-center gap-2 mb-3">
                   <Gift className="w-6 h-6 text-white" />
                   <span className="text-lg font-semibold text-white">
@@ -131,10 +134,10 @@ export const AnamnesisCompletionScreen = ({
                     className="flex items-center justify-center gap-2 text-white text-sm font-medium"
                   >
                     <Sparkles className="w-4 h-4" />
-                    <span>Treino de teste pronto!</span>
+                    <span>Treino de teste pronto! Toque para acessar →</span>
                   </motion.div>
                 )}
-              </div>
+              </button>
 
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10">
                 <p className="text-white/70 text-xs">
