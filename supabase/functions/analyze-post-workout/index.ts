@@ -116,7 +116,7 @@ REGRAS:
                 parameters: {
                   type: "object",
                   properties: {
-                    mood_summary: { type: "string", description: "1-2 sentence post-workout summary in Portuguese" },
+                    mood_summary: { type: "string", description: "1-2 frases falando diretamente com o aluno usando 'você'. Ex: 'Você mandou bem hoje!'" },
                     mood_category: { type: "string", enum: ["otimo", "bem", "cansado", "com_dor", "indisposto"] },
                     difficulty_rating: { type: "string", enum: ["facil", "ideal", "dificil", "muito_dificil"] },
                     attention_points: {
@@ -125,14 +125,14 @@ REGRAS:
                         type: "object",
                         properties: {
                           category: { type: "string", enum: ["dor", "cansaco", "sono", "trabalho", "emocional", "outro"] },
-                          description: { type: "string" },
+                          description: { type: "string", description: "Descrição falando diretamente com o aluno usando 'você'" },
                           severity: { type: "string", enum: ["baixa", "media", "alta"] },
                         },
                         required: ["category", "description", "severity"],
                       },
                     },
-                    recovery_tips: { type: "string", description: "Recovery recommendations in Portuguese" },
-                    trainer_insights: { type: "string", description: "Key insights for the personal trainer in Portuguese" },
+                    recovery_tips: { type: "string", description: "Dicas práticas e acionáveis para o aluno. Ex: 'Hidrate-se bem nas próximas 2h e faça um alongamento leve antes de dormir.'" },
+                    trainer_insights: { type: "string", description: "Insights técnicos para o personal trainer (não será mostrado ao aluno)" },
                   },
                   required: ["mood_summary", "mood_category", "difficulty_rating", "attention_points", "recovery_tips", "trainer_insights"],
                 },
