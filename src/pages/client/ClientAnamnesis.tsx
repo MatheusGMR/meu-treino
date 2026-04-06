@@ -315,7 +315,7 @@ const ClientAnamnesis = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="contato">Contato (WhatsApp ou Email)</Label>
+              <Label htmlFor="contato">Contato telefônico</Label>
               <Input
                 id="contato"
                 value={formData.contato}
