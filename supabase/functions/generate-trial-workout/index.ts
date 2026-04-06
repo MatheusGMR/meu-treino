@@ -230,7 +230,6 @@ serve(async (req) => {
         workoutId: workout.id,
         sessionId: session.id,
         exerciseCount: finalExercises.length,
-        targetGroups: selectedGroups,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
