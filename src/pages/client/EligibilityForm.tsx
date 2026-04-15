@@ -1,7 +1,5 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -16,7 +14,7 @@ import { useEffect } from "react";
 
 const EligibilityForm = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { track } = useFunnelTracking();
   const { track } = useFunnelTracking();
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
