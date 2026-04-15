@@ -185,13 +185,7 @@ const App = () => (
             {/* Client routes */}
             <Route
               path="/client/eligibility"
-              element={
-                <AuthGuard>
-                  <RoleGuard allowedRoles={["client"]}>
-                    <EligibilityForm />
-                  </RoleGuard>
-                </AuthGuard>
-              }
+              element={<EligibilityForm />}
             />
             <Route
               path="/client/checkout"
