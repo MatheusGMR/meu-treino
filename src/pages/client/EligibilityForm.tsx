@@ -15,7 +15,6 @@ import { useEffect } from "react";
 const EligibilityForm = () => {
   const navigate = useNavigate();
   const { track } = useFunnelTracking();
-  const { track } = useFunnelTracking();
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [loading, setLoading] = useState(false);
