@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Bot, Save, Plus, Trash2, GripVertical, Sparkles } from "lucide-react";
+import { Bot, Save, Plus, Trash2, GripVertical, Sparkles, Upload, FileText, File, X, Download, Loader2 } from "lucide-react";
 import { AppLayout } from "@/layouts/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,16 @@ interface MacroInstruction {
   id: string;
   context: string;
   instruction: string;
+}
+
+interface KnowledgeFile {
+  id: string;
+  file_name: string;
+  file_path: string;
+  file_size: number | null;
+  file_type: string | null;
+  description: string | null;
+  created_at: string | null;
 }
 
 const PERSONALITY_OPTIONS = [
@@ -52,6 +62,26 @@ const CONTEXT_OPTIONS = [
   "Personalizado",
 ];
 
+const ACCEPTED_FILE_TYPES = ".pdf,.doc,.docx,.txt,.csv,.json,.xlsx,.xls,.md";
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+function formatFileSize(bytes: number | null): string {
+  if (!bytes) return "—";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function getFileIcon(type: string | null) {
+  if (!type) return <File className="w-5 h-5 text-muted-foreground" />;
+  if (type.includes("pdf")) return <FileText className="w-5 h-5 text-destructive" />;
+  if (type.includes("spreadsheet") || type.includes("csv") || type.includes("excel"))
+    return <FileText className="w-5 h-5 text-green-600" />;
+  if (type.includes("word") || type.includes("document"))
+    return <FileText className="w-5 h-5 text-blue-600" />;
+  return <FileText className="w-5 h-5 text-muted-foreground" />;
+}
+
 export default function AIAgentSettings() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -74,6 +104,12 @@ export default function AIAgentSettings() {
     },
   ]);
 
+  // Knowledge base
+  const [knowledgeFiles, setKnowledgeFiles] = useState<KnowledgeFile[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     loadConfig();
   }, [user?.id]);
@@ -82,24 +118,35 @@ export default function AIAgentSettings() {
     if (!user?.id) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("ai_agent_config")
-        .select("*")
-        .eq("owner_id", user.id)
-        .eq("config_type", "global")
-        .maybeSingle();
+      const [configResult, filesResult] = await Promise.all([
+        supabase
+          .from("ai_agent_config")
+          .select("*")
+          .eq("owner_id", user.id)
+          .eq("config_type", "global")
+          .maybeSingle(),
+        supabase
+          .from("ai_knowledge_files")
+          .select("*")
+          .eq("owner_id", user.id)
+          .order("created_at", { ascending: false }),
+      ]);
 
-      if (error) throw error;
+      if (configResult.error) throw configResult.error;
 
-      if (data) {
-        setConfigId(data.id);
-        setSystemPrompt(data.system_prompt || DEFAULT_SYSTEM_PROMPT);
-        setPersonality(data.personality || "profissional");
-        setTone(data.tone || "semiformal");
-        const savedMacros = data.macro_instructions as unknown;
+      if (configResult.data) {
+        setConfigId(configResult.data.id);
+        setSystemPrompt(configResult.data.system_prompt || DEFAULT_SYSTEM_PROMPT);
+        setPersonality(configResult.data.personality || "profissional");
+        setTone(configResult.data.tone || "semiformal");
+        const savedMacros = configResult.data.macro_instructions as unknown;
         if (Array.isArray(savedMacros) && savedMacros.length > 0) {
           setMacros(savedMacros as MacroInstruction[]);
         }
+      }
+
+      if (!filesResult.error && filesResult.data) {
+        setKnowledgeFiles(filesResult.data);
       }
     } catch (err) {
       console.error("Erro ao carregar config:", err);
@@ -162,6 +209,109 @@ export default function AIAgentSettings() {
     setMacros((prev) =>
       prev.map((m) => (m.id === id ? { ...m, [field]: value } : m))
     );
+  };
+
+  // ===== Knowledge Base =====
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0 || !user?.id) return;
+
+    setUploading(true);
+    let successCount = 0;
+
+    for (const file of Array.from(files)) {
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`"${file.name}" excede o limite de 10MB`);
+        continue;
+      }
+
+      const filePath = `${user.id}/${crypto.randomUUID()}_${file.name}`;
+
+      try {
+        const { error: uploadError } = await supabase.storage
+          .from("ai-knowledge")
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const { error: dbError } = await supabase.from("ai_knowledge_files").insert({
+          owner_id: user.id,
+          config_id: configId,
+          file_name: file.name,
+          file_path: filePath,
+          file_size: file.size,
+          file_type: file.type,
+        });
+
+        if (dbError) throw dbError;
+        successCount++;
+      } catch (err) {
+        console.error(`Erro ao enviar ${file.name}:`, err);
+        toast.error(`Erro ao enviar "${file.name}"`);
+      }
+    }
+
+    if (successCount > 0) {
+      toast.success(`${successCount} arquivo(s) enviado(s) com sucesso`);
+      // Reload files
+      const { data } = await supabase
+        .from("ai_knowledge_files")
+        .select("*")
+        .eq("owner_id", user.id)
+        .order("created_at", { ascending: false });
+      if (data) setKnowledgeFiles(data);
+    }
+
+    setUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleDeleteFile = async (file: KnowledgeFile) => {
+    if (!user?.id) return;
+    setDeletingFileId(file.id);
+
+    try {
+      const { error: storageError } = await supabase.storage
+        .from("ai-knowledge")
+        .remove([file.file_path]);
+
+      if (storageError) console.warn("Storage delete warning:", storageError);
+
+      const { error: dbError } = await supabase
+        .from("ai_knowledge_files")
+        .delete()
+        .eq("id", file.id);
+
+      if (dbError) throw dbError;
+
+      setKnowledgeFiles((prev) => prev.filter((f) => f.id !== file.id));
+      toast.success(`"${file.file_name}" removido`);
+    } catch (err) {
+      console.error("Erro ao remover:", err);
+      toast.error("Erro ao remover arquivo");
+    } finally {
+      setDeletingFileId(null);
+    }
+  };
+
+  const handleDownloadFile = async (file: KnowledgeFile) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from("ai-knowledge")
+        .download(file.file_path);
+
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = file.file_name;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Erro ao baixar:", err);
+      toast.error("Erro ao baixar arquivo");
+    }
   };
 
   if (loading) {
@@ -290,6 +440,121 @@ export default function AIAgentSettings() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Knowledge Base */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-primary" />
+                  Base de Conhecimento
+                </CardTitle>
+                <CardDescription>
+                  Envie documentos que a IA usará como referência (protocolos, artigos, manuais)
+                </CardDescription>
+              </div>
+              <div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={ACCEPTED_FILE_TYPES}
+                  multiple
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="gap-2"
+                >
+                  {uploading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Upload className="w-4 h-4" />
+                  )}
+                  {uploading ? "Enviando..." : "Enviar arquivo"}
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {knowledgeFiles.length === 0 ? (
+              <div
+                className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground font-medium">
+                  Arraste arquivos aqui ou clique para enviar
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  PDF, DOC, DOCX, TXT, CSV, JSON, XLSX, MD — Máx. 10MB por arquivo
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {knowledgeFiles.map((file) => (
+                  <div
+                    key={file.id}
+                    className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-muted/30 transition-colors"
+                  >
+                    {getFileIcon(file.file_type)}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {file.file_name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatFileSize(file.file_size)}
+                        {file.created_at && (
+                          <> · {new Date(file.created_at).toLocaleDateString("pt-BR")}</>
+                        )}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handleDownloadFile(file)}
+                      >
+                        <Download className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={() => handleDeleteFile(file)}
+                        disabled={deletingFileId === file.id}
+                      >
+                        {deletingFileId === file.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="pt-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="gap-2 text-muted-foreground"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Adicionar mais arquivos
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Macro Instructions */}
         <Card>
