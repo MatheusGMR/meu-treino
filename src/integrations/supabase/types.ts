@@ -873,6 +873,63 @@ export type Database = {
           },
         ]
       }
+      eligibility_submissions: {
+        Row: {
+          age: number
+          created_at: string
+          full_name: string
+          gender: string
+          id: string
+          is_vs_gold: boolean | null
+          pain_knee: boolean | null
+          pain_lower_back: boolean | null
+          pain_shoulder: boolean | null
+          payment_id: string | null
+          payment_provider: string | null
+          payment_status: string | null
+          phone: string
+          updated_at: string
+          user_id: string | null
+          vs_gold_exit_date: string | null
+        }
+        Insert: {
+          age: number
+          created_at?: string
+          full_name: string
+          gender: string
+          id?: string
+          is_vs_gold?: boolean | null
+          pain_knee?: boolean | null
+          pain_lower_back?: boolean | null
+          pain_shoulder?: boolean | null
+          payment_id?: string | null
+          payment_provider?: string | null
+          payment_status?: string | null
+          phone: string
+          updated_at?: string
+          user_id?: string | null
+          vs_gold_exit_date?: string | null
+        }
+        Update: {
+          age?: number
+          created_at?: string
+          full_name?: string
+          gender?: string
+          id?: string
+          is_vs_gold?: boolean | null
+          pain_knee?: boolean | null
+          pain_lower_back?: boolean | null
+          pain_shoulder?: boolean | null
+          payment_id?: string | null
+          payment_provider?: string | null
+          payment_status?: string | null
+          phone?: string
+          updated_at?: string
+          user_id?: string | null
+          vs_gold_exit_date?: string | null
+        }
+        Relationships: []
+      }
       exercises: {
         Row: {
           added_at: string | null
@@ -984,6 +1041,36 @@ export type Database = {
           updated_at?: string | null
           variations?: string[] | null
           video_url?: string | null
+        }
+        Relationships: []
+      }
+      funnel_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          page: string | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          page?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          page?: string | null
+          session_id?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
