@@ -489,6 +489,9 @@ export default function ProtocoloDestravamento() {
             <p className="lp-sub-text" style={{ textAlign: "center", maxWidth: 620, margin: "12px auto 0" }}>
               Uma única mensalidade que reúne os três pilares do Protocolo Destravamento. Sem fidelidade, sem custo adicional pelo app ou pelo acompanhamento.
             </p>
+            <p className="lp-urgency-note" style={{ textAlign: "center", maxWidth: 520, margin: "20px auto 0", fontSize: 14, color: "var(--lp-gold)", fontFamily: "var(--lp-mono)", letterSpacing: ".04em", opacity: .85 }}>
+              ⚡ Vagas limitadas por turma — acompanhamento personalizado exige controle de capacidade.
+            </p>
           </Reveal>
 
           <Reveal className="lp-price-card">
