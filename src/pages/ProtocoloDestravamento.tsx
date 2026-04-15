@@ -107,7 +107,7 @@ const journeySteps = [
   { num: "01", label: "Início da Jornada", title: "Você verifica sua elegibilidade", text: "Três perguntas. Sem tecnicismo. Confirmamos que esse é o caminho certo para o seu momento.", tag: "3 perguntas · 60 segundos" },
   { num: "02", label: "Seu Perfil", title: "Você responde sua anamnese", text: "Dores, limitações, como se sente. Sem julgamento — isso personaliza cada sessão da sua jornada.", tag: "Triagem inteligente" },
   { num: "03", label: "Seu Protocolo", title: "O app monta sua jornada", text: "A metodologia JMP define o que você vai fazer, na ordem certa, no tempo que você tem.", tag: "Metodologia JMP · Protocolo personalizado" },
-  { num: "04", label: "Na Academia", title: "Você treina com o app na mão", text: "Acesso a todas as unidades VS Gold em Londrina. O app conduz cada sessão — exercício por exercício, sem precisar saber nada de antemão.", tag: "Todas as unidades VS Gold" },
+  { num: "04", label: "Na Academia", title: "Você é acompanhado pelo time JMP", text: "Seu treino guiado também estará no app e te ajudará a conduzir exercício por exercício, reajustando seu treino conforme sua disposição.", tag: "Todas as unidades VS Gold" },
   { num: "05", label: "Evolução Contínua", title: "Sua jornada se adapta com você", text: "Cada sessão informa a próxima. Em até 12 semanas, você passa de iniciante a alguém que entende o próprio treino.", tag: "Adaptação contínua · 12 semanas" },
 ];
 

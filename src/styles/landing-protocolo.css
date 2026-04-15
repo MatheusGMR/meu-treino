@@ -154,11 +154,11 @@
 .lp-pillar-hero:hover { background:linear-gradient(180deg, rgba(212,175,55,.04), transparent) }
 
 .lp-ph-logo {
-  width:64px; height:64px; border-radius:14px;
+  width:64px; height:64px; border-radius:50%;
   display:grid; place-items:center; margin-bottom:20px;
-  overflow:hidden; border:1px solid var(--lp-line-soft); transition:all .3s;
+  overflow:hidden; background:transparent !important; border:none; transition:all .3s;
 }
-.lp-ph-logo img { width:100%; height:100%; object-fit:contain; padding:8px }
+.lp-ph-logo img { width:100%; height:100%; object-fit:cover; border-radius:50% }
 .lp-ph-brand { font-family:var(--lp-mono); font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--lp-gold); margin-bottom:8px; font-weight:600 }
 .lp-pillar-hero[data-brand="jmp"] .lp-ph-brand { color:var(--lp-jmp-orange) }
 .lp-pillar-hero[data-brand="meutreino"] .lp-ph-brand { color:var(--lp-crimson) }
@@ -467,11 +467,11 @@
 .lp-pillar-card[data-brand="meutreino"]:hover { border-color:var(--lp-crimson) }
 
 .lp-pc-logo {
-  width:72px; height:72px; border-radius:18px;
+  width:72px; height:72px; border-radius:50%;
   display:grid; place-items:center; margin-bottom:24px;
-  overflow:hidden; border:1px solid var(--lp-line); transition:all .3s;
+  overflow:hidden; background:transparent !important; border:none; transition:all .3s;
 }
-.lp-pc-logo img { width:100%; height:100%; object-fit:contain; padding:10px }
+.lp-pc-logo img { width:100%; height:100%; object-fit:cover; border-radius:50% }
 .lp-pc-role { font-family:var(--lp-mono); font-size:10px; letter-spacing:.22em; text-transform:uppercase; margin-bottom:8px; font-weight:600 }
 .lp-pillar-card[data-brand="vsgold"] .lp-pc-role { color:var(--lp-gold) }
 .lp-pillar-card[data-brand="jmp"] .lp-pc-role { color:var(--lp-jmp-orange) }
