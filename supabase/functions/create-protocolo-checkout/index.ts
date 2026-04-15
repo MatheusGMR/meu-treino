@@ -26,6 +26,8 @@ serve(async (req) => {
       throw new Error("Mercado Pago não configurado. Configure a chave de acesso.");
     }
 
+    const isTestToken = MP_ACCESS_TOKEN.startsWith("TEST-");
+
     const origin = req.headers.get("origin") || "https://trainer-client-portal.lovable.app";
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const webhookUrl = `${supabaseUrl}/functions/v1/mercadopago-webhook`;
@@ -87,14 +89,16 @@ serve(async (req) => {
     }
 
     const mpData = await mpResponse.json();
-    console.log("MP Preference created:", mpData.id);
+    console.log("MP Preference created:", mpData.id, "token_mode:", isTestToken ? "test" : "live");
 
-    // Use sandbox_init_point for test tokens, init_point for production
-    const checkoutUrl = mpData.sandbox_init_point || mpData.init_point;
+    const checkoutUrl = isTestToken
+      ? (mpData.sandbox_init_point || mpData.init_point)
+      : (mpData.init_point || mpData.sandbox_init_point);
 
     return new Response(JSON.stringify({ 
       url: checkoutUrl,
       preference_id: mpData.id,
+      mode: isTestToken ? "test" : "live",
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
