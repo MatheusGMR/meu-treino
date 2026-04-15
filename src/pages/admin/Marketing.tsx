@@ -35,8 +35,10 @@ const Marketing = () => {
   });
 
   return (
-    <AppLayout title="Marketing & Funil de Vendas">
+    <AppLayout>
       <div className="space-y-6">
+        <h1 className="text-2xl font-bold">Marketing & Funil de Vendas</h1>
+
         {/* Date Filters */}
         <div className="flex gap-4 items-center">
           <div className="flex items-center gap-2">

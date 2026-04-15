@@ -40,6 +40,9 @@ import Users from "./pages/admin/Users";
 import UploadBodyTypeImages from "./pages/admin/UploadBodyTypeImages";
 import PendingUpdates from "./pages/admin/PendingUpdates";
 import ExerciseImport from "./pages/admin/ExerciseImport";
+import Marketing from "./pages/admin/Marketing";
+import EligibilityForm from "./pages/client/EligibilityForm";
+import ProtocoloCheckout from "./pages/client/ProtocoloCheckout";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -179,6 +182,26 @@ const App = () => (
               }
             />
             {/* Client routes */}
+            <Route
+              path="/client/eligibility"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["client"]}>
+                    <EligibilityForm />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/client/checkout"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["client"]}>
+                    <ProtocoloCheckout />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
             <Route
               path="/client/anamnesis"
               element={
@@ -336,6 +359,16 @@ const App = () => (
                 <AuthGuard>
                   <RoleGuard allowedRoles={["admin"]}>
                     <ExerciseImport />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/admin/marketing"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["admin"]}>
+                    <Marketing />
                   </RoleGuard>
                 </AuthGuard>
               }
