@@ -62,6 +62,7 @@ serve(async (req) => {
         ? { excluded_payment_types: [{ id: "credit_card" }, { id: "debit_card" }] }
         : { excluded_payment_types: [{ id: "bank_transfer" }] },
       external_reference: user.id,
+      notification_url: webhookUrl,
       metadata: {
         user_id: user.id,
         plan: "protocolo_destravamento",
