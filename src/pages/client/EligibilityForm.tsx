@@ -1,5 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight, ChevronLeft, Loader2, ShieldCheck } from "lucide-react";
 import { useFunnelTracking } from "@/hooks/useFunnelTracking";
 import meuTreinoLogo from "@/assets/meu-treino-logo.png";
-import { useEffect } from "react";
 
 const EligibilityForm = () => {
   const navigate = useNavigate();
@@ -29,6 +29,8 @@ const EligibilityForm = () => {
     pain_shoulder: false,
     pain_lower_back: false,
     pain_knee: false,
+    email: "",
+    password: "",
   });
 
   useEffect(() => {
@@ -183,7 +185,44 @@ const EligibilityForm = () => {
           ))}
         </div>
       ),
-      valid: () => true, // optional
+      valid: () => true,
+    },
+    {
+      id: "account",
+      label: "Crie sua conta para continuar",
+      subtitle: "Seus dados ficam seguros e você poderá acessar seu treino a qualquer momento.",
+      render: () => (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">E-mail</Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => updateField("email", e.target.value)}
+              placeholder="seu@email.com"
+              className="text-lg h-14 bg-card border-border"
+              autoFocus
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Senha</Label>
+            <Input
+              id="password"
+              type="password"
+              value={formData.password}
+              onChange={(e) => updateField("password", e.target.value)}
+              placeholder="Mínimo 6 caracteres"
+              className="text-lg h-14 bg-card border-border"
+              onKeyDown={(e) => e.key === "Enter" && formData.email && formData.password.length >= 6 && handleSubmit()}
+            />
+          </div>
+        </div>
+      ),
+      valid: () => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(formData.email) && formData.password.length >= 6;
+      },
     },
   ];
 
@@ -208,34 +247,77 @@ const EligibilityForm = () => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      track("eligibility_complete", undefined, {
-        is_vs_gold: formData.is_vs_gold === "Sim",
-        has_pain: formData.pain_shoulder || formData.pain_lower_back || formData.pain_knee,
+      // 1. Create user account automatically
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.full_name,
+            role: "client",
+          },
+        },
       });
 
-      // Store all eligibility data in sessionStorage for post-registration persistence
-      sessionStorage.setItem("eligibility_data", JSON.stringify({
+      if (signUpError) {
+        if (signUpError.message.includes("already registered")) {
+          toast({
+            title: "E-mail já cadastrado",
+            description: "Esse e-mail já está em uso. Faça login para continuar.",
+            variant: "destructive",
+          });
+        } else {
+          throw signUpError;
+        }
+        setLoading(false);
+        return;
+      }
+
+      const userId = signUpData.user?.id;
+      if (!userId) throw new Error("Erro ao criar conta");
+
+      // 2. Persist eligibility data to database
+      await supabase.from("eligibility_submissions").insert({
+        user_id: userId,
         full_name: formData.full_name,
         age: parseInt(formData.age),
         phone: formData.phone,
         gender: formData.gender,
         is_vs_gold: formData.is_vs_gold === "Sim",
+        vs_gold_exit_date: null,
         pain_shoulder: formData.pain_shoulder,
         pain_lower_back: formData.pain_lower_back,
         pain_knee: formData.pain_knee,
-      }));
+        payment_status: "pending",
+      } as any);
 
-      // Store pain data separately for anamnesis
+      // 3. Update profile name
+      await supabase.from("profiles").update({ full_name: formData.full_name }).eq("id", userId);
+
+      // 4. Track funnel event
+      track("eligibility_complete", undefined, {
+        is_vs_gold: formData.is_vs_gold === "Sim",
+        has_pain: formData.pain_shoulder || formData.pain_lower_back || formData.pain_knee,
+      });
+
+      // 5. Store pain data in sessionStorage for anamnesis
       sessionStorage.setItem("eligibility_pain", JSON.stringify({
         pain_shoulder: formData.pain_shoulder,
         pain_lower_back: formData.pain_lower_back,
         pain_knee: formData.pain_knee,
       }));
+      sessionStorage.setItem("eligibility_done", "true");
 
-      // Redirect to register — after signup, data will be persisted to DB
-      navigate("/auth/register");
+      toast({
+        title: "Conta criada com sucesso! 🎉",
+        description: "Vamos ao pagamento para iniciar seu protocolo.",
+      });
+
+      // 6. Redirect to checkout
+      navigate("/client/checkout");
     } catch (error: any) {
-      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      console.error("Eligibility submit error:", error);
+      toast({ title: "Erro", description: error.message || "Tente novamente.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -289,11 +371,8 @@ const EligibilityForm = () => {
                   {step + 1} de {totalSteps}
                 </p>
                 <h2 className="text-2xl font-bold">{currentStep.label}</h2>
-                {currentStep.id === "vs_gold" && currentStep.subtitle && (
-                  <p className="text-sm text-muted-foreground mt-1">{currentStep.subtitle}</p>
-                )}
-                {currentStep.id === "pain" && currentStep.subtitle && (
-                  <p className="text-sm text-muted-foreground mt-1">{currentStep.subtitle}</p>
+                {(currentStep as any).subtitle && (
+                  <p className="text-sm text-muted-foreground mt-1">{(currentStep as any).subtitle}</p>
                 )}
               </div>
 
