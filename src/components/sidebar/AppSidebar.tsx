@@ -224,6 +224,9 @@ export const AppSidebar = ({ collapsed = false, onToggle }: AppSidebarProps) => 
           <Separator className="my-4" />
 
           <NavItem to="/settings" icon={Settings} label="Configurações" active={isActive("/settings")} />
+          {(isPersonal || isAdmin) && (
+            <NavItem to="/settings/ai-agent" icon={Bot} label="Agente de IA" active={isActive("/settings/ai-agent")} />
+          )}
         </nav>
 
         {/* User Section */}
