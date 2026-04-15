@@ -94,7 +94,13 @@ const ClientDashboard = () => {
 
   useEffect(() => {
     if (!anamnesisLoading && anamnesisCompleted === false) {
-      navigate("/client/anamnesis", { replace: true });
+      // Check if user already completed eligibility+checkout
+      const eligibilityDone = sessionStorage.getItem("eligibility_done");
+      if (eligibilityDone) {
+        navigate("/client/anamnesis", { replace: true });
+      } else {
+        navigate("/client/eligibility", { replace: true });
+      }
     }
   }, [anamnesisCompleted, anamnesisLoading, navigate]);
 

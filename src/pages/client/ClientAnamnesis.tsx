@@ -1,8 +1,9 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { useFunnelTracking } from "@/hooks/useFunnelTracking";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioCardGroup, RadioCardItem } from "@/components/ui/radio-card";
@@ -87,12 +88,25 @@ const ClientAnamnesis = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { track } = useFunnelTracking();
   const [currentQ, setCurrentQ] = useState(0);
   const [direction, setDirection] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
   const [isGeneratingWorkout, setIsGeneratingWorkout] = useState(false);
   const [trialWorkoutReady, setTrialWorkoutReady] = useState(false);
+
+  // Check if user came from eligibility and has pre-filled pain data
+  const eligibilityPain = useMemo(() => {
+    try {
+      const stored = sessionStorage.getItem("eligibility_pain");
+      return stored ? JSON.parse(stored) : null;
+    } catch { return null; }
+  }, []);
+
+  const hasPainFromEligibility = eligibilityPain && (
+    eligibilityPain.pain_shoulder || eligibilityPain.pain_lower_back || eligibilityPain.pain_knee
+  );
 
   const [formData, setFormData] = useState<Record<string, any>>({
     age: "", gender: "", profession: "", contato: "", tempo_sentado_dia: "",
@@ -106,6 +120,9 @@ const ClientAnamnesis = () => {
     local_treino: "", tempo_disponivel: "", horario_preferido: "", tipo_treino_preferido: "",
     comentarios_finais: "",
   });
+
+  // Track anamnesis start
+  useState(() => { track("anamnesis_start"); });
 
   const updateField = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -121,12 +138,20 @@ const ClientAnamnesis = () => {
     });
   };
 
-  const question = QUESTIONS[currentQ];
-  const totalQ = QUESTIONS.length;
+  // Filter questions: skip pain-related ones if already answered in eligibility
+  const filteredQuestions = useMemo(() => {
+    if (!hasPainFromEligibility) return QUESTIONS;
+    // Skip the generic "dores" and "articulares" questions since they already told us
+    const skipIds = ["dores", "articulares"];
+    return QUESTIONS.filter(q => !skipIds.includes(q.id));
+  }, [hasPainFromEligibility]);
+
+  const question = filteredQuestions[currentQ];
+  const totalQ = filteredQuestions.length;
   const progress = ((currentQ + 1) / totalQ) * 100;
 
   // Get unique sections for section label
-  const sections = [...new Set(QUESTIONS.map(q => q.section))];
+  const sections = [...new Set(filteredQuestions.map(q => q.section))];
   const currentSection = question.section;
   const sectionIndex = sections.indexOf(currentSection) + 1;
 
@@ -159,7 +184,16 @@ const ClientAnamnesis = () => {
   const handleSubmit = async () => {
     if (!user?.id) return;
     setLoading(true);
+    track("anamnesis_complete");
     try {
+      // Merge eligibility pain data
+      const painLocations = [...(formData.problemas_articulares || [])];
+      if (eligibilityPain) {
+        if (eligibilityPain.pain_shoulder && !painLocations.includes("Ombro")) painLocations.push("Ombro");
+        if (eligibilityPain.pain_lower_back && !painLocations.includes("Lombar")) painLocations.push("Lombar");
+        if (eligibilityPain.pain_knee && !painLocations.includes("Joelho")) painLocations.push("Joelho");
+      }
+      const hasJointPain = painLocations.length > 0 && !painLocations.includes("Nenhum");
       const { error: anamnesisError } = await supabase
         .from("anamnesis")
         .insert([{
@@ -183,8 +217,8 @@ const ClientAnamnesis = () => {
           cirurgias: formData.cirurgias || null,
           restricao_medica: formData.restricao_medica || null,
           liberacao_medica: formData.liberacao_medica || null,
-          pain_locations: formData.problemas_articulares.length > 0 ? formData.problemas_articulares : null,
-          has_joint_pain: formData.problemas_articulares.length > 0 && !formData.problemas_articulares.includes("Nenhum"),
+          pain_locations: painLocations.length > 0 ? painLocations : null,
+          has_joint_pain: hasJointPain,
           primary_goal: formData.objetivo_principal || null,
           objetivo_secundario: formData.objetivo_secundario || null,
           prazo: formData.prazo || null,
