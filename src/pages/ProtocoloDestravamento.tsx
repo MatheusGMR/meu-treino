@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import jmpLogo from "@/assets/landing/jmp-logo.webp";
 import mtLogo from "@/assets/landing/meutreino-logo.webp";
 import vsLogo from "@/assets/landing/vsgold-logo.webp";
@@ -179,6 +180,7 @@ function scrollTo(id: string) {
 
 /* ═══════════ MAIN PAGE ═══════════ */
 export default function ProtocoloDestravamento() {
+  const navigate = useNavigate();
   const [navScrolled, setNavScrolled] = useState(false);
 
   useEffect(() => {
@@ -195,7 +197,7 @@ export default function ProtocoloDestravamento() {
           <span className="lp-nav-dot" />
           <span>Protocolo Destravamento · Londrina</span>
         </div>
-        <a href="#checkout" onClick={scrollTo("checkout")} className="lp-nav-cta">Já Quero →</a>
+        <button onClick={goToAnamnesis} className="lp-nav-cta">Já Quero →</button>
       </nav>
 
       {/* ═══ HERO ═══ */}
@@ -221,9 +223,9 @@ export default function ProtocoloDestravamento() {
           </p>
 
           <div className="lp-hero-ctas lp-anim-fade" style={{ animationDelay: "1.6s" }}>
-            <a href="#checkout" onClick={scrollTo("checkout")} className="lp-btn lp-btn-primary">
+            <button onClick={goToAnamnesis} className="lp-btn lp-btn-primary">
               <span>Já Quero Começar</span><span className="lp-arrow">→</span>
-            </a>
+            </button>
             <a href="#reconhecimento" onClick={scrollTo("reconhecimento")} className="lp-btn lp-btn-ghost">
               Conhecer<span className="lp-arrow">→</span>
             </a>
@@ -348,10 +350,10 @@ export default function ProtocoloDestravamento() {
           <Timeline />
 
           <Reveal className="lp-inline-cta-wrap">
-            <a href="#checkout" onClick={scrollTo("checkout")} className="lp-inline-cta">
+            <button onClick={goToAnamnesis} className="lp-inline-cta">
               <span>Verificar Elegibilidade</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 12l2 2 4-4" /><circle cx="12" cy="12" r="9" /></svg>
-            </a>
+            </button>
           </Reveal>
         </div>
       </section>
@@ -515,7 +517,7 @@ export default function ProtocoloDestravamento() {
             </div>
 
             <div className="lp-price-cta-wrap">
-              <button className="lp-price-cta">
+              <button onClick={goToAnamnesis} className="lp-price-cta">
                 <span>Começar Minha Jornada — R$ 219,90/mês</span>
                 <span className="lp-arrow">→</span>
               </button>
