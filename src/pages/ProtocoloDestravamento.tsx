@@ -183,6 +183,17 @@ export default function ProtocoloDestravamento() {
   const navigate = useNavigate();
   const [navScrolled, setNavScrolled] = useState(false);
 
+  const goToAnamnesis = useCallback(() => {
+    document.body.style.opacity = "0";
+    document.body.style.transition = "opacity .45s cubic-bezier(.4,0,.2,1)";
+    setTimeout(() => {
+      navigate("/auth/register");
+      requestAnimationFrame(() => {
+        document.body.style.opacity = "1";
+      });
+    }, 450);
+  }, [navigate]);
+
   useEffect(() => {
     const handler = () => setNavScrolled(window.scrollY > 30);
     window.addEventListener("scroll", handler, { passive: true });
