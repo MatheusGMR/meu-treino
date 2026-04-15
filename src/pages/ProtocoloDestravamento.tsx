@@ -532,7 +532,7 @@ export default function ProtocoloDestravamento() {
 
             <div className="lp-price-cta-wrap">
               <button onClick={goToAnamnesis} className="lp-price-cta">
-                <span>Começar Minha Jornada — R$ 219,90/mês</span>
+                <span>Eu Quero — R$ 219,90/mês</span>
                 <span className="lp-arrow">→</span>
               </button>
             </div>
