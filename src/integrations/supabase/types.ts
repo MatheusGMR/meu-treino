@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_agent_config: {
+        Row: {
+          config_type: string
+          created_at: string | null
+          id: string
+          macro_instructions: Json | null
+          owner_id: string
+          personality: string | null
+          system_prompt: string | null
+          tone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          config_type?: string
+          created_at?: string | null
+          id?: string
+          macro_instructions?: Json | null
+          owner_id: string
+          personality?: string | null
+          system_prompt?: string | null
+          tone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          config_type?: string
+          created_at?: string | null
+          id?: string
+          macro_instructions?: Json | null
+          owner_id?: string
+          personality?: string | null
+          system_prompt?: string | null
+          tone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       anamnesis: {
         Row: {
           activity_level: string | null
