@@ -191,7 +191,7 @@ export default function ProtocoloDestravamento() {
     document.body.style.opacity = "0";
     document.body.style.transition = "opacity .45s cubic-bezier(.4,0,.2,1)";
     setTimeout(() => {
-      navigate("/auth/register");
+      navigate("/client/eligibility");
       requestAnimationFrame(() => {
         document.body.style.opacity = "1";
       });

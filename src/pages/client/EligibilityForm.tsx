@@ -1,7 +1,5 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -16,7 +14,6 @@ import { useEffect } from "react";
 
 const EligibilityForm = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const { track } = useFunnelTracking();
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
@@ -209,41 +206,34 @@ const EligibilityForm = () => {
   }, [step]);
 
   const handleSubmit = async () => {
-    if (!user?.id) return;
     setLoading(true);
     try {
-      const { error } = await supabase.from("eligibility_submissions").insert({
-        user_id: user.id,
-        full_name: formData.full_name,
-        age: parseInt(formData.age),
-        phone: formData.phone,
-        gender: formData.gender,
-        is_vs_gold: formData.is_vs_gold === "Sim",
-        vs_gold_exit_date: null,
-        pain_shoulder: formData.pain_shoulder,
-        pain_lower_back: formData.pain_lower_back,
-        pain_knee: formData.pain_knee,
-        payment_status: "pending",
-      } as any);
-
-      if (error) throw error;
-
-      // Update profile name
-      await supabase.from("profiles").update({ full_name: formData.full_name }).eq("id", user.id);
-
       track("eligibility_complete", undefined, {
         is_vs_gold: formData.is_vs_gold === "Sim",
         has_pain: formData.pain_shoulder || formData.pain_lower_back || formData.pain_knee,
       });
 
-      // Store pain data in sessionStorage for anamnesis to use
+      // Store all eligibility data in sessionStorage for post-registration persistence
+      sessionStorage.setItem("eligibility_data", JSON.stringify({
+        full_name: formData.full_name,
+        age: parseInt(formData.age),
+        phone: formData.phone,
+        gender: formData.gender,
+        is_vs_gold: formData.is_vs_gold === "Sim",
+        pain_shoulder: formData.pain_shoulder,
+        pain_lower_back: formData.pain_lower_back,
+        pain_knee: formData.pain_knee,
+      }));
+
+      // Store pain data separately for anamnesis
       sessionStorage.setItem("eligibility_pain", JSON.stringify({
         pain_shoulder: formData.pain_shoulder,
         pain_lower_back: formData.pain_lower_back,
         pain_knee: formData.pain_knee,
       }));
 
-      navigate("/client/checkout");
+      // Redirect to register — after signup, data will be persisted to DB
+      navigate("/auth/register");
     } catch (error: any) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     } finally {
