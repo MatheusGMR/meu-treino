@@ -121,6 +121,9 @@ const ClientAnamnesis = () => {
     comentarios_finais: "",
   });
 
+  // Track anamnesis start
+  useState(() => { track("anamnesis_start"); });
+
   const updateField = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
