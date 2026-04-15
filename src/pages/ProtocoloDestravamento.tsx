@@ -306,6 +306,10 @@ export default function ProtocoloDestravamento() {
                 Seu navegador não suporta vídeo HTML5.
               </video>
             </div>
+            <div className="flex flex-col items-center gap-2 mt-4">
+              <p className="text-base font-semibold text-white tracking-wide">Junior Mello</p>
+              <p className="text-sm text-white/60 uppercase tracking-widest">Especialista em Saúde Física</p>
+            </div>
             <p className="lp-video-caption">
               "Veja como o protocolo funciona na prática — desde o primeiro contato até a sua primeira sessão guiada."
             </p>
