@@ -135,12 +135,20 @@ const ClientAnamnesis = () => {
     });
   };
 
-  const question = QUESTIONS[currentQ];
-  const totalQ = QUESTIONS.length;
+  // Filter questions: skip pain-related ones if already answered in eligibility
+  const filteredQuestions = useMemo(() => {
+    if (!hasPainFromEligibility) return QUESTIONS;
+    // Skip the generic "dores" and "articulares" questions since they already told us
+    const skipIds = ["dores", "articulares"];
+    return QUESTIONS.filter(q => !skipIds.includes(q.id));
+  }, [hasPainFromEligibility]);
+
+  const question = filteredQuestions[currentQ];
+  const totalQ = filteredQuestions.length;
   const progress = ((currentQ + 1) / totalQ) * 100;
 
   // Get unique sections for section label
-  const sections = [...new Set(QUESTIONS.map(q => q.section))];
+  const sections = [...new Set(filteredQuestions.map(q => q.section))];
   const currentSection = question.section;
   const sectionIndex = sections.indexOf(currentSection) + 1;
 
