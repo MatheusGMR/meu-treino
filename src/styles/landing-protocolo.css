@@ -107,7 +107,7 @@
   font-weight:300; line-height:1.02; letter-spacing:-.02em;
   margin-bottom:32px; color:var(--lp-ink); max-width:900px;
 }
-.lp-word { display:inline-block; opacity:0; transform:translateY(40px); animation:lp-wordIn .9s forwards }
+.lp-word { display:inline-block; opacity:0; transform:translateY(40px); animation:lp-wordIn .9s forwards; margin-right:.28em }
 .lp-accent { font-style:italic; color:var(--lp-gold); font-weight:400 }
 .lp-hero-sub { font-size:17px; color:var(--lp-ink-soft); max-width:560px; margin-bottom:44px }
 .lp-hero-ctas { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:80px }
