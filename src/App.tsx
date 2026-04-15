@@ -22,6 +22,7 @@ import Methods from "./pages/personal/Methods";
 import Clients from "./pages/personal/Clients";
 import ClientDetails from "./pages/personal/ClientDetails";
 import Subscription from "./pages/personal/Subscription";
+import AIAgentSettings from "./pages/personal/AIAgentSettings";
 import ClientDashboard from "./pages/client/ClientDashboard";
 import ClientAnamnesis from "./pages/client/ClientAnamnesis";
 import ClientProgress from "./pages/client/ClientProgress";
@@ -333,6 +334,16 @@ const App = () => (
                 <AuthGuard>
                   <RoleGuard allowedRoles={["admin"]}>
                     <ExerciseImport />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/settings/ai-agent"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["personal", "admin"]}>
+                    <AIAgentSettings />
                   </RoleGuard>
                 </AuthGuard>
               }
