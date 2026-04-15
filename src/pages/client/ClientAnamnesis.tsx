@@ -88,12 +88,25 @@ const ClientAnamnesis = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { track } = useFunnelTracking();
   const [currentQ, setCurrentQ] = useState(0);
   const [direction, setDirection] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
   const [isGeneratingWorkout, setIsGeneratingWorkout] = useState(false);
   const [trialWorkoutReady, setTrialWorkoutReady] = useState(false);
+
+  // Check if user came from eligibility and has pre-filled pain data
+  const eligibilityPain = useMemo(() => {
+    try {
+      const stored = sessionStorage.getItem("eligibility_pain");
+      return stored ? JSON.parse(stored) : null;
+    } catch { return null; }
+  }, []);
+
+  const hasPainFromEligibility = eligibilityPain && (
+    eligibilityPain.pain_shoulder || eligibilityPain.pain_lower_back || eligibilityPain.pain_knee
+  );
 
   const [formData, setFormData] = useState<Record<string, any>>({
     age: "", gender: "", profession: "", contato: "", tempo_sentado_dia: "",
