@@ -181,7 +181,16 @@ const ClientAnamnesis = () => {
   const handleSubmit = async () => {
     if (!user?.id) return;
     setLoading(true);
+    track("anamnesis_complete");
     try {
+      // Merge eligibility pain data
+      const painLocations = [...(formData.problemas_articulares || [])];
+      if (eligibilityPain) {
+        if (eligibilityPain.pain_shoulder && !painLocations.includes("Ombro")) painLocations.push("Ombro");
+        if (eligibilityPain.pain_lower_back && !painLocations.includes("Lombar")) painLocations.push("Lombar");
+        if (eligibilityPain.pain_knee && !painLocations.includes("Joelho")) painLocations.push("Joelho");
+      }
+      const hasJointPain = painLocations.length > 0 && !painLocations.includes("Nenhum");
       const { error: anamnesisError } = await supabase
         .from("anamnesis")
         .insert([{
