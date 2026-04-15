@@ -204,6 +204,16 @@ const App = () => (
               }
             />
             <Route
+              path="/client/checkout-success"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["client"]}>
+                    <CheckoutSuccess />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
               path="/client/anamnesis"
               element={
                 <AuthGuard>
