@@ -26,6 +26,7 @@ import Subscription from "./pages/personal/Subscription";
 import AIAgentSettings from "./pages/personal/AIAgentSettings";
 import ClientDashboard from "./pages/client/ClientDashboard";
 import ClientAnamnesis from "./pages/client/ClientAnamnesis";
+import CheckoutSuccess from "./pages/client/CheckoutSuccess";
 import ClientProgress from "./pages/client/ClientProgress";
 import ClientProfile from "./pages/client/ClientProfile";
 import WorkoutDetails from "./pages/client/WorkoutDetails";
