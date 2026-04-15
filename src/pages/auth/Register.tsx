@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dumbbell, Users } from "lucide-react";
 import meuTreinoLogo from "@/assets/meu-treino-logo.png";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 const Register = () => {
   const [email, setEmail] = useState("");
@@ -19,44 +18,6 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
-
-  // Pre-fill name from eligibility data if available
-  const hasEligibility = !!sessionStorage.getItem("eligibility_data");
-  
-  useEffect(() => {
-    if (hasEligibility) {
-      try {
-        const data = JSON.parse(sessionStorage.getItem("eligibility_data")!);
-        if (data.full_name) setFullName(data.full_name);
-      } catch {}
-    }
-  }, []);
-
-  const persistEligibilityData = async (userId: string) => {
-    const raw = sessionStorage.getItem("eligibility_data");
-    if (!raw) return;
-    
-    try {
-      const data = JSON.parse(raw);
-      await supabase.from("eligibility_submissions").insert({
-        user_id: userId,
-        full_name: data.full_name,
-        age: data.age,
-        phone: data.phone,
-        gender: data.gender,
-        is_vs_gold: data.is_vs_gold,
-        pain_shoulder: data.pain_shoulder,
-        pain_lower_back: data.pain_lower_back,
-        pain_knee: data.pain_knee,
-        payment_status: "pending",
-      } as any);
-
-      // Update profile name
-      await supabase.from("profiles").update({ full_name: data.full_name }).eq("id", userId);
-    } catch (e) {
-      console.error("Error persisting eligibility:", e);
-    }
-  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,19 +34,8 @@ const Register = () => {
     setLoading(false);
     
     if (role === "client") {
-      // Check if there's eligibility data to persist
-      if (hasEligibility) {
-        // Get the newly created user
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          await persistEligibilityData(user.id);
-        }
-        toast.success("Cadastro realizado! Vamos ao pagamento 💪");
-        navigate("/client/checkout");
-      } else {
-        toast.success("Cadastro realizado! Agora queremos conhecer você melhor 😊");
-        navigate("/client/anamnesis");
-      }
+      toast.success("Cadastro realizado! Agora queremos conhecer você melhor 😊");
+      navigate("/client/anamnesis");
     } else {
       toast.success("Cadastro realizado com sucesso!");
       navigate("/dashboard");
