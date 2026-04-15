@@ -41,11 +41,13 @@ serve(async (req) => {
     const preference = {
       items: [
         {
+          id: "protocolo-destravamento",
           title: "Protocolo Destravamento - Mensalidade",
           description: "Treino personalizado com acompanhamento JMP + App Meu Treino",
           quantity: 1,
           currency_id: "BRL",
           unit_price: 219.90,
+          category_id: "services",
         },
       ],
       payer: {
@@ -87,8 +89,11 @@ serve(async (req) => {
     const mpData = await mpResponse.json();
     console.log("MP Preference created:", mpData.id);
 
+    // Use sandbox_init_point for test tokens, init_point for production
+    const checkoutUrl = mpData.sandbox_init_point || mpData.init_point;
+
     return new Response(JSON.stringify({ 
-      url: mpData.init_point,
+      url: checkoutUrl,
       preference_id: mpData.id,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
