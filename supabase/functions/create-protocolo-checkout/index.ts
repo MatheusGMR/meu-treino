@@ -27,6 +27,8 @@ serve(async (req) => {
     }
 
     const origin = req.headers.get("origin") || "https://trainer-client-portal.lovable.app";
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const webhookUrl = `${supabaseUrl}/functions/v1/mercadopago-webhook`;
 
     // Fetch user profile for name
     const { data: profile } = await supabase
