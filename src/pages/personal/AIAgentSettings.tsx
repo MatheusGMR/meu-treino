@@ -118,7 +118,7 @@ export default function AIAgentSettings() {
         system_prompt: systemPrompt,
         personality,
         tone,
-        macro_instructions: macros as unknown as Record<string, unknown>[],
+        macro_instructions: JSON.parse(JSON.stringify(macros)),
         updated_at: new Date().toISOString(),
       };
 
