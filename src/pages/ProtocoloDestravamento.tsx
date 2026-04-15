@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useFunnelTracking, usePageView } from "@/hooks/useFunnelTracking";
 import { useNavigate } from "react-router-dom";
 import jmpLogo from "@/assets/landing/jmp-logo.webp";
 import mtLogo from "@/assets/landing/meutreino-logo.webp";
@@ -181,9 +182,12 @@ function scrollTo(id: string) {
 /* ═══════════ MAIN PAGE ═══════════ */
 export default function ProtocoloDestravamento() {
   const navigate = useNavigate();
+  const { track } = useFunnelTracking();
+  usePageView("/protocolo-destravamento");
   const [navScrolled, setNavScrolled] = useState(false);
 
   const goToAnamnesis = useCallback(() => {
+    track("cta_click", "/protocolo-destravamento");
     document.body.style.opacity = "0";
     document.body.style.transition = "opacity .45s cubic-bezier(.4,0,.2,1)";
     setTimeout(() => {
@@ -192,7 +196,7 @@ export default function ProtocoloDestravamento() {
         document.body.style.opacity = "1";
       });
     }, 450);
-  }, [navigate]);
+  }, [navigate, track]);
 
   useEffect(() => {
     const handler = () => setNavScrolled(window.scrollY > 30);
