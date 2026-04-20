@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/dialog";
 import { ExistingSessionSelector } from "./ExistingSessionSelector";
 import type { SessionExerciseData } from "@/lib/schemas/sessionSchema";
+import { useWorkoutBlockValidation, type WorkoutType } from "@/hooks/useWorkoutBlockValidation";
+import { WorkoutBlockChecklist } from "./WorkoutBlockChecklist";
 import {
   DndContext,
   closestCenter,
@@ -139,6 +141,12 @@ export const WorkoutBuilder = ({
   const [expandedSessionIndex, setExpandedSessionIndex] = useState<number | null>(null);
   const [showWorkoutNameDialog, setShowWorkoutNameDialog] = useState(false);
   const [workoutNameInput, setWorkoutNameInput] = useState("");
+  const [workoutType, setWorkoutType] = useState<WorkoutType>("standard");
+
+  const blockValidation = useWorkoutBlockValidation(
+    builder.tempWorkout.sessions,
+    workoutType
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -283,6 +291,13 @@ export const WorkoutBuilder = ({
         {/* Coluna Esquerda: Construtor */}
         <div className="flex-1 overflow-y-auto scrollarea-hidden pr-3">
           <div className="space-y-6">
+            {/* Checklist de Blocos Obrigatórios */}
+            <WorkoutBlockChecklist
+              checklist={blockValidation.checklist}
+              workoutType={workoutType}
+              onWorkoutTypeChange={setWorkoutType}
+            />
+
             {/* Sessões do Treino */}
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -499,22 +514,33 @@ export const WorkoutBuilder = ({
           <Tooltip>
             <TooltipTrigger asChild>
               {/* Wrapper com pointer-events para permitir tooltip em botão desabilitado */}
-              <span 
+              <span
                 className="inline-block"
-                tabIndex={!builder.canSubmit ? 0 : undefined}
+                tabIndex={!builder.canSubmit || !blockValidation.isValid ? 0 : undefined}
               >
                 <Button
                   onClick={handleSubmit}
-                  disabled={!builder.canSubmit || builder.isSubmitting}
-                  className={!builder.canSubmit ? "pointer-events-none" : ""}
+                  disabled={!builder.canSubmit || !blockValidation.isValid || builder.isSubmitting}
+                  className={!builder.canSubmit || !blockValidation.isValid ? "pointer-events-none" : ""}
                 >
                   {builder.isSubmitting ? "Atribuindo..." : "Atribuir Treino"}
                 </Button>
               </span>
             </TooltipTrigger>
-            {!builder.canSubmit && builder.submitBlockReason && (
+            {(!builder.canSubmit || !blockValidation.isValid) && (
               <TooltipContent side="top" className="max-w-xs bg-popover text-popover-foreground border shadow-lg z-50">
-                <p className="text-sm">{builder.submitBlockReason}</p>
+                {!blockValidation.isValid ? (
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold">Blocos obrigatórios faltando:</p>
+                    <ul className="text-xs list-disc list-inside">
+                      {blockValidation.missingLabels.map((l) => (
+                        <li key={l}>{l}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <p className="text-sm">{builder.submitBlockReason}</p>
+                )}
               </TooltipContent>
             )}
           </Tooltip>

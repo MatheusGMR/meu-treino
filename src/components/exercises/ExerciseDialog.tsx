@@ -72,6 +72,34 @@ const EQUIPMENT_OPTIONS = [
   "Sem equipamento",
 ];
 
+const BLOCK_OPTIONS: Array<{ value: "MOB" | "FORT" | "MS" | "MI" | "CARD" | "ALONG"; label: string }> = [
+  { value: "MOB", label: "Aquecimento (MOB)" },
+  { value: "FORT", label: "Fortalecimento (FORT)" },
+  { value: "MS", label: "Membros Superiores (MS)" },
+  { value: "MI", label: "Membros Inferiores (MI)" },
+  { value: "CARD", label: "Cardio (CARD)" },
+  { value: "ALONG", label: "Alongamento (ALONG)" },
+];
+
+const SAFETY_LEVELS: Array<{ value: "S1" | "S2" | "S3" | "S4" | "S5"; label: string }> = [
+  { value: "S1", label: "S1 — Muito Seguro" },
+  { value: "S2", label: "S2 — Seguro" },
+  { value: "S3", label: "S3 — Moderado" },
+  { value: "S4", label: "S4 — Atenção" },
+  { value: "S5", label: "S5 — Baixo" },
+];
+
+const EQUIPMENT_CODES: Array<{ value: "PC" | "ELAS" | "MAC" | "DIV" | "CONV" | "CAB" | "HAL" | "BAR"; label: string }> = [
+  { value: "PC", label: "PC — Peso Corporal" },
+  { value: "ELAS", label: "ELAS — Elástico" },
+  { value: "MAC", label: "MAC — Máquina" },
+  { value: "DIV", label: "DIV — Articulado Divergente" },
+  { value: "CONV", label: "CONV — Articulado Convergente" },
+  { value: "CAB", label: "CAB — Cabo/Polia" },
+  { value: "HAL", label: "HAL — Halter" },
+  { value: "BAR", label: "BAR — Barra/Smith" },
+];
+
 export const ExerciseDialog = ({
   exercise,
   open,
@@ -102,6 +130,13 @@ export const ExerciseDialog = ({
       biomechanical_class: "",
       dominant_movement: "",
       thumbnail_url: "",
+      external_id: "",
+      safety_level: undefined,
+      difficulty_code: "",
+      block: undefined,
+      equipment_code: undefined,
+      movement: "",
+      variation: "",
     },
   });
 
@@ -121,6 +156,13 @@ export const ExerciseDialog = ({
         biomechanical_class: (exercise as any).biomechanical_class || "",
         dominant_movement: (exercise as any).dominant_movement || "",
         thumbnail_url: (exercise as any).thumbnail_url || "",
+        external_id: (exercise as any).external_id || "",
+        safety_level: (exercise as any).safety_level || undefined,
+        difficulty_code: (exercise as any).difficulty_code || "",
+        block: (exercise as any).block || undefined,
+        equipment_code: (exercise as any).equipment_code || undefined,
+        movement: (exercise as any).movement || "",
+        variation: (exercise as any).variation || "",
       });
     } else if (!open) {
       form.reset({
@@ -137,6 +179,13 @@ export const ExerciseDialog = ({
         biomechanical_class: "",
         dominant_movement: "",
         thumbnail_url: "",
+        external_id: "",
+        safety_level: undefined,
+        difficulty_code: "",
+        block: undefined,
+        equipment_code: undefined,
+        movement: "",
+        variation: "",
       });
     }
   }, [exercise, open, form]);
@@ -398,6 +447,129 @@ export const ExerciseDialog = ({
                 </FormItem>
               )}
             />
+
+            {/* Biblioteca v2.0 */}
+            <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
+              <h4 className="text-sm font-semibold">Biblioteca v2.0</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="external_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>ID (external_id)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: MS-MAC-S1-BI-001" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="block"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bloco</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {BLOCK_OPTIONS.map((b) => (
+                            <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="safety_level"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nível de Segurança</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {SAFETY_LEVELS.map((s) => (
+                            <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="equipment_code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Equipamento (código)</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {EQUIPMENT_CODES.map((e) => (
+                            <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="difficulty_code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Dificuldade</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: BI, IN2, AV" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="movement"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Padrão de Movimento</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: Empurrar" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="variation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Variação</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: Inclinado" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
 
             {/* Media Upload */}
             <div className="border rounded-lg p-4 bg-muted/50">

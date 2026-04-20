@@ -7,7 +7,7 @@ type ExerciseBlock = "MOB" | "FORT" | "MS" | "MI" | "CARD" | "ALONG";
 export type WorkoutType = "standard" | "protocolo_destravamento";
 
 interface SessionLike {
-  exercises: Array<{ exercise_id: string }>;
+  exercises: Array<{ exercise_id?: string }>;
 }
 
 const REQUIRED_BLOCKS: { code: ExerciseBlock | "RESIST"; label: string; codes: ExerciseBlock[] }[] = [
@@ -37,6 +37,7 @@ export const useWorkoutBlockValidation = (
     const presentBlocks = new Set<string>();
     sessions.forEach((s) =>
       s.exercises.forEach((ex) => {
+        if (!ex.exercise_id) return;
         const exercise = exerciseById.get(ex.exercise_id);
         if (exercise?.block) presentBlocks.add(exercise.block);
       })
