@@ -1,67 +1,96 @@
 
 
-## Plan: Guarantee ElevenLabs Agent Transcribes and Inserts Data into Meu Treino
+## Biblioteca de Exercícios v2.0 + Estrutura de Blocos
 
-### Problem Analysis
+Importação completa do documento `Biblioteca_Exercicios_MeuTreino_v2.docx`, com novo modelo de ID, coluna de Segurança e estrutura de 5 blocos obrigatórios para treinos.
 
-The current flow has a critical gap: the `onMessage` handler in `VoiceAnamnesis.tsx` relies on ElevenLabs sending `user_transcript` and `agent_response` events. These events must be **individually enabled** in the ElevenLabs dashboard. If they are not enabled, `messagesRef.current` stays empty, and the `process-voice-anamnesis` function receives no data to extract.
+### O que muda
 
-Additionally, the current flow depends entirely on client-side message capture, which is fragile (browser tab close, network issues, etc.).
+**1. Novo modelo de ID dos exercícios**
+Formato: `[BLOCO]-[EQUIP]-[SEG]-[DIFIC]-[NÚM]` (ex: `MS-MAC-S1-BI-001`)
+- BLOCO: MOB, FORT, MS, MI, CARD, ALONG
+- EQUIP: PC (Peso Corporal), ELAS (Elástico), MAC (Máquina), DIV (Articulado Divergente), CONV (Articulado Convergente), CAB (Cabo/Polia), HAL (Halter), BAR (Barra/Smith)
+- SEG: S1 (Muito Seguro) → S5 (Baixo)
+- DIFIC: BI, BII, BIII, IN1–IN5, AV
 
-### Changes
+**2. Novas colunas em `exercises`**
+- `external_id` (text, único): código no novo formato
+- `safety_level` (S1–S5): nível de segurança
+- `difficulty_code` (BI…AV): código de dificuldade
+- `block` (MOB/FORT/MS/MI/CARD/ALONG): bloco do treino
+- `equipment_code` (PC/ELAS/MAC/DIV/CONV/CAB/HAL/BAR): equipamento normalizado
+- `movement` (texto): padrão de movimento
+- `variation` (texto): variação
 
-#### 1. Add fallback: fetch conversation transcript from ElevenLabs API
+**3. Estrutura de 5 blocos obrigatórios em treinos**
+Mapeamento dos blocos do documento:
 
-After the conversation ends, if the client-side `messagesRef` has few messages, fetch the full transcript directly from the ElevenLabs API server-side. This acts as a safety net.
+| Bloco no app | Origem documento | Obrigatório em |
+|---|---|---|
+| Aquecimento | MOB (Mobilidade) | Todos |
+| Fortalecimento | FORT (Fortalecimento/Neuromotor) | Todos |
+| Exercício Resistido | MS + MI (Musculação) | Todos |
+| Cardio | CARD | Todos exceto Protocolo Destravamento |
+| Alongamento | ALONG | Todos |
 
-**File:** `supabase/functions/process-voice-anamnesis/index.ts`
-- Accept an optional `conversationId` parameter alongside `messages`
-- If `messages` is empty/short but `conversationId` is provided, call the ElevenLabs API (`GET /v1/convai/conversations/{conversation_id}`) using `ELEVENLABS_API_KEY` to retrieve the full transcript
-- Use whichever source has more data (client messages vs API transcript)
+- Nova coluna `workout_type` em `workouts` (`standard` ou `protocolo_destravamento`)
+- Nova coluna `block` em `sessions` (qual bloco a sessão preenche)
+- Validação no `WorkoutBuilder`: bloqueia salvar novo treino se faltar bloco obrigatório (Cardio dispensado quando `workout_type='protocolo_destravamento'`)
+- Treinos existentes não são afetados — validação só roda em novos
 
-#### 2. Capture conversation ID on the client
+**4. Restrições por limitação (apêndice do documento)**
+Importa as 3 tabelas de limitação (Ombro, Coluna Lombar, Joelho) para `medical_condition_exercise_restrictions`, vinculando exercício original → substituição recomendada via `external_id`.
 
-**File:** `src/components/client/anamnesis/VoiceAnamnesis.tsx`
-- Use `conversation.getId()` to capture the conversation ID after connection
-- Pass `conversationId` to `process-voice-anamnesis` alongside messages
-- This enables the server-side fallback
+### Plano de migração de dados (estratégia "atualizar por nome")
 
-#### 3. Improve client-side transcript resilience
+1. Migration cria as novas colunas + novos enums (sem destruir dados).
+2. Edge function `migrate-exercise-library`:
+   - Lê os ~150 exercícios do documento (embarcado como JSON na função).
+   - Para cada um: tenta casar por `LOWER(name)` com exercício existente.
+     - **Match**: faz UPDATE preenchendo `external_id`, `safety_level`, `difficulty_code`, `block`, `equipment_code`, `movement`, `variation` — sem mexer em vídeo, descrição etc.
+     - **Sem match**: faz INSERT como novo exercício oficial v2.0.
+   - Importa as restrições do apêndice.
+   - Retorna stats: matched, inserted, restrictions_added.
+3. Página admin `/admin/library-migration` com botão "Importar Biblioteca v2.0" que invoca a função e mostra o relatório.
 
-**File:** `src/components/client/anamnesis/VoiceAnamnesis.tsx`
-- In `onMessage`, also handle `conversation_initiation_metadata` to confirm events are streaming
-- Lower the "too short" threshold from 3 to 1 message (even partial data is valuable with the server-side fallback)
-- Add a visible message count indicator so the user knows data is being captured
+### Mudanças na UI
 
-#### 4. Ensure `process-voice-anamnesis` handles upsert
+- **WorkoutBuilder**: agrupa sessões por bloco (Aquecimento → Fortalecimento → Resistido → Cardio → Alongamento). Mostra checklist no topo com blocos preenchidos. Botão "Salvar" desabilitado com tooltip se faltar bloco obrigatório.
+- **Seleção de tipo de treino**: dropdown `workout_type` (Padrão / Protocolo Destravamento) na criação.
+- **ExercisesTable**: nova coluna "ID" (external_id) e "Segurança" (badge S1–S5 colorido). Filtro por bloco e nível de segurança.
+- **ExerciseDialog**: novos campos editáveis para os atributos v2.0.
 
-**File:** `supabase/functions/process-voice-anamnesis/index.ts`
-- Change `.insert()` to `.upsert()` with `onConflict: 'client_id'` so re-running the anamnesis updates instead of failing on duplicate
+### Detalhes técnicos
 
-### Technical Details
+- Migrations:
+  1. Criar enums `exercise_block_enum` (MOB, FORT, MS, MI, CARD, ALONG), `safety_level_enum` (S1–S5), `equipment_code_enum`, `workout_type_enum` (standard, protocolo_destravamento).
+  2. ALTER TABLE `exercises` ADD colunas + UNIQUE em `external_id`.
+  3. ALTER TABLE `workouts` ADD `workout_type` DEFAULT 'standard'.
+  4. ALTER TABLE `sessions` ADD `block` (exercise_block_enum, nullable).
+- Edge function: `migrate-exercise-library` (verify_jwt=true, requer admin).
+- Validação cliente: hook `useWorkoutBlockValidation` consumido pelo `WorkoutBuilder`.
+- Tipos TypeScript regenerados automaticamente após a migration.
 
-**ElevenLabs Conversations API call (server-side fallback):**
-```typescript
-const convResponse = await fetch(
-  `https://api.elevenlabs.io/v1/convai/conversations/${conversationId}`,
-  { headers: { "xi-api-key": ELEVENLABS_API_KEY } }
-);
-const convData = await convResponse.json();
-// convData.transcript contains array of {role, message} objects
-```
+### Arquivos novos/alterados
 
-**Conversation ID capture (client-side):**
-```typescript
-onConnect: () => {
-  const id = conversation.getId();
-  conversationIdRef.current = id;
-}
-```
+- `supabase/migrations/<ts>_exercise_library_v2.sql` (novo)
+- `supabase/functions/migrate-exercise-library/index.ts` (novo, com JSON da biblioteca embarcado)
+- `supabase/functions/migrate-exercise-library/library-data.ts` (novo, dataset completo do documento)
+- `src/pages/admin/LibraryMigration.tsx` (novo)
+- `src/hooks/useWorkoutBlockValidation.ts` (novo)
+- `src/components/clients/WorkoutBuilder.tsx` (agrupamento por bloco + validação)
+- `src/components/exercises/ExercisesTable.tsx` (colunas ID + Segurança)
+- `src/components/exercises/ExerciseDialog.tsx` (novos campos)
+- `src/components/exercises/ExerciseFilters.tsx` (filtros bloco/segurança)
+- `src/lib/schemas/exerciseSchema.ts` + `workoutSchema.ts` + `sessionSchema.ts` (novos campos)
+- `src/hooks/useExercises.ts` (novos campos no insert/update)
+- `src/App.tsx` (rota da página de migração)
+- `src/components/sidebar/AppSidebar.tsx` (item de menu para admin)
 
-**Dashboard requirements (user action):**
-- Enable `user_transcript` and `agent_response` events in the ElevenLabs agent dashboard for agent `agent_2701kn7m5mm3fz990vpxgs8a9gwz`
+### Após aprovação
 
-### Summary of files to modify
-1. `supabase/functions/process-voice-anamnesis/index.ts` — add ElevenLabs API fallback + upsert
-2. `src/components/client/anamnesis/VoiceAnamnesis.tsx` — capture conversation ID, pass to edge function, improve resilience
+1. Criar a migration (você aprova).
+2. Deploy da edge function com o dataset completo dos ~150 exercícios + 17 restrições do apêndice.
+3. Atualizar UI (filtros, builder, dialog).
+4. Você acessa `/admin/library-migration` e clica para importar — relatório mostra quantos foram atualizados vs criados.
 
