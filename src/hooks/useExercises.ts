@@ -9,6 +9,9 @@ interface ExerciseFilters {
   groups?: string[];
   search?: string;
   type?: string;
+  /** Quando true, retorna APENAS exercícios da biblioteca do Protocolo Destravamento.
+   *  Quando false/undefined (default), exclui exercícios protocol_only para personals regulares. */
+  protocolOnly?: boolean;
 }
 
 export const useExercises = (filters?: ExerciseFilters) => {
@@ -20,6 +23,9 @@ export const useExercises = (filters?: ExerciseFilters) => {
         .select("*")
         .order("level", { ascending: true, nullsFirst: false })
         .order("name", { ascending: true });
+
+      // Isolamento da biblioteca do Protocolo Destravamento
+      query = query.eq("protocol_only", filters?.protocolOnly === true);
 
       if (filters?.type) {
         query = query.eq("exercise_type", filters.type as any);
