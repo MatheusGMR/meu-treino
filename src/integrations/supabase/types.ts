@@ -1322,16 +1322,20 @@ export type Database = {
           is_new: boolean | null
           last_updated_at: string | null
           level: string | null
+          limitation: string | null
+          limitation_detail: string | null
           long_description: string | null
           movement: string | null
           name: string
           primary_muscle: string | null
+          protocol_only: boolean
           review_status: string | null
           safety_level: Database["public"]["Enums"]["safety_level_enum"] | null
           secondary_muscle: string | null
           short_description: string | null
           slug: string | null
           source_reference: string | null
+          substitution_id: string | null
           suggested_methods: string[] | null
           suggested_volume: Json | null
           tags: string[] | null
@@ -1368,16 +1372,20 @@ export type Database = {
           is_new?: boolean | null
           last_updated_at?: string | null
           level?: string | null
+          limitation?: string | null
+          limitation_detail?: string | null
           long_description?: string | null
           movement?: string | null
           name: string
           primary_muscle?: string | null
+          protocol_only?: boolean
           review_status?: string | null
           safety_level?: Database["public"]["Enums"]["safety_level_enum"] | null
           secondary_muscle?: string | null
           short_description?: string | null
           slug?: string | null
           source_reference?: string | null
+          substitution_id?: string | null
           suggested_methods?: string[] | null
           suggested_volume?: Json | null
           tags?: string[] | null
@@ -1414,16 +1422,20 @@ export type Database = {
           is_new?: boolean | null
           last_updated_at?: string | null
           level?: string | null
+          limitation?: string | null
+          limitation_detail?: string | null
           long_description?: string | null
           movement?: string | null
           name?: string
           primary_muscle?: string | null
+          protocol_only?: boolean
           review_status?: string | null
           safety_level?: Database["public"]["Enums"]["safety_level_enum"] | null
           secondary_muscle?: string | null
           short_description?: string | null
           slug?: string | null
           source_reference?: string | null
+          substitution_id?: string | null
           suggested_methods?: string[] | null
           suggested_volume?: Json | null
           tags?: string[] | null
