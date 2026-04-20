@@ -41,7 +41,7 @@ import Users from "./pages/admin/Users";
 import UploadBodyTypeImages from "./pages/admin/UploadBodyTypeImages";
 import PendingUpdates from "./pages/admin/PendingUpdates";
 import ExerciseImport from "./pages/admin/ExerciseImport";
-import LibraryMigration from "./pages/admin/LibraryMigration";
+
 import Marketing from "./pages/admin/Marketing";
 import JmpAlerts from "./pages/admin/JmpAlerts";
 import EligibilityForm from "./pages/client/EligibilityForm";
@@ -366,16 +366,6 @@ const App = () => (
                 <AuthGuard>
                   <RoleGuard allowedRoles={["admin"]}>
                     <ExerciseImport />
-                  </RoleGuard>
-                </AuthGuard>
-              }
-            />
-            <Route
-              path="/admin/library-migration"
-              element={
-                <AuthGuard>
-                  <RoleGuard allowedRoles={["admin"]}>
-                    <LibraryMigration />
                   </RoleGuard>
                 </AuthGuard>
               }
