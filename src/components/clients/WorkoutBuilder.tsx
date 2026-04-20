@@ -514,22 +514,33 @@ export const WorkoutBuilder = ({
           <Tooltip>
             <TooltipTrigger asChild>
               {/* Wrapper com pointer-events para permitir tooltip em botão desabilitado */}
-              <span 
+              <span
                 className="inline-block"
-                tabIndex={!builder.canSubmit ? 0 : undefined}
+                tabIndex={!builder.canSubmit || !blockValidation.isValid ? 0 : undefined}
               >
                 <Button
                   onClick={handleSubmit}
-                  disabled={!builder.canSubmit || builder.isSubmitting}
-                  className={!builder.canSubmit ? "pointer-events-none" : ""}
+                  disabled={!builder.canSubmit || !blockValidation.isValid || builder.isSubmitting}
+                  className={!builder.canSubmit || !blockValidation.isValid ? "pointer-events-none" : ""}
                 >
                   {builder.isSubmitting ? "Atribuindo..." : "Atribuir Treino"}
                 </Button>
               </span>
             </TooltipTrigger>
-            {!builder.canSubmit && builder.submitBlockReason && (
+            {(!builder.canSubmit || !blockValidation.isValid) && (
               <TooltipContent side="top" className="max-w-xs bg-popover text-popover-foreground border shadow-lg z-50">
-                <p className="text-sm">{builder.submitBlockReason}</p>
+                {!blockValidation.isValid ? (
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold">Blocos obrigatórios faltando:</p>
+                    <ul className="text-xs list-disc list-inside">
+                      {blockValidation.missingLabels.map((l) => (
+                        <li key={l}>{l}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <p className="text-sm">{builder.submitBlockReason}</p>
+                )}
               </TooltipContent>
             )}
           </Tooltip>
