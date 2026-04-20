@@ -14,6 +14,7 @@ import { toast } from "@/hooks/use-toast";
 import { AnamnesisCompletionScreen } from "@/components/client/AnamnesisCompletionScreen";
 import { ChevronRight, ChevronLeft, Loader2, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { BehavioralProfileSelector, PerfilComportamental } from "@/components/client/anamnesis/BehavioralProfileSelector";
 import meuTreinoLogo from "@/assets/meu-treino-logo.png";
 
 interface QuestionDef {
@@ -21,12 +22,13 @@ interface QuestionDef {
   section: string;
   label: string;
   subtitle?: string;
-  type: "text" | "number" | "radio" | "checkbox" | "textarea";
+  type: "text" | "number" | "radio" | "checkbox" | "textarea" | "perfil" | "slider";
   options?: string[];
   field: string;
   placeholder?: string;
   required?: boolean;
   numberProps?: { min?: number; max?: number; step?: string };
+  sliderLabels?: [string, string, string]; // I1, I2, I3
 }
 
 const QUESTIONS: QuestionDef[] = [
@@ -82,6 +84,14 @@ const QUESTIONS: QuestionDef[] = [
 
   // Final
   { id: "comentarios", section: "Final", label: "Algo mais que gostaria de compartilhar?", subtitle: "Escreva algo que não foi perguntado, mas é importante", type: "textarea", field: "comentarios_finais", placeholder: "Suas observações finais..." },
+
+  // Agente IA — Perfil comportamental e contexto
+  { id: "perfil", section: "Seu jeito", label: "Qual frase mais combina com você agora?", subtitle: "Isso ajuda nosso agente a falar com você do jeito certo", type: "perfil", field: "perfil_primario", required: true },
+  { id: "ins_cat", section: "Seu jeito", label: "Quão segura você se sente para começar?", subtitle: "Sem julgamento — isso define o ritmo do treino", type: "slider", field: "ins_cat", sliderLabels: ["Confiante (I1)", "Um pouco insegura (I2)", "Muito insegura (I3)"], required: true },
+  { id: "rotina", section: "Seu jeito", label: "Como costuma ser sua rotina?", type: "radio", field: "rotina_tipo", options: ["pre_trabalho", "pos_trabalho", "livre"] },
+  { id: "compromisso", section: "Seu jeito", label: "Em uma escala de 1 a 5, quão comprometido você está?", subtitle: "1 = vou tentar | 5 = vou seguir até o fim", type: "radio", field: "compromisso", options: ["1", "2", "3", "4", "5"] },
+  { id: "frequencia_esperada", section: "Seu jeito", label: "Quantas vezes por semana pretende treinar?", type: "radio", field: "frequencia_esperada", options: ["2", "3", "4", "5"] },
+  { id: "motivacao_real", section: "Seu jeito", label: "Por que você está aqui? Conte com suas palavras.", subtitle: "O que você escrever vira a forma como vamos te falar — então seja você mesma", type: "textarea", field: "motivacao_real", placeholder: "Ex: Quero parar de sentir dor nas costas todo dia ao acordar..." },
 ];
 
 const ClientAnamnesis = () => {
