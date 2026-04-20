@@ -291,6 +291,13 @@ export const WorkoutBuilder = ({
         {/* Coluna Esquerda: Construtor */}
         <div className="flex-1 overflow-y-auto scrollarea-hidden pr-3">
           <div className="space-y-6">
+            {/* Checklist de Blocos Obrigatórios */}
+            <WorkoutBlockChecklist
+              checklist={blockValidation.checklist}
+              workoutType={workoutType}
+              onWorkoutTypeChange={setWorkoutType}
+            />
+
             {/* Sessões do Treino */}
             <div className="space-y-6">
               <div className="flex items-center justify-between">
