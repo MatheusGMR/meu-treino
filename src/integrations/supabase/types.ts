@@ -934,27 +934,35 @@ export type Database = {
         Row: {
           added_at: string | null
           biomechanical_class: string | null
+          block: Database["public"]["Enums"]["exercise_block_enum"] | null
           coaching_cues: string[] | null
           common_mistakes: string[] | null
           confidence_score: number | null
           contraindication: string | null
           created_at: string | null
           created_by: string | null
+          difficulty_code: string | null
           difficulty_progression: string[] | null
           dominant_movement: string | null
           equipment: string[] | null
+          equipment_code:
+            | Database["public"]["Enums"]["equipment_code_enum"]
+            | null
           exercise_group: Database["public"]["Enums"]["exercise_group"]
           exercise_id: string | null
           exercise_type: Database["public"]["Enums"]["exercise_type_enum"]
+          external_id: string | null
           id: string
           impact_level: string | null
           is_new: boolean | null
           last_updated_at: string | null
           level: string | null
           long_description: string | null
+          movement: string | null
           name: string
           primary_muscle: string | null
           review_status: string | null
+          safety_level: Database["public"]["Enums"]["safety_level_enum"] | null
           secondary_muscle: string | null
           short_description: string | null
           slug: string | null
@@ -965,33 +973,42 @@ export type Database = {
           target_audience: string[] | null
           thumbnail_url: string | null
           updated_at: string | null
+          variation: string | null
           variations: string[] | null
           video_url: string | null
         }
         Insert: {
           added_at?: string | null
           biomechanical_class?: string | null
+          block?: Database["public"]["Enums"]["exercise_block_enum"] | null
           coaching_cues?: string[] | null
           common_mistakes?: string[] | null
           confidence_score?: number | null
           contraindication?: string | null
           created_at?: string | null
           created_by?: string | null
+          difficulty_code?: string | null
           difficulty_progression?: string[] | null
           dominant_movement?: string | null
           equipment?: string[] | null
+          equipment_code?:
+            | Database["public"]["Enums"]["equipment_code_enum"]
+            | null
           exercise_group: Database["public"]["Enums"]["exercise_group"]
           exercise_id?: string | null
           exercise_type?: Database["public"]["Enums"]["exercise_type_enum"]
+          external_id?: string | null
           id?: string
           impact_level?: string | null
           is_new?: boolean | null
           last_updated_at?: string | null
           level?: string | null
           long_description?: string | null
+          movement?: string | null
           name: string
           primary_muscle?: string | null
           review_status?: string | null
+          safety_level?: Database["public"]["Enums"]["safety_level_enum"] | null
           secondary_muscle?: string | null
           short_description?: string | null
           slug?: string | null
@@ -1002,33 +1019,42 @@ export type Database = {
           target_audience?: string[] | null
           thumbnail_url?: string | null
           updated_at?: string | null
+          variation?: string | null
           variations?: string[] | null
           video_url?: string | null
         }
         Update: {
           added_at?: string | null
           biomechanical_class?: string | null
+          block?: Database["public"]["Enums"]["exercise_block_enum"] | null
           coaching_cues?: string[] | null
           common_mistakes?: string[] | null
           confidence_score?: number | null
           contraindication?: string | null
           created_at?: string | null
           created_by?: string | null
+          difficulty_code?: string | null
           difficulty_progression?: string[] | null
           dominant_movement?: string | null
           equipment?: string[] | null
+          equipment_code?:
+            | Database["public"]["Enums"]["equipment_code_enum"]
+            | null
           exercise_group?: Database["public"]["Enums"]["exercise_group"]
           exercise_id?: string | null
           exercise_type?: Database["public"]["Enums"]["exercise_type_enum"]
+          external_id?: string | null
           id?: string
           impact_level?: string | null
           is_new?: boolean | null
           last_updated_at?: string | null
           level?: string | null
           long_description?: string | null
+          movement?: string | null
           name?: string
           primary_muscle?: string | null
           review_status?: string | null
+          safety_level?: Database["public"]["Enums"]["safety_level_enum"] | null
           secondary_muscle?: string | null
           short_description?: string | null
           slug?: string | null
@@ -1039,6 +1065,7 @@ export type Database = {
           target_audience?: string[] | null
           thumbnail_url?: string | null
           updated_at?: string | null
+          variation?: string | null
           variations?: string[] | null
           video_url?: string | null
         }
@@ -1696,6 +1723,7 @@ export type Database = {
       }
       sessions: {
         Row: {
+          block: Database["public"]["Enums"]["exercise_block_enum"] | null
           created_at: string | null
           created_by: string | null
           description: string
@@ -1705,6 +1733,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          block?: Database["public"]["Enums"]["exercise_block_enum"] | null
           created_at?: string | null
           created_by?: string | null
           description: string
@@ -1714,6 +1743,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          block?: Database["public"]["Enums"]["exercise_block_enum"] | null
           created_at?: string | null
           created_by?: string | null
           description?: string
@@ -1956,6 +1986,7 @@ export type Database = {
           responsible_id: string | null
           training_type: Database["public"]["Enums"]["training_type"] | null
           updated_at: string | null
+          workout_type: Database["public"]["Enums"]["workout_type_enum"]
         }
         Insert: {
           age_range?: string | null
@@ -1968,6 +1999,7 @@ export type Database = {
           responsible_id?: string | null
           training_type?: Database["public"]["Enums"]["training_type"] | null
           updated_at?: string | null
+          workout_type?: Database["public"]["Enums"]["workout_type_enum"]
         }
         Update: {
           age_range?: string | null
@@ -1980,6 +2012,7 @@ export type Database = {
           responsible_id?: string | null
           training_type?: Database["public"]["Enums"]["training_type"] | null
           updated_at?: string | null
+          workout_type?: Database["public"]["Enums"]["workout_type_enum"]
         }
         Relationships: []
       }
@@ -2036,6 +2069,16 @@ export type Database = {
     Enums: {
       app_role: "admin" | "personal" | "client"
       client_status: "Ativo" | "Inativo" | "Suspenso"
+      equipment_code_enum:
+        | "PC"
+        | "ELAS"
+        | "MAC"
+        | "DIV"
+        | "CONV"
+        | "CAB"
+        | "HAL"
+        | "BAR"
+      exercise_block_enum: "MOB" | "FORT" | "MS" | "MI" | "CARD" | "ALONG"
       exercise_group:
         | "Abdômen"
         | "Peito"
@@ -2068,6 +2111,7 @@ export type Database = {
         | "Médio risco"
         | "Alto risco"
         | "Alto risco de fadiga"
+      safety_level_enum: "S1" | "S2" | "S3" | "S4" | "S5"
       session_type: "Mobilidade" | "Alongamento" | "Musculação"
       training_level: "Iniciante" | "Avançado"
       training_type:
@@ -2076,6 +2120,7 @@ export type Database = {
         | "Musculação"
         | "Funcional"
         | "Outro"
+      workout_type_enum: "standard" | "protocolo_destravamento"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2205,6 +2250,17 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "personal", "client"],
       client_status: ["Ativo", "Inativo", "Suspenso"],
+      equipment_code_enum: [
+        "PC",
+        "ELAS",
+        "MAC",
+        "DIV",
+        "CONV",
+        "CAB",
+        "HAL",
+        "BAR",
+      ],
+      exercise_block_enum: ["MOB", "FORT", "MS", "MI", "CARD", "ALONG"],
       exercise_group: [
         "Abdômen",
         "Peito",
@@ -2240,6 +2296,7 @@ export const Constants = {
         "Alto risco",
         "Alto risco de fadiga",
       ],
+      safety_level_enum: ["S1", "S2", "S3", "S4", "S5"],
       session_type: ["Mobilidade", "Alongamento", "Musculação"],
       training_level: ["Iniciante", "Avançado"],
       training_type: [
@@ -2249,6 +2306,7 @@ export const Constants = {
         "Funcional",
         "Outro",
       ],
+      workout_type_enum: ["standard", "protocolo_destravamento"],
     },
   },
 } as const
