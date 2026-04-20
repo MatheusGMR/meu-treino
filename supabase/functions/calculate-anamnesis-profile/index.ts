@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
+import { createClient } from "npm:@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -315,7 +315,54 @@ serve(async (req) => {
       console.log(`✅ Perfil final: ${finalProfile} (${(finalConfidence * 100).toFixed(1)}%)`);
     }
 
-    // 8. Atualizar anamnese com resultados
+    // === DERIVAÇÃO DAS CATEGORIAS DO AGENTE PROTOCOLO ===
+
+    // dor_cat: D0/D1/D2/D3 a partir de escala_dor (0-10) ou has_joint_pain
+    let dor_cat: "D0" | "D1" | "D2" | "D3" | null = null;
+    const escala = anamnesis.escala_dor;
+    if (typeof escala === "number") {
+      if (escala === 0) dor_cat = "D0";
+      else if (escala <= 3) dor_cat = "D1";
+      else if (escala <= 6) dor_cat = "D2";
+      else dor_cat = "D3";
+    } else if (anamnesis.has_joint_pain) {
+      dor_cat = "D2";
+    } else {
+      dor_cat = "D0";
+    }
+
+    // ins_cat: I1/I2/I3 a partir de campos preenchidos pelo cliente (já vem mapeado da UI)
+    // Se ainda não temos, inferimos: estreante + frustrado + sem experiência => I3
+    let ins_cat: "I1" | "I2" | "I3" | null = anamnesis.ins_cat ?? null;
+    if (!ins_cat) {
+      if (anamnesis.perfil_primario === "04" || anamnesis.perfil_primario === "03") {
+        ins_cat = "I3";
+      } else if (anamnesis.perfil_primario === "01" || anamnesis.perfil_primario === "05") {
+        ins_cat = "I2";
+      } else {
+        ins_cat = "I1";
+      }
+    }
+
+    // alert_medical: dispara alerta JMP antes da Sessão 1 se houver sinal vermelho
+    const alert_medical = Boolean(
+      anamnesis.has_injury_or_surgery ||
+        (anamnesis.medical_restrictions && anamnesis.medical_restrictions.length > 0) ||
+        (anamnesis.condicao && anamnesis.condicao.length > 0) ||
+        anamnesis.medicamento ||
+        (typeof escala === "number" && escala >= 7)
+    );
+
+    // user_vocab: extrai 3-8 expressões marcantes da motivação literal
+    const motivacaoTexto: string = anamnesis.motivacao_real || anamnesis.motivacao || "";
+    const user_vocab: string[] = motivacaoTexto
+      .toLowerCase()
+      .replace(/[.,!?;:()"']/g, " ")
+      .split(/\s+/)
+      .filter((w) => w.length >= 4 && !["para", "tudo", "isso", "muito", "mais", "como", "essa", "esse", "está", "tenho", "quero"].includes(w))
+      .slice(0, 8);
+
+    // 8. Atualizar anamnese com TODOS os resultados (V1 + V2)
     const { error: updateAnamnesisError } = await supabase
       .from("anamnesis")
       .update({
@@ -325,6 +372,11 @@ serve(async (req) => {
         imc_categoria: imcData?.categoria,
         nivel_experiencia: nivelExperiencia,
         calculated_at: new Date().toISOString(),
+        // V2 — Agente Protocolo
+        dor_cat,
+        ins_cat,
+        alert_medical,
+        user_vocab: user_vocab.length > 0 ? user_vocab : null,
       })
       .eq("id", anamnesis.id);
 
