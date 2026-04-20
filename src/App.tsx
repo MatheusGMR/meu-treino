@@ -371,16 +371,6 @@ const App = () => (
               }
             />
             <Route
-              path="/admin/library-migration"
-              element={
-                <AuthGuard>
-                  <RoleGuard allowedRoles={["admin"]}>
-                    <LibraryMigration />
-                  </RoleGuard>
-                </AuthGuard>
-              }
-            />
-            <Route
               path="/admin/marketing"
               element={
                 <AuthGuard>
