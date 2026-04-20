@@ -164,20 +164,6 @@ export const ExerciseDialog = ({
         movement: (exercise as any).movement || "",
         variation: (exercise as any).variation || "",
       });
-        name: exercise.name,
-        exercise_type: exercise.exercise_type as any,
-        exercise_group: exercise.exercise_group as any,
-        video_url: exercise.video_url || "",
-        contraindication: exercise.contraindication || "",
-        level: (exercise as any).level || undefined,
-        equipment: (exercise as any).equipment || [],
-        primary_muscle: (exercise as any).primary_muscle || "",
-        secondary_muscle: (exercise as any).secondary_muscle || "",
-        impact_level: (exercise as any).impact_level || undefined,
-        biomechanical_class: (exercise as any).biomechanical_class || "",
-        dominant_movement: (exercise as any).dominant_movement || "",
-        thumbnail_url: (exercise as any).thumbnail_url || "",
-      });
     } else if (!open) {
       form.reset({
         name: "",
@@ -193,6 +179,13 @@ export const ExerciseDialog = ({
         biomechanical_class: "",
         dominant_movement: "",
         thumbnail_url: "",
+        external_id: "",
+        safety_level: undefined,
+        difficulty_code: "",
+        block: undefined,
+        equipment_code: undefined,
+        movement: "",
+        variation: "",
       });
     }
   }, [exercise, open, form]);
