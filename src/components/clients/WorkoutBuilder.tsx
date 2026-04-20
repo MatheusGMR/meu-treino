@@ -141,6 +141,12 @@ export const WorkoutBuilder = ({
   const [expandedSessionIndex, setExpandedSessionIndex] = useState<number | null>(null);
   const [showWorkoutNameDialog, setShowWorkoutNameDialog] = useState(false);
   const [workoutNameInput, setWorkoutNameInput] = useState("");
+  const [workoutType, setWorkoutType] = useState<WorkoutType>("standard");
+
+  const blockValidation = useWorkoutBlockValidation(
+    builder.tempWorkout.sessions,
+    workoutType
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor),
