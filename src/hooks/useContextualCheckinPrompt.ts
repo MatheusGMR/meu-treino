@@ -67,13 +67,14 @@ export function useContextualCheckinPrompt(): ContextualPrompt {
       setLoading(false);
       return;
     }
+    // rotina_tipo "pos_trabalho" significa trabalha em horários alternativos — tratamos fim de semana como útil
     supabase
       .from("anamnesis")
       .select("rotina_tipo")
       .eq("client_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
-        setRotinaHibrida(data?.rotina_tipo === "hibrida");
+        setRotinaHibrida(data?.rotina_tipo === "pos_trabalho");
         setLoading(false);
       });
   }, [user?.id]);
