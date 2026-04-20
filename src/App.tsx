@@ -43,6 +43,7 @@ import PendingUpdates from "./pages/admin/PendingUpdates";
 import ExerciseImport from "./pages/admin/ExerciseImport";
 import LibraryMigration from "./pages/admin/LibraryMigration";
 import Marketing from "./pages/admin/Marketing";
+import JmpAlerts from "./pages/admin/JmpAlerts";
 import EligibilityForm from "./pages/client/EligibilityForm";
 import ProtocoloCheckout from "./pages/client/ProtocoloCheckout";
 import NotFound from "./pages/NotFound";
@@ -385,6 +386,16 @@ const App = () => (
                 <AuthGuard>
                   <RoleGuard allowedRoles={["admin"]}>
                     <Marketing />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/admin/jmp-alerts"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["admin"]}>
+                    <JmpAlerts />
                   </RoleGuard>
                 </AuthGuard>
               }
