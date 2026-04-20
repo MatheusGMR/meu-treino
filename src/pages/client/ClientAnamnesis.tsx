@@ -248,6 +248,13 @@ const ClientAnamnesis = () => {
           horario_preferido: formData.horario_preferido || null,
           tipo_treino_preferido: formData.tipo_treino_preferido || null,
           comentarios_finais: formData.comentarios_finais || null,
+          // Agente IA
+          perfil_primario: (formData.perfil_primario as any) || null,
+          ins_cat: (formData.ins_cat as any) || null,
+          rotina_tipo: (formData.rotina_tipo as any) || null,
+          compromisso: parseInt(formData.compromisso) || null,
+          frequencia_esperada: parseInt(formData.frequencia_esperada) || null,
+          motivacao_real: formData.motivacao_real || null,
         }]);
 
       if (anamnesisError) throw anamnesisError;
