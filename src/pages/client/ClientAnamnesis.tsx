@@ -129,6 +129,8 @@ const ClientAnamnesis = () => {
     alcool_cigarro: "", motivacao: "", preferencia_instrucao: "",
     local_treino: "", tempo_disponivel: "", horario_preferido: "", tipo_treino_preferido: "",
     comentarios_finais: "",
+    // Agente IA
+    perfil_primario: "", ins_cat: "", rotina_tipo: "", compromisso: "", frequencia_esperada: "", motivacao_real: "",
   });
 
   // Track anamnesis start
