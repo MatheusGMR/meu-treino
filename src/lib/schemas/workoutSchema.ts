@@ -13,6 +13,7 @@ export const workoutSchema = z.object({
   level: z.enum(["Iniciante", "Avançado"]).optional(),
   gender: z.enum(["Masculino", "Feminino", "Unissex"]).optional(),
   age_range: z.string().max(50).optional(),
+  workout_type: z.enum(["standard", "protocolo_destravamento"]).optional(),
   sessions: z
     .array(workoutSessionSchema)
     .min(1, "Adicione pelo menos uma sessão ao treino"),

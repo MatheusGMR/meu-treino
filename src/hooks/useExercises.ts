@@ -67,6 +67,13 @@ export const useCreateExercise = () => {
           biomechanical_class: data.biomechanical_class,
           dominant_movement: data.dominant_movement,
           thumbnail_url: data.thumbnail_url,
+          external_id: data.external_id || null,
+          safety_level: data.safety_level || null,
+          difficulty_code: data.difficulty_code || null,
+          block: data.block || null,
+          equipment_code: data.equipment_code || null,
+          movement: data.movement || null,
+          variation: data.variation || null,
           created_by: user?.id,
         } as any)
         .select()
@@ -120,6 +127,13 @@ export const useUpdateExercise = () => {
           biomechanical_class: data.biomechanical_class,
           dominant_movement: data.dominant_movement,
           thumbnail_url: data.thumbnail_url,
+          external_id: data.external_id || null,
+          safety_level: data.safety_level || null,
+          difficulty_code: data.difficulty_code || null,
+          block: data.block || null,
+          equipment_code: data.equipment_code || null,
+          movement: data.movement || null,
+          variation: data.variation || null,
         } as any)
         .eq("id", id)
         .select()

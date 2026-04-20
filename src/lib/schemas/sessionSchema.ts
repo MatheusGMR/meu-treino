@@ -14,6 +14,7 @@ export const sessionSchema = z.object({
   session_type: z.enum(["Mobilidade", "Alongamento", "Musculação"], {
     required_error: "Tipo de sessão é obrigatório",
   }),
+  block: z.enum(["MOB", "FORT", "MS", "MI", "CARD", "ALONG"]).optional(),
   exercises: z
     .array(sessionExerciseSchema)
     .min(1, "Adicione pelo menos um exercício à sessão"),
