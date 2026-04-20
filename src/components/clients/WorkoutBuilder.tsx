@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/dialog";
 import { ExistingSessionSelector } from "./ExistingSessionSelector";
 import type { SessionExerciseData } from "@/lib/schemas/sessionSchema";
+import { useWorkoutBlockValidation, type WorkoutType } from "@/hooks/useWorkoutBlockValidation";
+import { WorkoutBlockChecklist } from "./WorkoutBlockChecklist";
 import {
   DndContext,
   closestCenter,
