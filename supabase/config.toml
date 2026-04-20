@@ -44,3 +44,6 @@ verify_jwt = true
 
 [functions.generate-trial-workout]
 verify_jwt = true
+
+[functions.migrate-exercise-library]
+verify_jwt = true
