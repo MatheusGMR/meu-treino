@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Mic, MicOff, X, Sparkles, Check, ArrowRight, ArrowDown, Clock, Dumbbell, ChevronLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useContextualCheckinPrompt } from "@/hooks/useContextualCheckinPrompt";
 import { toast } from "sonner";
 
 interface AISuggestion {
@@ -62,6 +63,7 @@ export const DailyCheckinDialog = ({
   onSuggestionAccepted,
 }: DailyCheckinDialogProps) => {
   const { user } = useAuth();
+  const ctx = useContextualCheckinPrompt();
   const [step, setStep] = useState<"record" | "transcribing" | "analyzing" | "result" | "suggestions">("record");
   const [isRecording, setIsRecording] = useState(false);
   const [transcription, setTranscription] = useState("");
@@ -144,7 +146,14 @@ export const DailyCheckinDialog = ({
 
     try {
       const { data, error } = await supabase.functions.invoke("analyze-checkin", {
-        body: { transcription: text, session_id: sessionId },
+        body: {
+          transcription: text,
+          session_id: sessionId,
+          contexto_pergunta: ctx.contexto,
+          pergunta_exibida: ctx.pergunta,
+          hora_checkin: ctx.hora,
+          dia_util: ctx.dia_util,
+        },
       });
 
       if (error) throw error;
@@ -218,8 +227,8 @@ export const DailyCheckinDialog = ({
         {step === "record" && (
           <div className="text-center space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-foreground mb-2">Como você está hoje?</h2>
-              <p className="text-sm text-muted-foreground">Conte como está se sentindo antes do treino</p>
+              <h2 className="text-2xl font-bold text-foreground mb-2">{ctx.pergunta}</h2>
+              <p className="text-sm text-muted-foreground">Conte com suas palavras — a IA cuida do resto</p>
             </div>
 
             {!showTextInput ? (

@@ -14,6 +14,7 @@ import { toast } from "@/hooks/use-toast";
 import { AnamnesisCompletionScreen } from "@/components/client/AnamnesisCompletionScreen";
 import { ChevronRight, ChevronLeft, Loader2, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { BehavioralProfileSelector, PerfilComportamental } from "@/components/client/anamnesis/BehavioralProfileSelector";
 import meuTreinoLogo from "@/assets/meu-treino-logo.png";
 
 interface QuestionDef {
@@ -21,12 +22,13 @@ interface QuestionDef {
   section: string;
   label: string;
   subtitle?: string;
-  type: "text" | "number" | "radio" | "checkbox" | "textarea";
+  type: "text" | "number" | "radio" | "checkbox" | "textarea" | "perfil" | "slider";
   options?: string[];
   field: string;
   placeholder?: string;
   required?: boolean;
   numberProps?: { min?: number; max?: number; step?: string };
+  sliderLabels?: [string, string, string]; // I1, I2, I3
 }
 
 const QUESTIONS: QuestionDef[] = [
@@ -82,6 +84,14 @@ const QUESTIONS: QuestionDef[] = [
 
   // Final
   { id: "comentarios", section: "Final", label: "Algo mais que gostaria de compartilhar?", subtitle: "Escreva algo que não foi perguntado, mas é importante", type: "textarea", field: "comentarios_finais", placeholder: "Suas observações finais..." },
+
+  // Agente IA — Perfil comportamental e contexto
+  { id: "perfil", section: "Seu jeito", label: "Qual frase mais combina com você agora?", subtitle: "Isso ajuda nosso agente a falar com você do jeito certo", type: "perfil", field: "perfil_primario", required: true },
+  { id: "ins_cat", section: "Seu jeito", label: "Quão segura você se sente para começar?", subtitle: "Sem julgamento — isso define o ritmo do treino", type: "slider", field: "ins_cat", sliderLabels: ["Confiante (I1)", "Um pouco insegura (I2)", "Muito insegura (I3)"], required: true },
+  { id: "rotina", section: "Seu jeito", label: "Como costuma ser sua rotina?", type: "radio", field: "rotina_tipo", options: ["pre_trabalho", "pos_trabalho", "livre"] },
+  { id: "compromisso", section: "Seu jeito", label: "Em uma escala de 1 a 5, quão comprometido você está?", subtitle: "1 = vou tentar | 5 = vou seguir até o fim", type: "radio", field: "compromisso", options: ["1", "2", "3", "4", "5"] },
+  { id: "frequencia_esperada", section: "Seu jeito", label: "Quantas vezes por semana pretende treinar?", type: "radio", field: "frequencia_esperada", options: ["2", "3", "4", "5"] },
+  { id: "motivacao_real", section: "Seu jeito", label: "Por que você está aqui? Conte com suas palavras.", subtitle: "O que você escrever vira a forma como vamos te falar — então seja você mesma", type: "textarea", field: "motivacao_real", placeholder: "Ex: Quero parar de sentir dor nas costas todo dia ao acordar..." },
 ];
 
 const ClientAnamnesis = () => {
@@ -119,6 +129,8 @@ const ClientAnamnesis = () => {
     alcool_cigarro: "", motivacao: "", preferencia_instrucao: "",
     local_treino: "", tempo_disponivel: "", horario_preferido: "", tipo_treino_preferido: "",
     comentarios_finais: "",
+    // Agente IA
+    perfil_primario: "", ins_cat: "", rotina_tipo: "", compromisso: "", frequencia_esperada: "", motivacao_real: "",
   });
 
   // Track anamnesis start
@@ -236,6 +248,13 @@ const ClientAnamnesis = () => {
           horario_preferido: formData.horario_preferido || null,
           tipo_treino_preferido: formData.tipo_treino_preferido || null,
           comentarios_finais: formData.comentarios_finais || null,
+          // Agente IA
+          perfil_primario: (formData.perfil_primario as any) || null,
+          ins_cat: (formData.ins_cat as any) || null,
+          rotina_tipo: (formData.rotina_tipo as any) || null,
+          compromisso: parseInt(formData.compromisso) || null,
+          frequencia_esperada: parseInt(formData.frequencia_esperada) || null,
+          motivacao_real: formData.motivacao_real || null,
         }]);
 
       if (anamnesisError) throw anamnesisError;
@@ -403,6 +422,32 @@ const ClientAnamnesis = () => {
             className="text-base bg-card border-border min-h-[120px]"
             autoFocus
           />
+        );
+      case "perfil":
+        return (
+          <BehavioralProfileSelector
+            value={(currentValue as PerfilComportamental) || ""}
+            onChange={(v) => handleRadioChange(question.field, v)}
+          />
+        );
+      case "slider":
+        return (
+          <div className="space-y-3">
+            {(["I1", "I2", "I3"] as const).map((code, idx) => (
+              <button
+                key={code}
+                type="button"
+                onClick={() => handleRadioChange(question.field, code)}
+                className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
+                  currentValue === code
+                    ? "border-primary bg-primary/10"
+                    : "border-border bg-card hover:border-primary/40"
+                }`}
+              >
+                <p className="font-semibold text-foreground">{question.sliderLabels?.[idx]}</p>
+              </button>
+            ))}
+          </div>
         );
     }
   };
