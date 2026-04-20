@@ -37,6 +37,7 @@ export const useWorkoutBlockValidation = (
     const presentBlocks = new Set<string>();
     sessions.forEach((s) =>
       s.exercises.forEach((ex) => {
+        if (!ex.exercise_id) return;
         const exercise = exerciseById.get(ex.exercise_id);
         if (exercise?.block) presentBlocks.add(exercise.block);
       })
