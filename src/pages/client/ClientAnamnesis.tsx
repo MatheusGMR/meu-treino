@@ -423,6 +423,32 @@ const ClientAnamnesis = () => {
             autoFocus
           />
         );
+      case "perfil":
+        return (
+          <BehavioralProfileSelector
+            value={(currentValue as PerfilComportamental) || ""}
+            onChange={(v) => handleRadioChange(question.field, v)}
+          />
+        );
+      case "slider":
+        return (
+          <div className="space-y-3">
+            {(["I1", "I2", "I3"] as const).map((code, idx) => (
+              <button
+                key={code}
+                type="button"
+                onClick={() => handleRadioChange(question.field, code)}
+                className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
+                  currentValue === code
+                    ? "border-primary bg-primary/10"
+                    : "border-border bg-card hover:border-primary/40"
+                }`}
+              >
+                <p className="font-semibold text-foreground">{question.sliderLabels?.[idx]}</p>
+              </button>
+            ))}
+          </div>
+        );
     }
   };
 
