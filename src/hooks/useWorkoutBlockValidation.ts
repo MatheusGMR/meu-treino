@@ -7,7 +7,7 @@ type ExerciseBlock = "MOB" | "FORT" | "MS" | "MI" | "CARD" | "ALONG";
 export type WorkoutType = "standard" | "protocolo_destravamento";
 
 interface SessionLike {
-  exercises: Array<{ exercise_id: string }>;
+  exercises: Array<{ exercise_id?: string }>;
 }
 
 const REQUIRED_BLOCKS: { code: ExerciseBlock | "RESIST"; label: string; codes: ExerciseBlock[] }[] = [
