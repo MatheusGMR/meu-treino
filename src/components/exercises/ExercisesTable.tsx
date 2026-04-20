@@ -73,16 +73,21 @@ export const ExercisesTable = ({ exercises, isLoading }: ExercisesTableProps) =>
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>ID</TableHead>
               <TableHead>Nome</TableHead>
-              <TableHead>Grupo Muscular</TableHead>
+              <TableHead>Bloco</TableHead>
+              <TableHead>Grupo</TableHead>
+              <TableHead>Segurança</TableHead>
               <TableHead>Nível</TableHead>
-              <TableHead>Vídeo</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {exercises.map((exercise) => (
               <TableRow key={exercise.id}>
+                <TableCell className="font-mono text-xs text-muted-foreground">
+                  {(exercise as any).external_id || "—"}
+                </TableCell>
                 <TableCell className="font-medium pr-6">
                   <div className="flex items-center gap-2">
                     {exercise.name}
@@ -95,7 +100,31 @@ export const ExercisesTable = ({ exercises, isLoading }: ExercisesTableProps) =>
                   </div>
                 </TableCell>
                 <TableCell>
+                  {(exercise as any).block ? (
+                    <Badge variant="secondary">{(exercise as any).block}</Badge>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </TableCell>
+                <TableCell>
                   <Badge variant="outline">{exercise.exercise_group}</Badge>
+                </TableCell>
+                <TableCell>
+                  {(exercise as any).safety_level ? (
+                    <Badge
+                      className={
+                        (exercise as any).safety_level === "S1" ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" :
+                        (exercise as any).safety_level === "S2" ? "bg-lime-500/20 text-lime-300 border-lime-500/40" :
+                        (exercise as any).safety_level === "S3" ? "bg-amber-500/20 text-amber-300 border-amber-500/40" :
+                        (exercise as any).safety_level === "S4" ? "bg-orange-500/20 text-orange-300 border-orange-500/40" :
+                        "bg-red-500/20 text-red-300 border-red-500/40"
+                      }
+                    >
+                      {(exercise as any).safety_level}
+                    </Badge>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
                 </TableCell>
                 <TableCell>
                   {exercise.level ? (
@@ -111,9 +140,6 @@ export const ExercisesTable = ({ exercises, isLoading }: ExercisesTableProps) =>
                   ) : (
                     <span className="text-muted-foreground">-</span>
                   )}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {exercise.video_url ? "Sim" : "-"}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">

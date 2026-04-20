@@ -41,6 +41,13 @@ export const exerciseSchema = z.object({
   biomechanical_class: z.string().max(100).optional(),
   dominant_movement: z.string().max(100).optional(),
   thumbnail_url: z.string().url("URL inválida").optional().or(z.literal("")),
+  external_id: z.string().max(50).optional().or(z.literal("")),
+  safety_level: z.enum(["S1", "S2", "S3", "S4", "S5"]).optional(),
+  difficulty_code: z.string().max(10).optional().or(z.literal("")),
+  block: z.enum(["MOB", "FORT", "MS", "MI", "CARD", "ALONG"]).optional(),
+  equipment_code: z.enum(["PC", "ELAS", "MAC", "DIV", "CONV", "CAB", "HAL", "BAR"]).optional(),
+  movement: z.string().max(100).optional().or(z.literal("")),
+  variation: z.string().max(100).optional().or(z.literal("")),
 });
 
 export type ExerciseFormData = z.infer<typeof exerciseSchema>;
