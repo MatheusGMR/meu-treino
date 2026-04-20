@@ -72,6 +72,34 @@ const EQUIPMENT_OPTIONS = [
   "Sem equipamento",
 ];
 
+const BLOCK_OPTIONS: Array<{ value: "MOB" | "FORT" | "MS" | "MI" | "CARD" | "ALONG"; label: string }> = [
+  { value: "MOB", label: "Aquecimento (MOB)" },
+  { value: "FORT", label: "Fortalecimento (FORT)" },
+  { value: "MS", label: "Membros Superiores (MS)" },
+  { value: "MI", label: "Membros Inferiores (MI)" },
+  { value: "CARD", label: "Cardio (CARD)" },
+  { value: "ALONG", label: "Alongamento (ALONG)" },
+];
+
+const SAFETY_LEVELS: Array<{ value: "S1" | "S2" | "S3" | "S4" | "S5"; label: string }> = [
+  { value: "S1", label: "S1 — Muito Seguro" },
+  { value: "S2", label: "S2 — Seguro" },
+  { value: "S3", label: "S3 — Moderado" },
+  { value: "S4", label: "S4 — Atenção" },
+  { value: "S5", label: "S5 — Baixo" },
+];
+
+const EQUIPMENT_CODES: Array<{ value: "PC" | "ELAS" | "MAC" | "DIV" | "CONV" | "CAB" | "HAL" | "BAR"; label: string }> = [
+  { value: "PC", label: "PC — Peso Corporal" },
+  { value: "ELAS", label: "ELAS — Elástico" },
+  { value: "MAC", label: "MAC — Máquina" },
+  { value: "DIV", label: "DIV — Articulado Divergente" },
+  { value: "CONV", label: "CONV — Articulado Convergente" },
+  { value: "CAB", label: "CAB — Cabo/Polia" },
+  { value: "HAL", label: "HAL — Halter" },
+  { value: "BAR", label: "BAR — Barra/Smith" },
+];
+
 export const ExerciseDialog = ({
   exercise,
   open,
