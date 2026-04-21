@@ -656,6 +656,12 @@ export default function AIAgentSettings() {
             {saving ? "Salvando..." : "Salvar configurações"}
           </Button>
         </div>
+          </TabsContent>
+
+          <TabsContent value="protocol" className="mt-6">
+            <ProtocolAgentTab />
+          </TabsContent>
+        </Tabs>
       </div>
     </AppLayout>
   );
