@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ProtocolAgentTab } from "@/components/admin/ProtocolAgentTab";
 
 interface MacroInstruction {
   id: string;
@@ -340,11 +342,21 @@ export default function AIAgentSettings() {
               </p>
             </div>
           </div>
-          <Button onClick={handleSave} disabled={saving} className="gap-2">
-            <Save className="w-4 h-4" />
-            {saving ? "Salvando..." : "Salvar"}
-          </Button>
         </div>
+
+        <Tabs defaultValue="standard" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 max-w-md">
+            <TabsTrigger value="standard">Agente Padrão</TabsTrigger>
+            <TabsTrigger value="protocol">Agente Protocolo</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="standard" className="space-y-6 mt-6">
+            <div className="flex justify-end">
+              <Button onClick={handleSave} disabled={saving} className="gap-2">
+                <Save className="w-4 h-4" />
+                {saving ? "Salvando..." : "Salvar"}
+              </Button>
+            </div>
 
         {/* System Prompt */}
         <Card>
