@@ -64,7 +64,7 @@ export const MandatoryVideoModal = ({
               if (!v?.youtube_url) return <p className="text-sm text-muted-foreground">Vídeo indisponível.</p>;
               return (
                 <>
-                  <YouTubePlayer videoUrl={v.youtube_url} title={v.title} />
+                  <YouTubePlayer url={v.youtube_url} />
                   <Button onClick={() => handleWatch(v.id)} className="w-full gap-2">
                     <CheckCircle2 className="w-4 h-4" />
                     Marcar como assistido
