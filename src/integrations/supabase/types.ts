@@ -957,6 +957,7 @@ export type Database = {
           status: string | null
           total_sessions: number | null
           workout_id: string | null
+          workout_type: Database["public"]["Enums"]["workout_type_enum"]
         }
         Insert: {
           assigned_at?: string | null
@@ -970,6 +971,7 @@ export type Database = {
           status?: string | null
           total_sessions?: number | null
           workout_id?: string | null
+          workout_type?: Database["public"]["Enums"]["workout_type_enum"]
         }
         Update: {
           assigned_at?: string | null
@@ -983,6 +985,7 @@ export type Database = {
           status?: string | null
           total_sessions?: number | null
           workout_id?: string | null
+          workout_type?: Database["public"]["Enums"]["workout_type_enum"]
         }
         Relationships: [
           {
