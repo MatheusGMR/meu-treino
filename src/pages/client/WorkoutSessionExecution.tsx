@@ -521,26 +521,32 @@ const WorkoutSessionExecution = () => {
               repsCompleted={state.reps}
               onRepsChange={(r) => dispatch({ type: "SET_REPS", reps: r })}
             />
-            <div className="mt-3 mb-4">
-              <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-1.5">
-                <span>Execução em curso</span>
-                <span>{setTimeLeft}s</span>
-              </div>
-              <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-                <div
-                  className="h-full bg-primary transition-all duration-200 ease-linear"
-                  style={{
-                    width: `${Math.max(
-                      0,
-                      Math.min(100, ((estimatedSetSeconds - setTimeLeft) / estimatedSetSeconds) * 100)
-                    )}%`,
-                  }}
-                />
-              </div>
-              <p className="text-[10px] text-muted-foreground mt-1.5 text-center">
-                Avança automaticamente ao terminar · toque para concluir antes
+            {hasExecutionVideo ? (
+              <p className="text-[10px] text-muted-foreground mt-3 mb-4 text-center uppercase tracking-wider font-bold">
+                Acompanhe o vídeo · a série será registrada automaticamente ao final
               </p>
-            </div>
+            ) : (
+              <div className="mt-3 mb-4">
+                <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-1.5">
+                  <span>Execução em curso</span>
+                  <span>{setTimeLeft}s</span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full bg-primary transition-all duration-200 ease-linear"
+                    style={{
+                      width: `${Math.max(
+                        0,
+                        Math.min(100, ((estimatedSetSeconds - setTimeLeft) / estimatedSetSeconds) * 100)
+                      )}%`,
+                    }}
+                  />
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1.5 text-center">
+                  Avança automaticamente ao terminar · toque para concluir antes
+                </p>
+              </div>
+            )}
           </>
         )}
 
