@@ -147,6 +147,15 @@ const WorkoutSessionExecution = () => {
   const exerciseType = (currentExercise?.exercises as any)?.exercise_type as string | undefined;
   const showWeight = exerciseType === "Musculação";
 
+  // Estimativa de duração da série (segundos) baseada em cadência × reps_max
+  const method = currentExercise?.methods as any;
+  const repsForTiming = method?.reps_max || 12;
+  const cadenceTotal =
+    (method?.cadence_contraction || 2) +
+    (method?.cadence_pause || 0) +
+    (method?.cadence_stretch || 2);
+  const estimatedSetSeconds = Math.max(20, Math.min(90, repsForTiming * cadenceTotal));
+
   const preparationUrl = (currentExercise?.exercises as any)?.preparation_video_url as
     | string
     | null
@@ -210,6 +219,47 @@ const WorkoutSessionExecution = () => {
     return () => clearTimeout(t);
   }, [state.phase, isLastExercise, exercises, state.exerciseIndex]);
 
+  const completeSet = () => {
+    // Registrar série no banco
+    if (todaySchedule?.client_workouts?.id && sessionId && currentExercise) {
+      completeSetMutation.mutate({
+        clientWorkoutId: (todaySchedule.client_workouts as any).id,
+        sessionId,
+        exerciseId: (currentExercise as any).exercise_id,
+        setNumber: state.currentSet,
+        reps: state.reps || repsRange,
+        weight: showWeight ? state.weight : 0,
+        restTimeUsed: restSeconds,
+      });
+    }
+    dispatch({ type: "COMPLETE_SET", isLastSetOfExercise: isLastSet });
+  };
+
+  // Timer de auto-conclusão da série quando o vídeo/áudio termina
+  const [setTimeLeft, setSetTimeLeft] = useState(estimatedSetSeconds);
+  useEffect(() => {
+    if (state.phase !== "execute") {
+      setSetTimeLeft(estimatedSetSeconds);
+      return;
+    }
+    setSetTimeLeft(estimatedSetSeconds);
+    const startedAt = Date.now();
+    const id = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+      const left = estimatedSetSeconds - elapsed;
+      if (left <= 0) {
+        clearInterval(id);
+        setSetTimeLeft(0);
+        beep();
+        completeSet();
+      } else {
+        setSetTimeLeft(left);
+      }
+    }, 250);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.phase, state.currentSet, currentExercise?.id, estimatedSetSeconds]);
+
   const handlePrimaryAction = () => {
     if (state.phase === "prepare") {
       dispatch({ type: "START_EXECUTION" });
@@ -217,19 +267,7 @@ const WorkoutSessionExecution = () => {
     }
 
     if (state.phase === "execute") {
-      // Registrar série no banco
-      if (todaySchedule?.client_workouts?.id && sessionId && currentExercise) {
-        completeSetMutation.mutate({
-          clientWorkoutId: (todaySchedule.client_workouts as any).id,
-          sessionId,
-          exerciseId: (currentExercise as any).exercise_id,
-          setNumber: state.currentSet,
-          reps: state.reps || repsRange,
-          weight: showWeight ? state.weight : 0,
-          restTimeUsed: restSeconds,
-        });
-      }
-      dispatch({ type: "COMPLETE_SET", isLastSetOfExercise: isLastSet });
+      completeSet();
       return;
     }
 
@@ -446,18 +484,40 @@ const WorkoutSessionExecution = () => {
         )}
 
         {state.phase === "execute" && (
-          <SeriesTracker
-            sets={totalSets}
-            reps={repsRange}
-            exerciseId={(currentExercise as any).exercise_id}
-            currentSet={state.currentSet}
-            completedSets={state.completedSets}
-            showWeight={showWeight}
-            weight={state.weight}
-            onWeightChange={(w) => dispatch({ type: "SET_WEIGHT", weight: w })}
-            repsCompleted={state.reps}
-            onRepsChange={(r) => dispatch({ type: "SET_REPS", reps: r })}
-          />
+          <>
+            <SeriesTracker
+              sets={totalSets}
+              reps={repsRange}
+              exerciseId={(currentExercise as any).exercise_id}
+              currentSet={state.currentSet}
+              completedSets={state.completedSets}
+              showWeight={showWeight}
+              weight={state.weight}
+              onWeightChange={(w) => dispatch({ type: "SET_WEIGHT", weight: w })}
+              repsCompleted={state.reps}
+              onRepsChange={(r) => dispatch({ type: "SET_REPS", reps: r })}
+            />
+            <div className="mt-3 mb-4">
+              <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-1.5">
+                <span>Execução em curso</span>
+                <span>{setTimeLeft}s</span>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all duration-200 ease-linear"
+                  style={{
+                    width: `${Math.max(
+                      0,
+                      Math.min(100, ((estimatedSetSeconds - setTimeLeft) / estimatedSetSeconds) * 100)
+                    )}%`,
+                  }}
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1.5 text-center">
+                Avança automaticamente ao terminar · toque para concluir antes
+              </p>
+            </div>
+          </>
         )}
 
         {state.phase === "rest" && (
