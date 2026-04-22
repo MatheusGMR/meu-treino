@@ -392,6 +392,7 @@ const WorkoutSessionExecution = () => {
             autoplay
             loop={state.phase === "prepare"}
             mute={false}
+            onEnded={state.phase === "execute" ? handleVideoEnded : undefined}
           />
         ) : thumbnail ? (
           <img
