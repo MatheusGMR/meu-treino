@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy, Video, MessageSquare, RefreshCw, ShieldCheck, Loader2 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Trophy, Video, MessageSquare, RefreshCw, ShieldCheck, Loader2, Beaker, BookOpen } from "lucide-react";
+import { ProtocolSimulator } from "./ProtocolSimulator";
 
 interface Milestone {
   id: string;
@@ -83,7 +85,21 @@ export const ProtocolAgentTab = () => {
   if (loading) return <div className="space-y-4"><Skeleton className="h-32" /><Skeleton className="h-48" /></div>;
 
   return (
-    <div className="space-y-6">
+    <Tabs defaultValue="rules" className="w-full">
+      <TabsList className="grid grid-cols-2 max-w-md mb-6">
+        <TabsTrigger value="rules" className="gap-2">
+          <BookOpen className="w-4 h-4" /> Diretrizes
+        </TabsTrigger>
+        <TabsTrigger value="simulator" className="gap-2">
+          <Beaker className="w-4 h-4" /> Simulador
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="simulator">
+        <ProtocolSimulator />
+      </TabsContent>
+
+      <TabsContent value="rules" className="space-y-6">
       <Card>
         <CardHeader className="flex flex-row items-start justify-between gap-4">
           <div>
@@ -180,6 +196,7 @@ export const ProtocolAgentTab = () => {
           ))}
         </CardContent>
       </Card>
-    </div>
+      </TabsContent>
+    </Tabs>
   );
 };
