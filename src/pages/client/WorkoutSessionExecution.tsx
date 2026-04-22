@@ -219,6 +219,47 @@ const WorkoutSessionExecution = () => {
     return () => clearTimeout(t);
   }, [state.phase, isLastExercise, exercises, state.exerciseIndex]);
 
+  const completeSet = () => {
+    // Registrar série no banco
+    if (todaySchedule?.client_workouts?.id && sessionId && currentExercise) {
+      completeSetMutation.mutate({
+        clientWorkoutId: (todaySchedule.client_workouts as any).id,
+        sessionId,
+        exerciseId: (currentExercise as any).exercise_id,
+        setNumber: state.currentSet,
+        reps: state.reps || repsRange,
+        weight: showWeight ? state.weight : 0,
+        restTimeUsed: restSeconds,
+      });
+    }
+    dispatch({ type: "COMPLETE_SET", isLastSetOfExercise: isLastSet });
+  };
+
+  // Timer de auto-conclusão da série quando o vídeo/áudio termina
+  const [setTimeLeft, setSetTimeLeft] = useState(estimatedSetSeconds);
+  useEffect(() => {
+    if (state.phase !== "execute") {
+      setSetTimeLeft(estimatedSetSeconds);
+      return;
+    }
+    setSetTimeLeft(estimatedSetSeconds);
+    const startedAt = Date.now();
+    const id = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+      const left = estimatedSetSeconds - elapsed;
+      if (left <= 0) {
+        clearInterval(id);
+        setSetTimeLeft(0);
+        beep();
+        completeSet();
+      } else {
+        setSetTimeLeft(left);
+      }
+    }, 250);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.phase, state.currentSet, currentExercise?.id, estimatedSetSeconds]);
+
   const handlePrimaryAction = () => {
     if (state.phase === "prepare") {
       dispatch({ type: "START_EXECUTION" });
@@ -226,19 +267,7 @@ const WorkoutSessionExecution = () => {
     }
 
     if (state.phase === "execute") {
-      // Registrar série no banco
-      if (todaySchedule?.client_workouts?.id && sessionId && currentExercise) {
-        completeSetMutation.mutate({
-          clientWorkoutId: (todaySchedule.client_workouts as any).id,
-          sessionId,
-          exerciseId: (currentExercise as any).exercise_id,
-          setNumber: state.currentSet,
-          reps: state.reps || repsRange,
-          weight: showWeight ? state.weight : 0,
-          restTimeUsed: restSeconds,
-        });
-      }
-      dispatch({ type: "COMPLETE_SET", isLastSetOfExercise: isLastSet });
+      completeSet();
       return;
     }
 
