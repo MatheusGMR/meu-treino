@@ -196,6 +196,7 @@ export const ProtocolAgentTab = () => {
           ))}
         </CardContent>
       </Card>
-    </div>
+      </TabsContent>
+    </Tabs>
   );
 };
