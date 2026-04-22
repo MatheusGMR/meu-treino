@@ -147,6 +147,15 @@ const WorkoutSessionExecution = () => {
   const exerciseType = (currentExercise?.exercises as any)?.exercise_type as string | undefined;
   const showWeight = exerciseType === "Musculação";
 
+  // Estimativa de duração da série (segundos) baseada em cadência × reps_max
+  const method = currentExercise?.methods as any;
+  const repsForTiming = method?.reps_max || 12;
+  const cadenceTotal =
+    (method?.cadence_contraction || 2) +
+    (method?.cadence_pause || 0) +
+    (method?.cadence_stretch || 2);
+  const estimatedSetSeconds = Math.max(20, Math.min(90, repsForTiming * cadenceTotal));
+
   const preparationUrl = (currentExercise?.exercises as any)?.preparation_video_url as
     | string
     | null
