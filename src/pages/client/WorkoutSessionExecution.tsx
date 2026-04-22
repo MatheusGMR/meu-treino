@@ -164,6 +164,12 @@ const WorkoutSessionExecution = () => {
     | string
     | null
     | undefined;
+  const executionVideoUrl = (currentExercise?.exercises as any)?.video_url as
+    | string
+    | null
+    | undefined;
+  // Vídeo da execução é a fonte canônica para encerrar a série
+  const hasExecutionVideo = !!executionVideoUrl;
 
   const elapsedMs = Date.now() - startTime;
   const elapsedMin = Math.floor(elapsedMs / 60000);
