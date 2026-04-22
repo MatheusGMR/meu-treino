@@ -7,6 +7,7 @@ interface ExerciseVideoPlayerProps {
   autoplay?: boolean;
   loop?: boolean;
   mute?: boolean;
+  onEnded?: () => void;
 }
 
 export const ExerciseVideoPlayer = ({
@@ -16,6 +17,7 @@ export const ExerciseVideoPlayer = ({
   autoplay = false,
   loop = false,
   mute = false,
+  onEnded,
 }: ExerciseVideoPlayerProps) => {
   if (!mediaUrl) {
     return (
@@ -28,7 +30,9 @@ export const ExerciseVideoPlayer = ({
   const isYouTube = mediaUrl.includes("youtube.com") || mediaUrl.includes("youtu.be");
 
   if ((mediaType === "video" || isYouTube) && isYouTube) {
-    return <YouTubePlayer url={mediaUrl} autoplay={autoplay} loop={loop} mute={mute} />;
+    return (
+      <YouTubePlayer url={mediaUrl} autoplay={autoplay} loop={loop} mute={mute} onEnded={onEnded} />
+    );
   }
 
   if (mediaType === "video") {
@@ -41,6 +45,7 @@ export const ExerciseVideoPlayer = ({
           muted={mute}
           controls
           playsInline
+          onEnded={loop ? undefined : onEnded}
           className="w-full h-full object-contain"
         />
       </div>

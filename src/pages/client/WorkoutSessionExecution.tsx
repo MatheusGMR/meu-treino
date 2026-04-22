@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -164,6 +164,12 @@ const WorkoutSessionExecution = () => {
     | string
     | null
     | undefined;
+  const executionVideoUrl = (currentExercise?.exercises as any)?.video_url as
+    | string
+    | null
+    | undefined;
+  // Vídeo da execução é a fonte canônica para encerrar a série
+  const hasExecutionVideo = !!executionVideoUrl;
 
   const elapsedMs = Date.now() - startTime;
   const elapsedMin = Math.floor(elapsedMs / 60000);
@@ -219,7 +225,11 @@ const WorkoutSessionExecution = () => {
     return () => clearTimeout(t);
   }, [state.phase, isLastExercise, exercises, state.exerciseIndex]);
 
+  const completedSetGuardRef = useRef<string | null>(null);
   const completeSet = () => {
+    const key = `${currentExercise?.id}-${state.currentSet}`;
+    if (completedSetGuardRef.current === key) return;
+    completedSetGuardRef.current = key;
     // Registrar série no banco
     if (todaySchedule?.client_workouts?.id && sessionId && currentExercise) {
       completeSetMutation.mutate({
@@ -235,10 +245,16 @@ const WorkoutSessionExecution = () => {
     dispatch({ type: "COMPLETE_SET", isLastSetOfExercise: isLastSet });
   };
 
-  // Timer de auto-conclusão da série quando o vídeo/áudio termina
+  // Reset guard ao entrar em nova série
+  useEffect(() => {
+    completedSetGuardRef.current = null;
+  }, [state.currentSet, currentExercise?.id]);
+
+  // Cronômetro de fallback: usado APENAS quando não há vídeo de execução
+  // (imagem, sem mídia). Quando há vídeo, o término do vídeo é o gatilho.
   const [setTimeLeft, setSetTimeLeft] = useState(estimatedSetSeconds);
   useEffect(() => {
-    if (state.phase !== "execute") {
+    if (state.phase !== "execute" || hasExecutionVideo) {
       setSetTimeLeft(estimatedSetSeconds);
       return;
     }
@@ -258,7 +274,14 @@ const WorkoutSessionExecution = () => {
     }, 250);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.phase, state.currentSet, currentExercise?.id, estimatedSetSeconds]);
+  }, [state.phase, state.currentSet, currentExercise?.id, estimatedSetSeconds, hasExecutionVideo]);
+
+  const handleVideoEnded = () => {
+    if (state.phase === "execute") {
+      beep();
+      completeSet();
+    }
+  };
 
   const handlePrimaryAction = () => {
     if (state.phase === "prepare") {
@@ -369,6 +392,7 @@ const WorkoutSessionExecution = () => {
             autoplay
             loop={state.phase === "prepare"}
             mute={false}
+            onEnded={state.phase === "execute" ? handleVideoEnded : undefined}
           />
         ) : thumbnail ? (
           <img
@@ -497,26 +521,32 @@ const WorkoutSessionExecution = () => {
               repsCompleted={state.reps}
               onRepsChange={(r) => dispatch({ type: "SET_REPS", reps: r })}
             />
-            <div className="mt-3 mb-4">
-              <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-1.5">
-                <span>Execução em curso</span>
-                <span>{setTimeLeft}s</span>
-              </div>
-              <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-                <div
-                  className="h-full bg-primary transition-all duration-200 ease-linear"
-                  style={{
-                    width: `${Math.max(
-                      0,
-                      Math.min(100, ((estimatedSetSeconds - setTimeLeft) / estimatedSetSeconds) * 100)
-                    )}%`,
-                  }}
-                />
-              </div>
-              <p className="text-[10px] text-muted-foreground mt-1.5 text-center">
-                Avança automaticamente ao terminar · toque para concluir antes
+            {hasExecutionVideo ? (
+              <p className="text-[10px] text-muted-foreground mt-3 mb-4 text-center uppercase tracking-wider font-bold">
+                Acompanhe o vídeo · a série será registrada automaticamente ao final
               </p>
-            </div>
+            ) : (
+              <div className="mt-3 mb-4">
+                <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-1.5">
+                  <span>Execução em curso</span>
+                  <span>{setTimeLeft}s</span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full bg-primary transition-all duration-200 ease-linear"
+                    style={{
+                      width: `${Math.max(
+                        0,
+                        Math.min(100, ((estimatedSetSeconds - setTimeLeft) / estimatedSetSeconds) * 100)
+                      )}%`,
+                    }}
+                  />
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1.5 text-center">
+                  Avança automaticamente ao terminar · toque para concluir antes
+                </p>
+              </div>
+            )}
           </>
         )}
 
