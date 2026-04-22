@@ -48,6 +48,8 @@ export const exerciseSchema = z.object({
   equipment_code: z.enum(["PC", "ELAS", "MAC", "DIV", "CONV", "CAB", "HAL", "BAR"]).optional(),
   movement: z.string().max(100).optional().or(z.literal("")),
   variation: z.string().max(100).optional().or(z.literal("")),
+  preparation_video_url: z.string().url("URL inválida").optional().or(z.literal("")),
+  preparation_description: z.string().max(500).optional().or(z.literal("")),
 });
 
 export type ExerciseFormData = z.infer<typeof exerciseSchema>;
