@@ -577,6 +577,41 @@ export const ExerciseDialog = ({
               </div>
             </div>
 
+            {/* Preparação para execução guiada */}
+            <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
+              <h4 className="text-sm font-semibold">Preparação (execução guiada)</h4>
+              <FormField
+                control={form.control}
+                name="preparation_video_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Vídeo de preparação (URL)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://youtube.com/..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="preparation_description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrição da preparação</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Ex: Deite no banco, mantenha pés firmes no chão, segure a barra com pegada média..."
+                        rows={3}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             {/* Media Upload */}
             <div className="border rounded-lg p-4 bg-muted/50">
               <MediaUpload
