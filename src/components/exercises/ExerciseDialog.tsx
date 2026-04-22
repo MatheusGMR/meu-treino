@@ -137,6 +137,8 @@ export const ExerciseDialog = ({
       equipment_code: undefined,
       movement: "",
       variation: "",
+      preparation_video_url: "",
+      preparation_description: "",
     },
   });
 
@@ -163,6 +165,8 @@ export const ExerciseDialog = ({
         equipment_code: (exercise as any).equipment_code || undefined,
         movement: (exercise as any).movement || "",
         variation: (exercise as any).variation || "",
+        preparation_video_url: (exercise as any).preparation_video_url || "",
+        preparation_description: (exercise as any).preparation_description || "",
       });
     } else if (!open) {
       form.reset({
@@ -186,6 +190,8 @@ export const ExerciseDialog = ({
         equipment_code: undefined,
         movement: "",
         variation: "",
+        preparation_video_url: "",
+        preparation_description: "",
       });
     }
   }, [exercise, open, form]);
