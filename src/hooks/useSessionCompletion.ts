@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -15,7 +15,7 @@ interface CompleteSetData {
 
 export const useCompleteSet = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (data: CompleteSetData) => {
       const { data: userData } = await supabase.auth.getUser();
@@ -37,9 +37,11 @@ export const useCompleteSet = () => {
 
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_d, vars) => {
       queryClient.invalidateQueries({ queryKey: ["session-progress"] });
-      toast({ title: "Série registrada!" });
+      queryClient.invalidateQueries({
+        queryKey: ["last-weight-for-exercise", vars.exerciseId],
+      });
     },
     onError: (error: any) => {
       toast({
@@ -53,14 +55,14 @@ export const useCompleteSet = () => {
 
 export const useCompleteSession = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (scheduleId: string) => {
       const { error } = await supabase
         .from("daily_workout_schedule")
-        .update({ 
-          completed: true, 
-          completed_at: new Date().toISOString() 
+        .update({
+          completed: true,
+          completed_at: new Date().toISOString(),
         })
         .eq("id", scheduleId);
 
@@ -69,9 +71,9 @@ export const useCompleteSession = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["today-workout"] });
       queryClient.invalidateQueries({ queryKey: ["monthly-metrics"] });
-      toast({ 
-        title: "Parabéns! 🎉", 
-        description: "Treino do dia concluído!" 
+      toast({
+        title: "Parabéns! 🎉",
+        description: "Treino do dia concluído!",
       });
     },
     onError: (error: any) => {
@@ -81,5 +83,31 @@ export const useCompleteSession = () => {
         variant: "destructive",
       });
     },
+  });
+};
+
+export const useLastWeightForExercise = (
+  clientId: string | undefined,
+  exerciseId: string | undefined
+) => {
+  return useQuery({
+    queryKey: ["last-weight-for-exercise", exerciseId, clientId],
+    queryFn: async () => {
+      if (!clientId || !exerciseId) return null;
+      const { data, error } = await supabase.rpc(
+        "get_last_weight_for_exercise" as any,
+        {
+          _client_id: clientId,
+          _exercise_id: exerciseId,
+        }
+      );
+      if (error) {
+        console.warn("[last-weight] rpc error", error);
+        return null;
+      }
+      return (data as number | null) ?? null;
+    },
+    enabled: !!clientId && !!exerciseId,
+    staleTime: 1000 * 60 * 5,
   });
 };

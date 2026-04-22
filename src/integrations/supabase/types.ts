@@ -1330,6 +1330,8 @@ export type Database = {
           long_description: string | null
           movement: string | null
           name: string
+          preparation_description: string | null
+          preparation_video_url: string | null
           primary_muscle: string | null
           protocol_only: boolean
           review_status: string | null
@@ -1380,6 +1382,8 @@ export type Database = {
           long_description?: string | null
           movement?: string | null
           name: string
+          preparation_description?: string | null
+          preparation_video_url?: string | null
           primary_muscle?: string | null
           protocol_only?: boolean
           review_status?: string | null
@@ -1430,6 +1434,8 @@ export type Database = {
           long_description?: string | null
           movement?: string | null
           name?: string
+          preparation_description?: string | null
+          preparation_video_url?: string | null
           primary_muscle?: string | null
           protocol_only?: boolean
           review_status?: string | null
@@ -2482,6 +2488,10 @@ export type Database = {
       }
     }
     Functions: {
+      get_last_weight_for_exercise: {
+        Args: { _client_id: string; _exercise_id: string }
+        Returns: number
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
