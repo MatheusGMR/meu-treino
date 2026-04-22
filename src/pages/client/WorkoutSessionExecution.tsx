@@ -484,18 +484,40 @@ const WorkoutSessionExecution = () => {
         )}
 
         {state.phase === "execute" && (
-          <SeriesTracker
-            sets={totalSets}
-            reps={repsRange}
-            exerciseId={(currentExercise as any).exercise_id}
-            currentSet={state.currentSet}
-            completedSets={state.completedSets}
-            showWeight={showWeight}
-            weight={state.weight}
-            onWeightChange={(w) => dispatch({ type: "SET_WEIGHT", weight: w })}
-            repsCompleted={state.reps}
-            onRepsChange={(r) => dispatch({ type: "SET_REPS", reps: r })}
-          />
+          <>
+            <SeriesTracker
+              sets={totalSets}
+              reps={repsRange}
+              exerciseId={(currentExercise as any).exercise_id}
+              currentSet={state.currentSet}
+              completedSets={state.completedSets}
+              showWeight={showWeight}
+              weight={state.weight}
+              onWeightChange={(w) => dispatch({ type: "SET_WEIGHT", weight: w })}
+              repsCompleted={state.reps}
+              onRepsChange={(r) => dispatch({ type: "SET_REPS", reps: r })}
+            />
+            <div className="mt-3 mb-4">
+              <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-1.5">
+                <span>Execução em curso</span>
+                <span>{setTimeLeft}s</span>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all duration-200 ease-linear"
+                  style={{
+                    width: `${Math.max(
+                      0,
+                      Math.min(100, ((estimatedSetSeconds - setTimeLeft) / estimatedSetSeconds) * 100)
+                    )}%`,
+                  }}
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1.5 text-center">
+                Avança automaticamente ao terminar · toque para concluir antes
+              </p>
+            </div>
+          </>
         )}
 
         {state.phase === "rest" && (
