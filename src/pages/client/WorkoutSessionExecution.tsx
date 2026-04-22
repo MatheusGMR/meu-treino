@@ -225,7 +225,11 @@ const WorkoutSessionExecution = () => {
     return () => clearTimeout(t);
   }, [state.phase, isLastExercise, exercises, state.exerciseIndex]);
 
+  const completedSetGuardRef = useRef<string | null>(null);
   const completeSet = () => {
+    const key = `${currentExercise?.id}-${state.currentSet}`;
+    if (completedSetGuardRef.current === key) return;
+    completedSetGuardRef.current = key;
     // Registrar série no banco
     if (todaySchedule?.client_workouts?.id && sessionId && currentExercise) {
       completeSetMutation.mutate({
@@ -241,10 +245,16 @@ const WorkoutSessionExecution = () => {
     dispatch({ type: "COMPLETE_SET", isLastSetOfExercise: isLastSet });
   };
 
-  // Timer de auto-conclusão da série quando o vídeo/áudio termina
+  // Reset guard ao entrar em nova série
+  useEffect(() => {
+    completedSetGuardRef.current = null;
+  }, [state.currentSet, currentExercise?.id]);
+
+  // Cronômetro de fallback: usado APENAS quando não há vídeo de execução
+  // (imagem, sem mídia). Quando há vídeo, o término do vídeo é o gatilho.
   const [setTimeLeft, setSetTimeLeft] = useState(estimatedSetSeconds);
   useEffect(() => {
-    if (state.phase !== "execute") {
+    if (state.phase !== "execute" || hasExecutionVideo) {
       setSetTimeLeft(estimatedSetSeconds);
       return;
     }
@@ -264,7 +274,14 @@ const WorkoutSessionExecution = () => {
     }, 250);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.phase, state.currentSet, currentExercise?.id, estimatedSetSeconds]);
+  }, [state.phase, state.currentSet, currentExercise?.id, estimatedSetSeconds, hasExecutionVideo]);
+
+  const handleVideoEnded = () => {
+    if (state.phase === "execute") {
+      beep();
+      completeSet();
+    }
+  };
 
   const handlePrimaryAction = () => {
     if (state.phase === "prepare") {
