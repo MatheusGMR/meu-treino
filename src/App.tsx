@@ -41,6 +41,7 @@ import Users from "./pages/admin/Users";
 import UploadBodyTypeImages from "./pages/admin/UploadBodyTypeImages";
 import PendingUpdates from "./pages/admin/PendingUpdates";
 import ExerciseImport from "./pages/admin/ExerciseImport";
+import SupportVideos from "./pages/admin/SupportVideos";
 
 import Marketing from "./pages/admin/Marketing";
 import JmpAlerts from "./pages/admin/JmpAlerts";
@@ -386,6 +387,16 @@ const App = () => (
                 <AuthGuard>
                   <RoleGuard allowedRoles={["admin"]}>
                     <JmpAlerts />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/admin/support-videos"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["admin"]}>
+                    <SupportVideos />
                   </RoleGuard>
                 </AuthGuard>
               }
