@@ -1,4 +1,4 @@
-import { Home, Dumbbell, Users, Settings, LogOut, ChevronRight, ChevronLeft, Activity, ClipboardList, Crown, BarChart, Hash, Zap, Sparkles, Upload, Bot, Megaphone, Library, AlertTriangle
+import { Home, Dumbbell, Users, Settings, LogOut, ChevronRight, ChevronLeft, Activity, ClipboardList, Crown, BarChart, Hash, Zap, Sparkles, Upload, Bot, Megaphone, Library, AlertTriangle, Film
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -215,6 +215,7 @@ export const AppSidebar = ({ collapsed = false, onToggle }: AppSidebarProps) => 
                     <NavItem to="/admin/users" icon={Settings} label="Usuários" active={isActive("/admin/users")} size="sm" />
                     <NavItem to="/admin/pending-updates" icon={Sparkles} label="Atualizações" active={isActive("/admin/pending-updates")} size="sm" />
                     <NavItem to="/admin/exercise-import" icon={Upload} label="Importar CSV" active={isActive("/admin/exercise-import")} size="sm" />
+                    <NavItem to="/admin/support-videos" icon={Film} label="Vídeos de Apoio" active={isActive("/admin/support-videos")} size="sm" />
                     
                     <NavItem to="/admin/jmp-alerts" icon={AlertTriangle} label="Alertas JMP" active={isActive("/admin/jmp-alerts")} size="sm" />
                     <NavItem to="/admin/marketing" icon={Megaphone} label="Marketing" active={isActive("/admin/marketing")} size="sm" />
