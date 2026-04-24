@@ -2221,6 +2221,84 @@ export type Database = {
         }
         Relationships: []
       }
+      support_videos: {
+        Row: {
+          active: boolean
+          category: Database["public"]["Enums"]["support_video_category"]
+          created_at: string
+          created_by: string | null
+          description: string | null
+          duration_seconds: number | null
+          id: string
+          source: Database["public"]["Enums"]["support_video_source"]
+          suggested_for_dor_cat:
+            | Database["public"]["Enums"]["dor_categoria"]
+            | null
+          suggested_for_exercise_group:
+            | Database["public"]["Enums"]["exercise_group"]
+            | null
+          suggested_for_ins_cat:
+            | Database["public"]["Enums"]["inseguranca_categoria"]
+            | null
+          suggested_when: string | null
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          video_url: string
+        }
+        Insert: {
+          active?: boolean
+          category: Database["public"]["Enums"]["support_video_category"]
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          source: Database["public"]["Enums"]["support_video_source"]
+          suggested_for_dor_cat?:
+            | Database["public"]["Enums"]["dor_categoria"]
+            | null
+          suggested_for_exercise_group?:
+            | Database["public"]["Enums"]["exercise_group"]
+            | null
+          suggested_for_ins_cat?:
+            | Database["public"]["Enums"]["inseguranca_categoria"]
+            | null
+          suggested_when?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          video_url: string
+        }
+        Update: {
+          active?: boolean
+          category?: Database["public"]["Enums"]["support_video_category"]
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          source?: Database["public"]["Enums"]["support_video_source"]
+          suggested_for_dor_cat?:
+            | Database["public"]["Enums"]["dor_categoria"]
+            | null
+          suggested_for_exercise_group?:
+            | Database["public"]["Enums"]["exercise_group"]
+            | null
+          suggested_for_ins_cat?:
+            | Database["public"]["Enums"]["inseguranca_categoria"]
+            | null
+          suggested_when?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -2590,6 +2668,14 @@ export type Database = {
       rotina_tipo: "pre_trabalho" | "pos_trabalho" | "livre"
       safety_level_enum: "S1" | "S2" | "S3" | "S4" | "S5"
       session_type: "Mobilidade" | "Alongamento" | "Musculação"
+      support_video_category:
+        | "educacional"
+        | "motivacional"
+        | "tecnica"
+        | "recuperacao"
+        | "nutricao"
+        | "protocolo"
+      support_video_source: "youtube" | "vimeo" | "upload"
       template_moment_enum:
         | "pre_sessao"
         | "pos_sessao"
@@ -2828,6 +2914,15 @@ export const Constants = {
       rotina_tipo: ["pre_trabalho", "pos_trabalho", "livre"],
       safety_level_enum: ["S1", "S2", "S3", "S4", "S5"],
       session_type: ["Mobilidade", "Alongamento", "Musculação"],
+      support_video_category: [
+        "educacional",
+        "motivacional",
+        "tecnica",
+        "recuperacao",
+        "nutricao",
+        "protocolo",
+      ],
+      support_video_source: ["youtube", "vimeo", "upload"],
       template_moment_enum: [
         "pre_sessao",
         "pos_sessao",
