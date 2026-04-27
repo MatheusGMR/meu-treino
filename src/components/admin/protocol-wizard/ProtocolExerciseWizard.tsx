@@ -163,12 +163,32 @@ export const ProtocolExerciseWizard = ({ exercise, onClose, protocolOnly = true 
   };
 
   const handleSave = async () => {
-    const equipFromForm = (form as any)._equip ?? null;
+    const equipFromForm = ((form as any)._equip ?? null) as EquipCode | null;
+    const blockFromForm = (form.block ?? null) as BlockCode | null;
+    const jmpLevel = (form._level ?? null) as LevelCode | null;
+
+    // Nível visível para o cliente: usa o que o usuário ajustou no Step Contexto,
+    // senão deriva do código JMP. Garante que /exercises e o agente nunca fiquem em branco.
+    const clientLevel = form.level ?? mapJmpLevelToClientLevel(jmpLevel);
+    const equipName = equipCodeToHumanName(equipFromForm);
+    const dominant = blockToDominantMovement(blockFromForm);
+    const biomech = blockToBiomechanicalClass(blockFromForm);
+
     const payload: any = {
       ...form,
       external_id: generatedId,
-      difficulty_code: form._level,
+      difficulty_code: jmpLevel,
       equipment_code: equipFromForm,
+      // Espelhamento p/ a biblioteca regular e agentes legados:
+      level: clientLevel,
+      equipment: equipName ? [equipName] : (form as any).equipment ?? null,
+      dominant_movement: (form as any).dominant_movement ?? dominant,
+      biomechanical_class: (form as any).biomechanical_class ?? biomech,
+      impact_level: form.impact_level ?? "Baixo",
+      contraindication: form.contraindication ?? null,
+      short_description: form.short_description ?? null,
+      secondary_muscle: form.secondary_muscle ?? null,
+      coaching_cues: form.coaching_cues ?? null,
       protocol_only: protocolOnly,
     };
     delete payload._level;
