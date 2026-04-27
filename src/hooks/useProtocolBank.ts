@@ -105,6 +105,7 @@ export const useDeleteProtocolExercise = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["protocol-bank"] });
+      qc.invalidateQueries({ queryKey: ["exercises"] });
       toast.success("Exercício removido");
     },
     onError: (err: any) => toast.error(err.message ?? "Erro ao remover"),
