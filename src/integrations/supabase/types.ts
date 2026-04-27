@@ -2875,6 +2875,10 @@ export type Database = {
         Returns: boolean
       }
       remove_new_badge_after_30_days: { Args: never; Returns: undefined }
+      select_session_exercises: {
+        Args: { _client_id: string; _sessao_num?: number }
+        Returns: Json
+      }
     }
     Enums: {
       alert_severity_enum: "baixa" | "media" | "alta" | "critica"
