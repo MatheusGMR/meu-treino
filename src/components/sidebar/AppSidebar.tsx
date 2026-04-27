@@ -217,7 +217,7 @@ export const AppSidebar = ({ collapsed = false, onToggle }: AppSidebarProps) => 
                     <NavItem to="/admin/exercise-import" icon={Upload} label="Importar CSV" active={isActive("/admin/exercise-import")} size="sm" />
                     <NavItem to="/admin/support-videos" icon={Film} label="Vídeos de Apoio" active={isActive("/admin/support-videos")} size="sm" />
                     <NavItem to="/admin/agent-videos" icon={Video} label="Vídeos do Agente" active={isActive("/admin/agent-videos")} size="sm" />
-                    
+                    <NavItem to="/admin/protocol-bank" icon={Library} label="Banco do Protocolo" active={isActive("/admin/protocol-bank")} size="sm" />
                     <NavItem to="/admin/jmp-alerts" icon={AlertTriangle} label="Alertas JMP" active={isActive("/admin/jmp-alerts")} size="sm" />
                     <NavItem to="/admin/marketing" icon={Megaphone} label="Marketing" active={isActive("/admin/marketing")} size="sm" />
                   </CollapsibleContent>
