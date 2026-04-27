@@ -30,9 +30,9 @@ export const ExerciseDialog = ({
 }: ExerciseDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="max-w-2xl w-[95vw] max-h-[92vh] flex flex-col p-0 gap-0">
+        <DialogHeader className="p-6 pb-3 border-b shrink-0">
+          <DialogTitle className="pr-8">
             {exercise ? "Editar Exercício" : "Novo Exercício"}
           </DialogTitle>
           <DialogDescription>
@@ -41,11 +41,13 @@ export const ExerciseDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <ProtocolExerciseWizard
-          exercise={(exercise as unknown as ProtocolExercise) ?? null}
-          onClose={() => onOpenChange(false)}
-          protocolOnly={false}
-        />
+        <div className="flex-1 overflow-y-auto overflow-x-auto p-6">
+          <ProtocolExerciseWizard
+            exercise={(exercise as unknown as ProtocolExercise) ?? null}
+            onClose={() => onOpenChange(false)}
+            protocolOnly={false}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );
