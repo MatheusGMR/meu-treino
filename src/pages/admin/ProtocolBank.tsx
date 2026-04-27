@@ -144,10 +144,12 @@ const ProtocolBank = () => {
                     <SelectTrigger><SelectValue placeholder="Bloco didático" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="MOB">MOB</SelectItem>
-                      <SelectItem value="FORT">FORT</SelectItem>
-                      <SelectItem value="RESIST">RESIST</SelectItem>
-                      <SelectItem value="ALONG">ALONG</SelectItem>
+                      <SelectItem value="MOB">MOB · Mobilidade</SelectItem>
+                      <SelectItem value="FORT">FORT · Fortalecimento</SelectItem>
+                      <SelectItem value="MS">MS · Resistido MMSS</SelectItem>
+                      <SelectItem value="MI">MI · Resistido MMII</SelectItem>
+                      <SelectItem value="CARD">CARD · Cardio</SelectItem>
+                      <SelectItem value="ALONG">ALONG · Alongamento</SelectItem>
                     </SelectContent>
                   </Select>
                   <Select value={kind} onValueChange={setKind}>
