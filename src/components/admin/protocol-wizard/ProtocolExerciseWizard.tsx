@@ -220,6 +220,12 @@ export const ProtocolExerciseWizard = ({ exercise, onClose, protocolOnly = true 
       primary_muscle: "",
       movement_vector: null,
       _level: "",
+      level: null,
+      impact_level: "Baixo",
+      contraindication: null,
+      short_description: null,
+      secondary_muscle: null,
+      coaching_cues: null,
     });
   };
 
