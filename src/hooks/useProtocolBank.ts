@@ -89,7 +89,8 @@ export const useUpsertProtocolExercise = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["protocol-bank"] });
-      toast.success("Exercício do protocolo salvo");
+      qc.invalidateQueries({ queryKey: ["exercises"] });
+      toast.success("Exercício salvo");
     },
     onError: (err: any) => toast.error(err.message ?? "Erro ao salvar exercício"),
   });
