@@ -30,6 +30,7 @@ import {
   MOMENTO_LABELS,
 } from "@/lib/schemas/agentVideoSchema";
 import { cn } from "@/lib/utils";
+import { AppLayout } from "@/layouts/AppLayout";
 
 const NIVEIS = ["all", "I1", "I2", "I3"] as const;
 
@@ -89,7 +90,8 @@ export default function AgentVideos() {
   };
 
   return (
-    <div className="container max-w-7xl py-6 space-y-6">
+    <AppLayout>
+      <div className="container max-w-7xl py-6 space-y-6">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -313,6 +315,7 @@ export default function AgentVideos() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-    </div>
+      </div>
+    </AppLayout>
   );
 }

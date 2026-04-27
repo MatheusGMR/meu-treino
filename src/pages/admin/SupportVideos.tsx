@@ -27,6 +27,7 @@ import { useSupportVideos, useDeleteSupportVideo } from "@/hooks/useSupportVideo
 import { SupportVideoDialog } from "@/components/admin/SupportVideoDialog";
 import { SUPPORT_VIDEO_CATEGORIES } from "@/lib/schemas/supportVideoSchema";
 import { cn } from "@/lib/utils";
+import { AppLayout } from "@/layouts/AppLayout";
 
 const extractYouTubeId = (url: string): string | null => {
   const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]+)/);
@@ -106,7 +107,8 @@ export default function SupportVideos() {
   };
 
   return (
-    <div className="container max-w-7xl py-6 space-y-6">
+    <AppLayout>
+      <div className="container max-w-7xl py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -318,6 +320,7 @@ export default function SupportVideos() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </div>
+    </AppLayout>
   );
 }
