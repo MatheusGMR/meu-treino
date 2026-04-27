@@ -11,6 +11,10 @@ import {
   LevelCode,
   SafetyCode,
   SEG_MAP,
+  mapJmpLevelToClientLevel,
+  equipCodeToHumanName,
+  blockToDominantMovement,
+  blockToBiomechanicalClass,
 } from "@/lib/protocol/exerciseTaxonomy";
 import { WizardStepper } from "./WizardStepper";
 import { StepNome } from "./StepNome";
@@ -18,6 +22,7 @@ import { StepBloco } from "./StepBloco";
 import { StepEquipamento } from "./StepEquipamento";
 import { StepNivel } from "./StepNivel";
 import { StepDetalhes } from "./StepDetalhes";
+import { StepContexto } from "./StepContexto";
 import { StepConfirmar } from "./StepConfirmar";
 import { StepSucesso } from "./StepSucesso";
 
