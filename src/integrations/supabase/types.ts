@@ -1433,6 +1433,7 @@ export type Database = {
           limitation_detail: string | null
           long_description: string | null
           movement: string | null
+          movement_vector: string | null
           name: string
           pain_region: Database["public"]["Enums"]["pain_region_enum"] | null
           parent_exercise_id: string | null
@@ -1492,6 +1493,7 @@ export type Database = {
           limitation_detail?: string | null
           long_description?: string | null
           movement?: string | null
+          movement_vector?: string | null
           name: string
           pain_region?: Database["public"]["Enums"]["pain_region_enum"] | null
           parent_exercise_id?: string | null
@@ -1551,6 +1553,7 @@ export type Database = {
           limitation_detail?: string | null
           long_description?: string | null
           movement?: string | null
+          movement_vector?: string | null
           name?: string
           pain_region?: Database["public"]["Enums"]["pain_region_enum"] | null
           parent_exercise_id?: string | null
@@ -2873,6 +2876,15 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      next_protocol_exercise_seq: {
+        Args: {
+          _block: string
+          _equip: string
+          _level: string
+          _safety: string
+        }
+        Returns: string
       }
       remove_new_badge_after_30_days: { Args: never; Returns: undefined }
       select_session_exercises: {
