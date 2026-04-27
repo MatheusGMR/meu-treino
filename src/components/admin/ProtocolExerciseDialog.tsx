@@ -17,9 +17,9 @@ interface Props {
 export const ProtocolExerciseDialog = ({ open, onOpenChange, exercise }: Props) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="max-w-2xl w-[95vw] max-h-[92vh] flex flex-col p-0 gap-0">
+        <DialogHeader className="p-6 pb-3 border-b shrink-0">
+          <DialogTitle className="pr-8">
             {exercise ? "Editar exercício do Protocolo" : "Novo exercício do Protocolo"}
           </DialogTitle>
           <DialogDescription>
@@ -28,7 +28,9 @@ export const ProtocolExerciseDialog = ({ open, onOpenChange, exercise }: Props) 
           </DialogDescription>
         </DialogHeader>
 
-        <ProtocolExerciseWizard exercise={exercise ?? null} onClose={() => onOpenChange(false)} />
+        <div className="flex-1 overflow-y-auto overflow-x-auto p-6">
+          <ProtocolExerciseWizard exercise={exercise ?? null} onClose={() => onOpenChange(false)} />
+        </div>
       </DialogContent>
     </Dialog>
   );
