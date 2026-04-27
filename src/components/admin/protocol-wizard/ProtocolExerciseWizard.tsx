@@ -287,18 +287,34 @@ export const ProtocolExerciseWizard = ({ exercise, onClose, protocolOnly = true 
             onNext={goNext}
           />
         )}
-        {step === 5 && !saved && block && equip && safety && level && (
+        {step === 5 && (
+          <StepContexto
+            value={{
+              level: form.level ?? null,
+              impact_level: form.impact_level ?? null,
+              contraindication: form.contraindication ?? null,
+              short_description: form.short_description ?? null,
+              secondary_muscle: form.secondary_muscle ?? null,
+              coaching_cues: form.coaching_cues ?? null,
+            }}
+            jmpLevel={level}
+            onChange={(p) => patch(p)}
+            onPrev={() => setStep(4)}
+            onNext={goNext}
+          />
+        )}
+        {step === 6 && !saved && block && equip && safety && level && (
           <StepConfirmar
             form={
               { ...form, _block: block, _equip: equip, _safety: safety, _level: level } as any
             }
             generatedId={generatedId}
-            onPrev={() => setStep(4)}
+            onPrev={() => setStep(5)}
             onSave={handleSave}
             saving={upsert.isPending}
           />
         )}
-        {step === 5 && saved && (
+        {step === 6 && saved && (
           <StepSucesso generatedId={generatedId} onAddAnother={reset} onClose={onClose} />
         )}
       </div>
