@@ -170,4 +170,76 @@ export const REGIOES_DOR: { cod: "L0" | "L1" | "L2" | "L3" | "L_MULTI"; nome: st
   { cod: "L_MULTI", nome: "L_MULTI · Multi-região" },
 ];
 
-export const STEPS = ["Nome", "Bloco", "Equipamento", "Nível", "Detalhes", "Confirmar"] as const;
+export const STEPS = [
+  "Nome",
+  "Bloco",
+  "Equipamento",
+  "Nível",
+  "Detalhes",
+  "Contexto",
+  "Confirmar",
+] as const;
+
+/**
+ * Converte o nível JMP (BI/BII/BIII/IN1/IN2/IN3) no nível visível para o cliente
+ * (Iniciante / Intermediário / Avançado). Esse é o campo `level` da tabela exercises
+ * usado pelos filtros públicos, pelo agente legado e pela tabela /exercises.
+ */
+export const mapJmpLevelToClientLevel = (
+  code: LevelCode | null | undefined
+): "Iniciante" | "Intermediário" | "Avançado" => {
+  switch (code) {
+    case "BI":
+    case "BII":
+      return "Iniciante";
+    case "BIII":
+    case "IN1":
+      return "Intermediário";
+    case "IN2":
+    case "IN3":
+      return "Avançado";
+    default:
+      return "Iniciante";
+  }
+};
+
+/** Equipamento legível a partir do código JMP (para preencher exercises.equipment[]). */
+export const equipCodeToHumanName = (equip: EquipCode | null | undefined): string | null => {
+  if (!equip) return null;
+  const map: Record<EquipCode, string> = {
+    PC: "Peso Corporal",
+    ELAS: "Elástico",
+    MAC: "Máquina",
+    DIV: "Articulado DIV",
+    CONV: "Articulado CONV",
+    CAB: "Cabo / Polia",
+    BAR: "Barra Livre",
+    HAL: "Halter",
+  };
+  return map[equip] ?? null;
+};
+
+/** Movimento dominante derivado do bloco — usado pelos agentes para análise muscular. */
+export const blockToDominantMovement = (block: BlockCode | null | undefined): string | null => {
+  if (!block) return null;
+  const map: Record<BlockCode, string> = {
+    MOB: "Mobilidade",
+    FORT: "Fortalecimento",
+    MS: "Empurrar/Puxar",
+    MI: "Agachar/Estender",
+    CARD: "Locomoção",
+    ALONG: "Alongamento",
+  };
+  return map[block];
+};
+
+/** Classe biomecânica padrão por bloco. */
+export const blockToBiomechanicalClass = (
+  block: BlockCode | null | undefined
+): string | null => {
+  if (!block) return null;
+  if (block === "MS" || block === "MI" || block === "FORT") return "Cadeia Fechada";
+  if (block === "CARD") return "Cíclica";
+  return "Mobilidade";
+};
+
