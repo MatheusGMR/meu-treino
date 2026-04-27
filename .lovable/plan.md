@@ -1,141 +1,230 @@
 
-# Implementação do Mapeamento de Vídeos JMP — Fases 1 a 5
+## Diagnóstico — o que os 4 documentos exigem vs. o que existe
 
-Sistema de vídeos contextuais do Protocolo Destravamento, conforme racional do profissional. Trabalho dividido em 5 fases entregues em conjunto.
+Comparando os PDFs (Anamnese, Outputs Triagem v2 com 30 combinações, Diretriz de Volume, Feedback & Progressão) com a base atual, há um descasamento importante: hoje a seleção de exercícios usa apenas `safety_level` + `dor_local` como filtro genérico (`agent-build-session/index.ts`). As diretrizes exigem uma **matriz determinística** baseada em 6 variáveis com hierarquia rígida.
 
-## Visão geral
+### Variáveis que devem governar o ID dos exercícios escolhidos
 
-```text
-┌────────────────────────────────────────────────────────────┐
-│ Anamnese  →  ins_cat fixo (I1/I2/I3) — nunca sobe         │
-│   ↓                                                        │
-│ Sessão N + momento (abertura/antes_bloco/intervalo/...)   │
-│   ↓                                                        │
-│ RPC get_videos_for_session_moment(client, sessao, momento)│
-│   ↓                                                        │
-│ Hierarquia: Marco > Modo Seguro > Dor > ENC-I3 > 1ª vez   │
-│             exercício > Opcionais do nível                 │
-│   ↓                                                        │
-│ [VID-..., obrigatorio: true|false, ordem: N]              │
-└────────────────────────────────────────────────────────────┘
-```
+| # | Variável | Origem | Função no banco hoje | Status |
+|---|----------|--------|----------------------|--------|
+| 1 | T (T1/T2/T3) | Triagem diária | `daily_checkin_sessions.tempo_cat` | ✅ existe |
+| 2 | D (D0/D1/D2/D3) | Triagem diária | `dor_cat_dia` | ✅ existe |
+| 3 | Disposição (OK/Mod/Comp) | Triagem | `disposicao` | ✅ existe |
+| 4 | Local da dor (L0/L1/L2/L3/L_multi) | Perfil anamnese | `anamnesis.dor_local` (array) | ⚠️ falta `L_multi` e flag |
+| 5 | Insegurança (I1/I2/I3) | Perfil anamnese | `anamnesis.ins_cat` | ✅ existe |
+| 6 | Bloco+Treino (B1A..B3B) + sessão | Histórico protocolo | `client_protocol_progress.bloco_atual/sessao_atual` | ✅ existe |
+| 7 | Experiência (Iniciante/Inter/Avançado) | Anamnese | `anamnesis.nivel_experiencia` (texto) | ⚠️ não normalizado |
 
-## Fase 1 — Estender `agent_videos`
+### Gaps críticos identificados
 
-Migração que adiciona ao schema atual:
+**A. Tabela `exercises` (campos faltantes para seleção determinística)**
+- Não há campo distinguindo **PAI vs SUB** (versão completa vs sub-exercício) — o doc Volume exige isso para D0 (PAI), D1/D2 (SUB do local), D3 (remove local).
+- `substitution_id` existe mas vazio; falta `parent_exercise_id` para a relação PAI→SUB.
+- Não existe `pain_region` (L1/L2/L3) explícito — hoje usa `exercise_group` genérico.
+- Falta `treino_letra` (A/B) e `bloco_protocolo` (B1/B2/B3) para casar com o histórico.
+- Não existe `is_primary_exercise` (necessário para feedback randômico — Supino/Remada/Leg Press/Cadeira).
+- Banco está vazio de exercícios `protocol_only=true` (0 registros) — seed pendente.
 
-- `pilar` (enum): `mobilidade | fortalecimento | resistido | alongamento | encerramento | dor | modo_seguro | intro | progressao | fim`
-- `momento` (enum): `abertura | antes_bloco | antes_exercicio | intervalo | pos_sessao | sessao_inteira`
-- `obrigatorio` (boolean, default false) — dispara automaticamente sem opção do cliente
-- `gatilho` (text) — descrição humana ("Toda sessão — I3 — até sessão 6")
-- `sessoes_alvo` (int[]) — sessões específicas (`[1]`, `[6,12,18,24]`, `[36]`)
-- `bloco_alvo` (int) — 1, 2 ou 3 (null = qualquer bloco)
-- `exercise_id` (uuid, FK para exercises) — nullable, usado pelos VID-RES de setup
-- `ordem_sequencia` (int default 0) — ordem dentro do mesmo gatilho (D3 dispara 3 vídeos em sequência)
-- Índice composto `(pilar, recommended_for_ins_cat, momento)` para consultas rápidas
+**B. Tabela `methods` / Volume**
+- Não há tabela `volume_outputs` materializando os 30 IDs OUT-001..OUT-030 (T×D×Disp → N_Ex, séries, regra de mobilidade/fortalecimento/resistido/alongamento).
+- A função `agent-build-session` não consulta essa matriz — usa heurística simplificada.
 
-**Seed completo** com as ~50 entradas do documento (skeleton — sem `youtube_url`):
-- I1: 5 vídeos (MOB, FORT, RES, ALONG, ENC)
-- I2: ~12 vídeos
-- I3: ~15 vídeos (mais reforço positivo)
-- Condição (DOR, MS): 7 vídeos (D1, D2, D3, MS)
-- Marcos (INTRO, PROG, FIM): 5 vídeos — já existem 7, complementar/ajustar
+**C. Anamnese — variáveis incompletas**
+- `autonomia` (A1/A2/A3) não existe na tabela `anamnesis`.
+- Flags `flag_frustrado`, `multi_dor` não existem.
+- `user_vocab[]` existe (`user_vocab` array) ✅.
+- `nivel_experiencia` é texto livre — precisa normalizar para enum `iniciante|intermediario|avancado`.
 
-Os 7 vídeos já cadastrados (`VID-INTRO-01`, `VID-INTRO-02`, `VID-PROG-B2`, `VID-PROG-B3`, `VID-FIM-01`, `VID-DOR-01`, `VID-ENC-I3-03`) recebem os novos campos via UPDATE.
+**D. Feedback & Progressão (doc 4)**
+- **Não existe** `session_perception_signals` (botão "Ficou leve?" e randômico).
+- **Não existe** `client_exercise_load_history` (carga atual por exercício/cliente).
+- **Não existe** lógica de presunção de conclusão (`PRESUMIDO`/`AUTO_CONCLUIDA`/`PARCIAL`/`AUSENTE`) — `daily_workout_schedule.completed` é booleano simples.
+- Alertas `GATILHO_POTENCIAL`, `PESADO_RECORRENTE`, `DOR_NOVA`, `DOR_ESCALADA`, `AUSENCIA`, `NAO_CONCLUIU` não estão no enum `alert_type_enum` (atual: `frequencia_zero, frequencia_baixa, dor_persistente, sessao_sem_feedback, revisao_nivel_I3, alerta_medico, condicao_cardiaca, inconsistencia_checkin, divergencia_conduta`).
+- Schedule de perguntas randômicas (S3, S5, S7, S11, S13, S17, S21, S23, S27, S31, S35) não está modelado.
 
-## Fase 2 — RPC `get_videos_for_session_moment`
-
-Função SECURITY DEFINER que centraliza a hierarquia de disparo (seção 4 do documento):
-
-```text
-Input:  client_id, sessao_num, momento, [exercise_id], [dor_cat], [modo_seguro]
-Output: Lista ordenada de vídeos { video_code, title, youtube_url, obrigatorio, ordem }
-
-Lógica em camadas (todas aditivas, ordenadas por prioridade):
- 1. Marcos obrigatórios (sessao=1 → INTRO; sessao=13 → PROG-B2; sessao=25 → PROG-B3; sessao=36 → FIM)
- 2. Modo Seguro ativo → sequência fixa VID-DOR-D3-01 + D3-02 + MS-01
- 3. Dor D2/D3 (sem modo seguro) → VID-DOR-D2-* ou D3-*
- 4. ENC-I3 obrigatório se ins_cat=I3 e (sessao ≤ 6 OR sessao IN [6,12,18,24])
- 5. 1ª vez do exercício (consulta client_exercise_first_use) →
-       obrigatório se ins_cat=I3, opcional se I1/I2
- 6. Vídeos opcionais do (pilar, ins_cat, momento, bloco_atual)
-```
-
-Função consulta `anamnesis.ins_cat`, `client_protocol_progress` (sessão e bloco), `client_exercise_first_use`, e o `daily_checkin_sessions` mais recente para `dor_cat`.
-
-## Fase 3 — Regra "nível nunca sobe" + alerta JMP s.6
-
-Ajuste no edge function `calculate-anamnesis-profile` (já existente) para aplicar a tabela de derivação:
-
-| Insegurança declarada | Experiência prévia | `ins_cat` final | Ação |
-|---|---|---|---|
-| Alta | Sem | I3 | — |
-| Alta | Com | I3 | Cria `agent_alerts` tipo `revisao_nivel_s6` |
-| Média | Sem | I2 | — |
-| Média | Com | I1 | — |
-| Baixa | Sem | I2 | — |
-| Baixa | Com | I1 | — |
-
-A insegurança puxa o nível para baixo apenas quando há experiência. Adicionar enum `revisao_nivel_s6` em `alert_type_enum` se não existir.
-
-## Fase 4 — UI Admin: Vídeos do Agente
-
-Nova rota `/admin/agent-videos` separada de "Vídeos de Apoio" (mantém finalidades distintas).
-
-**Página `src/pages/admin/AgentVideos.tsx`**:
-- Header com **card de progresso de produção**: "X de Y vídeos com link configurado"
-- Filtros: pilar (chips), nível (I1/I2/I3/All), momento, status (com URL / sem URL)
-- Grid agrupado por pilar > nível, mostrando código, título, status (✅ link configurado | ⚠️ pendente), badge "obrigatório"
-- Botão "Importar mapeamento JMP completo" → executa seed se houver gaps (idempotente)
-- Botão por linha: editar / excluir / preview
-
-**Dialog `src/components/admin/AgentVideoDialog.tsx`** (react-hook-form + Zod):
-- Campos: `video_code`, `title`, `description`, `pilar`, `recommended_for_ins_cat`, `momento`, `youtube_url`, `obrigatorio`, `gatilho` (textarea legível), `sessoes_alvo` (multi-input), `bloco_alvo`, `exercise_id` (autocomplete dos exercícios protocol_only), `recommended_for_dor_cat`, `mandatory_at_session`, `ordem_sequencia`, `active`
-- Preview do YouTube embutido quando URL preenchida
-- Validação cruzada: se `pilar=resistido` e `momento=antes_exercicio` → `exercise_id` obrigatório
-
-**Hook `src/hooks/useAgentVideos.ts`**: CRUD + filtros + função `seedFromMapping()` que invoca a edge function de re-seed.
-
-**Sidebar**: adicionar "Vídeos do Agente" sob "Repertório" no admin (separado de "Vídeos de Apoio").
-
-## Fase 5 — Aba "Mapa de Vídeos" no ProtocolAgentTab
-
-Estender `src/components/admin/ProtocolAgentTab.tsx` adicionando uma 3ª aba "Mapa de Vídeos" (junto de Diretrizes e Simulador):
-
-- **Card 1**: Tabela de atribuição I1/I2/I3 (regra "nunca sobe")
-- **Card 2**: Diagrama da hierarquia de disparo (5 prioridades) com badges coloridos
-- **Card 3**: Heatmap visual mostrando os ~50 vídeos agrupados por (pilar × nível), cor verde se URL configurada, amarelo se pendente
-- **Card 4**: Lista resumida das condições obrigatórias por sessão (1, 6, 12, 13, 18, 24, 25, 36)
-- Link "Gerenciar vídeos" que leva para `/admin/agent-videos`
-
-Tudo somente-leitura nesta aba — gestão fica em `/admin/agent-videos`.
+**E. RPC de seleção determinística**
+- Não existe `select_session_exercises(client_id, sessao_num)` — coração do sistema.
+- A `agent-build-session` faz hoje uma triagem ad-hoc; precisa ser substituída por RPC SQL pura para garantir reprodutibilidade.
 
 ---
 
-## Arquivos criados / editados
+## Plano de Ajustes (5 fases)
 
-**Criados:**
-- `supabase/migrations/<timestamp>_extend_agent_videos.sql` (schema + seed)
-- `src/pages/admin/AgentVideos.tsx`
-- `src/components/admin/AgentVideoDialog.tsx`
-- `src/components/admin/AgentVideosMapTab.tsx` (Card-conteúdo da nova aba)
-- `src/hooks/useAgentVideos.ts`
-- `src/lib/schemas/agentVideoSchema.ts`
+### Fase 1 — Schema: variáveis de governo dos IDs
 
-**Editados:**
-- `src/App.tsx` — registra rota `/admin/agent-videos`
-- `src/components/sidebar/AppSidebar.tsx` — item "Vídeos do Agente"
-- `src/components/admin/ProtocolAgentTab.tsx` — terceira aba "Mapa de Vídeos"
-- `supabase/functions/calculate-anamnesis-profile/index.ts` — aplica regra ins_cat + cria alerta
-- `src/integrations/supabase/types.ts` — auto-regenerado
+**1.1 Enums novos**
+```
+exercise_kind_enum = ('PAI', 'SUB')
+pain_region_enum   = ('L0','L1','L2','L3','L_MULTI')   -- L1=lombar, L2=ombro, L3=joelho
+nivel_experiencia_enum = ('iniciante','intermediario','avancado')
+autonomia_enum     = ('A1','A2','A3')
+session_status_enum= ('CONCLUIDA','AUTO_CONCLUIDA','PARCIAL','AUSENTE','PRESUMIDO')
+treino_letra_enum  = ('A','B')
+```
+Estender `alert_type_enum` com: `gatilho_potencial`, `pesado_recorrente`, `dor_nova`, `dor_escalada`, `ausencia`, `nao_concluiu`.
+
+**1.2 Colunas em `exercises`** (todas nullable, retro-compatível)
+- `kind exercise_kind_enum` — PAI ou SUB
+- `parent_exercise_id uuid` — FK para o PAI quando kind=SUB
+- `pain_region pain_region_enum` — região-alvo (lombar/joelho/ombro)
+- `treino_letra treino_letra_enum` — A ou B (banco resistido)
+- `bloco_protocolo int` — 1, 2 ou 3 (B1/B2/B3)
+- `is_primary boolean default false` — supino/remada/leg press/cadeira (alvo do randômico)
+- `is_fixed_base boolean default false` — base fixa de mobilidade/fortalecimento (3 IDs por treino)
+
+**1.3 Colunas em `anamnesis`**
+- `autonomia autonomia_enum`
+- `flag_frustrado boolean`
+- `multi_dor boolean`
+- `nivel_experiencia_norm nivel_experiencia_enum` (preenchido por trigger a partir do texto atual)
+
+**1.4 Tabela nova: `volume_outputs`** (materializa as 30 combinações OUT-001..OUT-030)
+```
+id text PK ('OUT-001'..'OUT-030')
+tempo_cat, dor_cat, disposicao   -- chave composta
+modo_d3 boolean
+n_ex_min int, n_ex_max int
+series_min int, series_max int
+reps int default 12
+mob_rule jsonb     -- ex: {"base":"A","local_qty":2}
+fort_rule jsonb    -- depende experiencia
+resist_rule jsonb  -- {"strategy":"PAI"|"SUB_PRIORITY"|"REMOVE_LOCAL"}
+along_rule jsonb
+```
+
+### Fase 2 — Tabelas de Feedback & Progressão
+
+**2.1 `client_exercise_load_history`** — carga atual por cliente/exercício
+```
+client_id, exercise_id, current_load_kg, last_progression_at, progression_count
+```
+
+**2.2 `session_perception_signals`** — botão "Ficou leve?" + randômico
+```
+client_id, session_schedule_id, exercise_id,
+signal_type ('ESPONTANEO_LEVE','RANDOMICO_LEVE','RANDOMICO_NORMAL','RANDOMICO_PESADO'),
+sessao_num, created_at
+```
+Trigger: ao acumular ≥2 sinais consecutivos LEVE no mesmo `exercise_id` → cria alerta `gatilho_potencial`.
+
+**2.3 `random_check_schedule`** — sessões alvo do randômico (seed: S3,S5,S7,S9,S11,S13,S17,S21,S23,S27,S31,S35)
+```
+sessao_num, treino_letra, primary_exercise_slot ('SUPINO'|'REMADA'|'LEG_PRESS'|'CADEIRA_EXT'|'CADEIRA_FLEX'), fase
+```
+
+**2.4 Estender `daily_workout_schedule`**
+- Trocar `completed boolean` por (manter compat) + adicionar `session_status session_status_enum default 'CONCLUIDA'`.
+
+### Fase 3 — RPC determinística `select_session_exercises`
+
+Função SQL `SECURITY DEFINER` que substitui a lógica do `agent-build-session/index.ts`. Implementa **exatamente** o pseudocódigo da página 6 do doc Outputs:
+
+```
+INPUT:  _client_id uuid, _sessao_num int
+OUTPUT: jsonb { mobilidade:[ids], fortalecimento:[ids], resistido:[{id,series,reps}], alongamento:[ids], output_id:'OUT-0XX', decisions:[...] }
+
+PASSOS:
+1. Carrega perfil (anamnesis): dor_local, ins_cat, nivel_experiencia_norm, autonomia, multi_dor
+2. Carrega progresso: bloco_atual, treino (alterna A/B por sessao_num), sessao_num
+3. Carrega último check-in: tempo_cat, dor_cat_dia, disposicao, dor_local_dia
+4. Busca volume_outputs WHERE tempo=T AND dor=D AND disposicao=disp → output
+5. MOBILIDADE: 3 fixos (is_fixed_base=true, bloco=MOB, treino=A/B) + N por dor (filtra pain_region=L)
+6. FORTALECIMENTO: aplica regra por nivel_experiencia (iniciante: base+local; inter/av: só com D≥D1)
+7. RESISTIDO:
+   - candidatos = exercises WHERE protocol_only AND bloco_protocolo=B AND treino_letra=A/B AND safety_level<=teto(ins_cat)
+   - SE D=D3: REMOVE WHERE pain_region=L (cirúrgico, mantém o resto)
+   - SE D=D2: prioriza kind=SUB AND pain_region=L; remove kind=PAI AND pain_region=L
+   - SE D=D1: prioriza kind=SUB AND pain_region=L
+   - SE D=D0: prioriza kind=PAI
+   - SELECT n_ex (entre n_ex_min e n_ex_max do output)
+8. ALONGAMENTO: prioridade absoluta dor; corta musculatura treinada se T1/T2
+9. Retorna jsonb + grava decisions[] em log
+```
+
+Esta função é **idempotente e auditável**: dada a mesma entrada produz exatamente a mesma saída — base para o "Simulador de Protocolo" do admin.
+
+### Fase 4 — Adaptação do Edge Function & Captura de Sinais
+
+**4.1** Reescrever `agent-build-session/index.ts` para apenas chamar `rpc('select_session_exercises', ...)` e enriquecer com vídeos via RPC já existente `get_videos_for_session_moment`.
+
+**4.2** Novo edge function `record-perception-signal` (POST):
+- Recebe `{ exercise_id, signal_type, schedule_id }`
+- Insere em `session_perception_signals`
+- Roda trigger de gatilho
+
+**4.3** Nova edge function `submit-post-session-feedback`:
+- Implementa o fluxo de 4 toques (estado/região/intensidade)
+- Detecta `dor_nova` (região fora do mapeamento da anamnese) → alerta JMP silencioso
+
+**4.4** Cron diário `daily-rollover` (existe? caso contrário criar):
+- Marca sessões não encerradas como `AUTO_CONCLUIDA` ou `AUSENTE`
+- Verifica condições de `ausencia` (2 semanas) e `nao_concluiu` (3 parciais)
+
+### Fase 5 — UI Admin: Visualização e Validação
+
+**5.1 Nova aba "Matriz de Volume" em `ProtocolAgentTab.tsx`**
+- Tabela visual dos 30 outputs (T×D×Disp) com edição inline (séries min/max, n_ex)
+- Indicador de cobertura: para cada output, quantos exercícios disponíveis no banco
+
+**5.2 Novo painel "Banco do Protocolo" em `/admin/protocol-exercises`**
+- Lista exercícios `protocol_only=true` com filtros: kind (PAI/SUB), bloco_protocolo, treino_letra, pain_region
+- Editor de relação PAI↔SUB (drag & drop ou select)
+- Marcadores `is_primary` / `is_fixed_base`
+- Status visual: "Banco insuficiente para B1A+D3+L1" quando faltarem IDs
+
+**5.3 Estender o Simulador atual** (`ProtocolSimulator.tsx`) para mostrar o `output_id` resolvido e o caminho de decisão completo.
 
 ---
 
-## Decisões aplicadas
+## Resposta direta à sua pergunta — "quais variáveis determinam o ID do exercício?"
 
-- **Seed completo** dos ~50 vídeos como skeleton (sem URL). Admin só preenche YouTube depois conforme conteúdo for produzido.
-- **VID-RES por exercício**: usar coluna nova `agent_videos.exercise_id` (mais flexível que `exercises.preparation_video_url`, que continua existindo para exercícios fora do protocolo).
-- **`agent_videos` ≠ `support_videos`**: mantidas como tabelas distintas com finalidades diferentes (motor determinístico do protocolo vs. biblioteca aberta).
-- **Consumo no fluxo de execução** (chamadas reais à RPC durante a sessão) fica para uma próxima entrega — primeiro precisamos popular as URLs.
+A seleção de **qual ID exato** entra na sessão deve ser determinada pela combinação destas variáveis, com a hierarquia exata do doc Outputs v2:
 
-Posso prosseguir?
+```
+ID escolhido = f(
+  [PERFIL FIXO]      pain_region (L), ins_cat (I), nivel_experiencia, autonomia,
+  [TRIAGEM DO DIA]   tempo_cat (T), dor_cat (D), disposicao,
+  [HISTÓRICO]        bloco_protocolo, treino_letra (A/B), sessao_num, last_load,
+  [METADADO DO EX]   kind (PAI/SUB), pain_region do exercício, is_fixed_base, is_primary,
+                     safety_level <= teto(I), protocol_only=true
+)
+```
+
+A hierarquia de precedência é fixa: **D3 > D2 > Tempo > Disposição > Mobilidade (nunca remove) > Fortalecimento (depende de experiência) > Alternância A/B (sempre preservada)**.
+
+Sem as colunas `kind`, `parent_exercise_id`, `pain_region`, `treino_letra`, `bloco_protocolo`, `is_fixed_base` e a tabela `volume_outputs`, é **matematicamente impossível** o sistema reproduzir a matriz JMP. Esses são os ajustes obrigatórios.
+
+---
+
+## Arquivos esperados
+
+**Migrações:**
+- `..._extend_exercises_for_protocol.sql` (enums + colunas em exercises/anamnesis)
+- `..._volume_outputs_seed.sql` (tabela + seed dos 30 OUT-XXX)
+- `..._perception_signals_and_load_history.sql` (tabelas + triggers + alertas)
+- `..._select_session_exercises_rpc.sql` (RPC determinística)
+
+**Edge Functions:**
+- Reescrever: `supabase/functions/agent-build-session/index.ts`
+- Criar: `supabase/functions/record-perception-signal/index.ts`
+- Criar: `supabase/functions/submit-post-session-feedback/index.ts`
+- Criar/atualizar: `supabase/functions/daily-rollover/index.ts`
+
+**Frontend:**
+- Novo: `src/pages/admin/ProtocolBank.tsx` + `ProtocolBankTable.tsx` + `PaiSubLinker.tsx`
+- Novo: `src/components/admin/VolumeMatrixTab.tsx` (aba na ProtocolAgentTab)
+- Editar: `src/components/admin/ProtocolSimulator.tsx` (mostra output_id e trace)
+- Editar: `src/components/sidebar/AppSidebar.tsx` (entrada Repertório → Banco do Protocolo)
+- Hooks: `useProtocolExercises.ts`, `useVolumeOutputs.ts`, `usePerceptionSignals.ts`
+
+**Memória a atualizar:**
+- `mem://features/protocol-exercise-library` (acrescentar variáveis de seleção)
+- Nova: `mem://architecture/exercise-selection-engine` (hierarquia das 6 variáveis + RPC)
+
+---
+
+## Pontos que pedem decisão sua antes de eu implementar
+
+1. **Seed do banco do Protocolo**: você tem a planilha com os IDs JMP (ex: MIMACS1BI003 / MIMACS1BI003a) para eu carregar como seed, ou criamos vazios para o admin preencher?
+2. **Migração de dados existentes**: hoje há 0 exercícios `protocol_only=true`. OK começar do zero, sem retrofit?
+3. **Escopo desta entrega**: implemento as 5 fases agora, ou começamos pelas Fases 1+3 (schema + RPC) e deixamos UI admin para depois?
