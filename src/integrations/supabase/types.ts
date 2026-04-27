@@ -116,17 +116,25 @@ export type Database = {
       agent_videos: {
         Row: {
           active: boolean | null
+          bloco_alvo: number | null
           created_at: string
           description: string | null
           duration_seconds: number | null
+          exercise_id: string | null
+          gatilho: string | null
           id: string
           mandatory_at_session: number | null
+          momento: Database["public"]["Enums"]["momento_video_enum"] | null
+          obrigatorio: boolean
+          ordem_sequencia: number
+          pilar: Database["public"]["Enums"]["pilar_video_enum"] | null
           recommended_for_dor_cat:
             | Database["public"]["Enums"]["dor_categoria"]
             | null
           recommended_for_ins_cat:
             | Database["public"]["Enums"]["inseguranca_categoria"]
             | null
+          sessoes_alvo: number[] | null
           title: string
           updated_at: string
           video_code: string
@@ -134,17 +142,25 @@ export type Database = {
         }
         Insert: {
           active?: boolean | null
+          bloco_alvo?: number | null
           created_at?: string
           description?: string | null
           duration_seconds?: number | null
+          exercise_id?: string | null
+          gatilho?: string | null
           id?: string
           mandatory_at_session?: number | null
+          momento?: Database["public"]["Enums"]["momento_video_enum"] | null
+          obrigatorio?: boolean
+          ordem_sequencia?: number
+          pilar?: Database["public"]["Enums"]["pilar_video_enum"] | null
           recommended_for_dor_cat?:
             | Database["public"]["Enums"]["dor_categoria"]
             | null
           recommended_for_ins_cat?:
             | Database["public"]["Enums"]["inseguranca_categoria"]
             | null
+          sessoes_alvo?: number[] | null
           title: string
           updated_at?: string
           video_code: string
@@ -152,23 +168,39 @@ export type Database = {
         }
         Update: {
           active?: boolean | null
+          bloco_alvo?: number | null
           created_at?: string
           description?: string | null
           duration_seconds?: number | null
+          exercise_id?: string | null
+          gatilho?: string | null
           id?: string
           mandatory_at_session?: number | null
+          momento?: Database["public"]["Enums"]["momento_video_enum"] | null
+          obrigatorio?: boolean
+          ordem_sequencia?: number
+          pilar?: Database["public"]["Enums"]["pilar_video_enum"] | null
           recommended_for_dor_cat?:
             | Database["public"]["Enums"]["dor_categoria"]
             | null
           recommended_for_ins_cat?:
             | Database["public"]["Enums"]["inseguranca_categoria"]
             | null
+          sessoes_alvo?: number[] | null
           title?: string
           updated_at?: string
           video_code?: string
           youtube_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agent_videos_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ai_agent_config: {
         Row: {
@@ -2570,6 +2602,26 @@ export type Database = {
         Args: { _client_id: string; _exercise_id: string }
         Returns: number
       }
+      get_videos_for_session_moment: {
+        Args: {
+          _bloco_atual?: number
+          _client_id: string
+          _exercise_id?: string
+          _momento: Database["public"]["Enums"]["momento_video_enum"]
+          _sessao_num: number
+        }
+        Returns: {
+          description: string
+          motivo: string
+          obrigatorio: boolean
+          ordem: number
+          pilar: Database["public"]["Enums"]["pilar_video_enum"]
+          title: string
+          video_code: string
+          video_id: string
+          youtube_url: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2657,6 +2709,13 @@ export type Database = {
         | "inicia_bloco"
         | "checkpoint_jmp"
         | "encerra_protocolo"
+      momento_video_enum:
+        | "abertura"
+        | "antes_bloco"
+        | "antes_exercicio"
+        | "intervalo"
+        | "pos_sessao"
+        | "sessao_inteira"
       perfil_comportamental:
         | "P01_empurrado_pela_dor"
         | "P02_assustado_com_tempo"
@@ -2665,6 +2724,17 @@ export type Database = {
         | "P05_sobrecarregado"
         | "P06_deslocado"
       periodo_preferido: "manha" | "tarde" | "noite"
+      pilar_video_enum:
+        | "mobilidade"
+        | "fortalecimento"
+        | "resistido"
+        | "alongamento"
+        | "encerramento"
+        | "dor"
+        | "modo_seguro"
+        | "intro"
+        | "progressao"
+        | "fim"
       rotina_tipo: "pre_trabalho" | "pos_trabalho" | "livre"
       safety_level_enum: "S1" | "S2" | "S3" | "S4" | "S5"
       session_type: "Mobilidade" | "Alongamento" | "Musculação"
@@ -2902,6 +2972,14 @@ export const Constants = {
         "checkpoint_jmp",
         "encerra_protocolo",
       ],
+      momento_video_enum: [
+        "abertura",
+        "antes_bloco",
+        "antes_exercicio",
+        "intervalo",
+        "pos_sessao",
+        "sessao_inteira",
+      ],
       perfil_comportamental: [
         "P01_empurrado_pela_dor",
         "P02_assustado_com_tempo",
@@ -2911,6 +2989,18 @@ export const Constants = {
         "P06_deslocado",
       ],
       periodo_preferido: ["manha", "tarde", "noite"],
+      pilar_video_enum: [
+        "mobilidade",
+        "fortalecimento",
+        "resistido",
+        "alongamento",
+        "encerramento",
+        "dor",
+        "modo_seguro",
+        "intro",
+        "progressao",
+        "fim",
+      ],
       rotina_tipo: ["pre_trabalho", "pos_trabalho", "livre"],
       safety_level_enum: ["S1", "S2", "S3", "S4", "S5"],
       session_type: ["Mobilidade", "Alongamento", "Musculação"],

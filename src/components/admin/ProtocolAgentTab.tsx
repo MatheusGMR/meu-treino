@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Trophy, Video, MessageSquare, RefreshCw, ShieldCheck, Loader2, Beaker, BookOpen } from "lucide-react";
+import { Trophy, Video, MessageSquare, RefreshCw, ShieldCheck, Loader2, Beaker, BookOpen, Map } from "lucide-react";
 import { ProtocolSimulator } from "./ProtocolSimulator";
+import { AgentVideosMapTab } from "./AgentVideosMapTab";
 
 interface Milestone {
   id: string;
@@ -86,14 +87,21 @@ export const ProtocolAgentTab = () => {
 
   return (
     <Tabs defaultValue="rules" className="w-full">
-      <TabsList className="grid grid-cols-2 max-w-md mb-6">
+      <TabsList className="grid grid-cols-3 max-w-xl mb-6">
         <TabsTrigger value="rules" className="gap-2">
           <BookOpen className="w-4 h-4" /> Diretrizes
+        </TabsTrigger>
+        <TabsTrigger value="map" className="gap-2">
+          <Map className="w-4 h-4" /> Mapa de Vídeos
         </TabsTrigger>
         <TabsTrigger value="simulator" className="gap-2">
           <Beaker className="w-4 h-4" /> Simulador
         </TabsTrigger>
       </TabsList>
+
+      <TabsContent value="map">
+        <AgentVideosMapTab />
+      </TabsContent>
 
       <TabsContent value="simulator">
         <ProtocolSimulator />
