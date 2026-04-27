@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Edit, Trash2, Eye } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Edit, Trash2, Eye, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -34,10 +34,18 @@ interface ExercisesTableProps {
   isLoading: boolean;
 }
 
+type SortKey = "external_id" | "name" | "block" | "exercise_group" | "safety_level" | "level";
+type SortDir = "asc" | "desc";
+
+const SAFETY_ORDER: Record<string, number> = { S1: 1, S2: 2, S3: 3, S4: 4, S5: 5 };
+const LEVEL_ORDER: Record<string, number> = { Iniciante: 1, Intermediário: 2, Avançado: 3 };
+
 export const ExercisesTable = ({ exercises, isLoading }: ExercisesTableProps) => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editExercise, setEditExercise] = useState<Exercise | null>(null);
   const [previewExercise, setPreviewExercise] = useState<Exercise | null>(null);
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
   const deleteMutation = useDeleteExercise();
 
   const handleDelete = () => {
@@ -45,6 +53,82 @@ export const ExercisesTable = ({ exercises, isLoading }: ExercisesTableProps) =>
     deleteMutation.mutate(deleteId);
     setDeleteId(null);
   };
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey !== key) {
+      setSortKey(key);
+      setSortDir("asc");
+    } else if (sortDir === "asc") {
+      setSortDir("desc");
+    } else {
+      // 3º clique limpa ordenação
+      setSortKey(null);
+      setSortDir("asc");
+    }
+  };
+
+  const getSortValue = (ex: any, key: SortKey): string | number => {
+    switch (key) {
+      case "external_id":
+        return (ex.external_id ?? "").toString().toLowerCase();
+      case "name":
+        return (ex.name ?? "").toString().toLowerCase();
+      case "block":
+        return (ex.block ?? "").toString().toLowerCase();
+      case "exercise_group":
+        return (ex.exercise_group ?? "").toString().toLowerCase();
+      case "safety_level":
+        return SAFETY_ORDER[ex.safety_level] ?? 999;
+      case "level":
+        return LEVEL_ORDER[ex.level] ?? 999;
+    }
+  };
+
+  const sortedExercises = useMemo(() => {
+    if (!sortKey) return exercises;
+    const arr = [...exercises];
+    arr.sort((a, b) => {
+      const va = getSortValue(a, sortKey);
+      const vb = getSortValue(b, sortKey);
+      if (va < vb) return sortDir === "asc" ? -1 : 1;
+      if (va > vb) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+    return arr;
+  }, [exercises, sortKey, sortDir]);
+
+  const SortIcon = ({ k }: { k: SortKey }) => {
+    if (sortKey !== k) return <ArrowUpDown className="w-3.5 h-3.5 opacity-40" />;
+    return sortDir === "asc" ? (
+      <ArrowUp className="w-3.5 h-3.5 text-primary" />
+    ) : (
+      <ArrowDown className="w-3.5 h-3.5 text-primary" />
+    );
+  };
+
+  const SortableHead = ({
+    k,
+    label,
+    align = "left",
+  }: {
+    k: SortKey;
+    label: string;
+    align?: "left" | "right";
+  }) => (
+    <TableHead className={align === "right" ? "text-right" : ""}>
+      <button
+        type="button"
+        onClick={() => toggleSort(k)}
+        className={`inline-flex items-center gap-1.5 hover:text-foreground transition-colors ${
+          sortKey === k ? "text-foreground font-semibold" : ""
+        }`}
+        title="Clique para ordenar"
+      >
+        {label}
+        <SortIcon k={k} />
+      </button>
+    </TableHead>
+  );
 
   if (isLoading) {
     return (
@@ -73,17 +157,17 @@ export const ExercisesTable = ({ exercises, isLoading }: ExercisesTableProps) =>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Nome</TableHead>
-              <TableHead>Bloco</TableHead>
-              <TableHead>Grupo</TableHead>
-              <TableHead>Segurança</TableHead>
-              <TableHead>Nível</TableHead>
+              <SortableHead k="external_id" label="ID" />
+              <SortableHead k="name" label="Nome" />
+              <SortableHead k="block" label="Bloco" />
+              <SortableHead k="exercise_group" label="Grupo" />
+              <SortableHead k="safety_level" label="Segurança" />
+              <SortableHead k="level" label="Nível" />
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {exercises.map((exercise) => (
+            {sortedExercises.map((exercise) => (
               <TableRow key={exercise.id}>
                 <TableCell className="font-mono text-xs text-muted-foreground">
                   {(exercise as any).external_id || "—"}
