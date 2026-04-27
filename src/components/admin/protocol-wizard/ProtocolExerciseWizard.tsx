@@ -66,7 +66,7 @@ export const ProtocolExerciseWizard = ({ exercise, onClose, protocolOnly = true 
         is_primary: false,
         is_fixed_base: false,
         safety_level: null,
-        protocol_only: true,
+        protocol_only: protocolOnly,
         exercise_group: "Outro",
         exercise_type: "Musculação",
         parent_exercise_id: null,
