@@ -25,12 +25,12 @@ export const ExercisePreview = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{exercise.name}</DialogTitle>
+      <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] flex flex-col p-0 gap-0">
+        <DialogHeader className="p-6 pb-3 border-b shrink-0">
+          <DialogTitle className="pr-8">{exercise.name}</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+        <div className="space-y-4 flex-1 overflow-y-auto overflow-x-auto p-6">
           {/* Thumbnail do exercício */}
           {exercise.thumbnail_url && (
             <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
