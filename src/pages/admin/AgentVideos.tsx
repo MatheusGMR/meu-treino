@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Plus, Edit, Trash2, Search, Video, CheckCircle2, AlertCircle } from "lucide-react";
-import { AppLayout } from "@/components/layout/AppLayout";
+
 import { useAgentVideos, type AgentVideoRow } from "@/hooks/useAgentVideos";
 import { AgentVideoDialog } from "@/components/admin/AgentVideoDialog";
 import {
@@ -89,8 +89,7 @@ export default function AgentVideos() {
   };
 
   return (
-    <AppLayout>
-      <div className="container max-w-7xl py-6 space-y-6">
+    <div className="container max-w-7xl py-6 space-y-6">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
