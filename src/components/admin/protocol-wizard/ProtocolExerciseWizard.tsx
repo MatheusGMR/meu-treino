@@ -63,10 +63,16 @@ export const ProtocolExerciseWizard = ({ exercise, onClose, protocolOnly = true 
         ...exercise,
         movement_vector: (exercise as any).movement_vector ?? null,
         _level: ((exercise as any).difficulty_code as LevelCode) ?? "",
+        level: (exercise as any).level ?? null,
+        impact_level: (exercise as any).impact_level ?? null,
+        contraindication: (exercise as any).contraindication ?? null,
+        short_description: (exercise as any).short_description ?? null,
+        secondary_muscle: (exercise as any).secondary_muscle ?? null,
+        coaching_cues: (exercise as any).coaching_cues ?? null,
       });
       setGeneratedId(exercise.external_id ?? "");
-      setDone([0, 1, 2, 3, 4]);
-      setStep(5);
+      setDone([0, 1, 2, 3, 4, 5]);
+      setStep(6);
     } else {
       setForm({
         name: "",
@@ -86,6 +92,12 @@ export const ProtocolExerciseWizard = ({ exercise, onClose, protocolOnly = true 
         primary_muscle: "",
         movement_vector: null,
         _level: "",
+        level: null,
+        impact_level: "Baixo",
+        contraindication: null,
+        short_description: null,
+        secondary_muscle: null,
+        coaching_cues: null,
       });
       setStep(0);
       setDone([]);
