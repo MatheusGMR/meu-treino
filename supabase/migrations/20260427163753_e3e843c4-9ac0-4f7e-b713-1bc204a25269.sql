@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.get_videos_for_session_moment(uuid,integer,public.momento_video_enum,uuid,integer) FROM PUBLIC, anon;
