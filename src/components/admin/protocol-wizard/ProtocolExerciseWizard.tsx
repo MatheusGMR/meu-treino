@@ -143,7 +143,7 @@ export const ProtocolExerciseWizard = ({ exercise, onClose, protocolOnly = true 
       ...form,
       external_id: generatedId,
       difficulty_code: form._level,
-      protocol_only: true,
+      protocol_only: protocolOnly,
     };
     delete payload._level;
     delete payload._equip;
