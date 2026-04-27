@@ -157,17 +157,17 @@ export const ExercisesTable = ({ exercises, isLoading }: ExercisesTableProps) =>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Nome</TableHead>
-              <TableHead>Bloco</TableHead>
-              <TableHead>Grupo</TableHead>
-              <TableHead>Segurança</TableHead>
-              <TableHead>Nível</TableHead>
+              <SortableHead k="external_id" label="ID" />
+              <SortableHead k="name" label="Nome" />
+              <SortableHead k="block" label="Bloco" />
+              <SortableHead k="exercise_group" label="Grupo" />
+              <SortableHead k="safety_level" label="Segurança" />
+              <SortableHead k="level" label="Nível" />
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {exercises.map((exercise) => (
+            {sortedExercises.map((exercise) => (
               <TableRow key={exercise.id}>
                 <TableCell className="font-mono text-xs text-muted-foreground">
                   {(exercise as any).external_id || "—"}
