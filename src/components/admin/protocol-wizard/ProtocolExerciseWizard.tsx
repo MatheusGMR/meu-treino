@@ -33,7 +33,7 @@ type FormState = Partial<ProtocolExercise> & {
   _level?: LevelCode | "";
 };
 
-export const ProtocolExerciseWizard = ({ exercise, onClose }: Props) => {
+export const ProtocolExerciseWizard = ({ exercise, onClose, protocolOnly = true }: Props) => {
   const upsert = useUpsertProtocolExercise();
   const { data: allBank } = useProtocolBank();
 
