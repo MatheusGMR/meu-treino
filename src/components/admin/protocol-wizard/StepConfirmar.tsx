@@ -39,13 +39,23 @@ export const StepConfirmar = ({ form, generatedId, onPrev, onSave, saving }: Pro
     { label: "Bloco", value: blocoNome },
     { label: "Equipamento", value: equipNome },
     { label: "Segurança", value: `${form._safety} — ${segInfo?.nome ?? ""}` },
-    { label: "Nível", value: `${form._level} — ${nivelNome}` },
+    { label: "Nível JMP", value: `${form._level} — ${nivelNome}` },
+    {
+      label: "Nível do Cliente",
+      value: ((form as any).level as string) ?? "—",
+    },
+    { label: "Impacto", value: ((form as any).impact_level as string) ?? "—" },
     { label: "Vetor", value: form.movement_vector ?? "—" },
     { label: "Tipo", value: form.kind ?? "—" },
     { label: "Região de dor", value: form.pain_region ?? "—" },
     { label: "Treino", value: form.treino_letra ?? "Ambos" },
     { label: "Bloco protocolo", value: String(form.bloco_protocolo ?? 1) },
     { label: "Grupo Muscular", value: form.primary_muscle ?? "—", full: true },
+    {
+      label: "Músculo secundário",
+      value: ((form as any).secondary_muscle as string) || "—",
+      full: true,
+    },
   ];
 
   return (

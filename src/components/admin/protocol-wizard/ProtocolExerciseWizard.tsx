@@ -11,6 +11,10 @@ import {
   LevelCode,
   SafetyCode,
   SEG_MAP,
+  mapJmpLevelToClientLevel,
+  equipCodeToHumanName,
+  blockToDominantMovement,
+  blockToBiomechanicalClass,
 } from "@/lib/protocol/exerciseTaxonomy";
 import { WizardStepper } from "./WizardStepper";
 import { StepNome } from "./StepNome";
@@ -18,6 +22,7 @@ import { StepBloco } from "./StepBloco";
 import { StepEquipamento } from "./StepEquipamento";
 import { StepNivel } from "./StepNivel";
 import { StepDetalhes } from "./StepDetalhes";
+import { StepContexto } from "./StepContexto";
 import { StepConfirmar } from "./StepConfirmar";
 import { StepSucesso } from "./StepSucesso";
 
@@ -31,6 +36,13 @@ interface Props {
 type FormState = Partial<ProtocolExercise> & {
   movement_vector?: string | null;
   _level?: LevelCode | "";
+  // Campos de contexto (cliente + agente)
+  level?: string | null;
+  impact_level?: string | null;
+  contraindication?: string | null;
+  short_description?: string | null;
+  secondary_muscle?: string | null;
+  coaching_cues?: string[] | null;
 };
 
 export const ProtocolExerciseWizard = ({ exercise, onClose, protocolOnly = true }: Props) => {
@@ -51,10 +63,16 @@ export const ProtocolExerciseWizard = ({ exercise, onClose, protocolOnly = true 
         ...exercise,
         movement_vector: (exercise as any).movement_vector ?? null,
         _level: ((exercise as any).difficulty_code as LevelCode) ?? "",
+        level: (exercise as any).level ?? null,
+        impact_level: (exercise as any).impact_level ?? null,
+        contraindication: (exercise as any).contraindication ?? null,
+        short_description: (exercise as any).short_description ?? null,
+        secondary_muscle: (exercise as any).secondary_muscle ?? null,
+        coaching_cues: (exercise as any).coaching_cues ?? null,
       });
       setGeneratedId(exercise.external_id ?? "");
-      setDone([0, 1, 2, 3, 4]);
-      setStep(5);
+      setDone([0, 1, 2, 3, 4, 5]);
+      setStep(6);
     } else {
       setForm({
         name: "",
@@ -74,6 +92,12 @@ export const ProtocolExerciseWizard = ({ exercise, onClose, protocolOnly = true 
         primary_muscle: "",
         movement_vector: null,
         _level: "",
+        level: null,
+        impact_level: "Baixo",
+        contraindication: null,
+        short_description: null,
+        secondary_muscle: null,
+        coaching_cues: null,
       });
       setStep(0);
       setDone([]);
@@ -139,12 +163,32 @@ export const ProtocolExerciseWizard = ({ exercise, onClose, protocolOnly = true 
   };
 
   const handleSave = async () => {
-    const equipFromForm = (form as any)._equip ?? null;
+    const equipFromForm = ((form as any)._equip ?? null) as EquipCode | null;
+    const blockFromForm = (form.block ?? null) as BlockCode | null;
+    const jmpLevel = (form._level ?? null) as LevelCode | null;
+
+    // Nível visível para o cliente: usa o que o usuário ajustou no Step Contexto,
+    // senão deriva do código JMP. Garante que /exercises e o agente nunca fiquem em branco.
+    const clientLevel = form.level ?? mapJmpLevelToClientLevel(jmpLevel);
+    const equipName = equipCodeToHumanName(equipFromForm);
+    const dominant = blockToDominantMovement(blockFromForm);
+    const biomech = blockToBiomechanicalClass(blockFromForm);
+
     const payload: any = {
       ...form,
       external_id: generatedId,
-      difficulty_code: form._level,
+      difficulty_code: jmpLevel,
       equipment_code: equipFromForm,
+      // Espelhamento p/ a biblioteca regular e agentes legados:
+      level: clientLevel,
+      equipment: equipName ? [equipName] : (form as any).equipment ?? null,
+      dominant_movement: (form as any).dominant_movement ?? dominant,
+      biomechanical_class: (form as any).biomechanical_class ?? biomech,
+      impact_level: form.impact_level ?? "Baixo",
+      contraindication: form.contraindication ?? null,
+      short_description: form.short_description ?? null,
+      secondary_muscle: form.secondary_muscle ?? null,
+      coaching_cues: form.coaching_cues ?? null,
       protocol_only: protocolOnly,
     };
     delete payload._level;
@@ -176,6 +220,12 @@ export const ProtocolExerciseWizard = ({ exercise, onClose, protocolOnly = true 
       primary_muscle: "",
       movement_vector: null,
       _level: "",
+      level: null,
+      impact_level: "Baixo",
+      contraindication: null,
+      short_description: null,
+      secondary_muscle: null,
+      coaching_cues: null,
     });
   };
 
@@ -237,18 +287,34 @@ export const ProtocolExerciseWizard = ({ exercise, onClose, protocolOnly = true 
             onNext={goNext}
           />
         )}
-        {step === 5 && !saved && block && equip && safety && level && (
+        {step === 5 && (
+          <StepContexto
+            value={{
+              level: form.level ?? null,
+              impact_level: form.impact_level ?? null,
+              contraindication: form.contraindication ?? null,
+              short_description: form.short_description ?? null,
+              secondary_muscle: form.secondary_muscle ?? null,
+              coaching_cues: form.coaching_cues ?? null,
+            }}
+            jmpLevel={level}
+            onChange={(p) => patch(p)}
+            onPrev={() => setStep(4)}
+            onNext={goNext}
+          />
+        )}
+        {step === 6 && !saved && block && equip && safety && level && (
           <StepConfirmar
             form={
               { ...form, _block: block, _equip: equip, _safety: safety, _level: level } as any
             }
             generatedId={generatedId}
-            onPrev={() => setStep(4)}
+            onPrev={() => setStep(5)}
             onSave={handleSave}
             saving={upsert.isPending}
           />
         )}
-        {step === 5 && saved && (
+        {step === 6 && saved && (
           <StepSucesso generatedId={generatedId} onAddAnother={reset} onClose={onClose} />
         )}
       </div>
