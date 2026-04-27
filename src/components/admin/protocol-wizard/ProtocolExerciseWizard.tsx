@@ -36,6 +36,13 @@ interface Props {
 type FormState = Partial<ProtocolExercise> & {
   movement_vector?: string | null;
   _level?: LevelCode | "";
+  // Campos de contexto (cliente + agente)
+  level?: string | null;
+  impact_level?: string | null;
+  contraindication?: string | null;
+  short_description?: string | null;
+  secondary_muscle?: string | null;
+  coaching_cues?: string[] | null;
 };
 
 export const ProtocolExerciseWizard = ({ exercise, onClose, protocolOnly = true }: Props) => {
