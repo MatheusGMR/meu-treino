@@ -318,6 +318,7 @@ export type Database = {
           estresse: string | null
           evento_especifico: string | null
           experiencia_previa: boolean | null
+          flag_frustrado: boolean
           frequencia_atual: string | null
           frequencia_esperada: number | null
           gender: string | null
@@ -340,7 +341,11 @@ export type Database = {
           medicamento: string | null
           motivacao: string | null
           motivacao_real: string | null
+          multi_dor: boolean
           nivel_experiencia: string | null
+          nivel_experiencia_norm:
+            | Database["public"]["Enums"]["nivel_experiencia_enum"]
+            | null
           nutrition_quality: string | null
           objetivo_secundario: string | null
           pain_details: string | null
@@ -413,6 +418,7 @@ export type Database = {
           estresse?: string | null
           evento_especifico?: string | null
           experiencia_previa?: boolean | null
+          flag_frustrado?: boolean
           frequencia_atual?: string | null
           frequencia_esperada?: number | null
           gender?: string | null
@@ -435,7 +441,11 @@ export type Database = {
           medicamento?: string | null
           motivacao?: string | null
           motivacao_real?: string | null
+          multi_dor?: boolean
           nivel_experiencia?: string | null
+          nivel_experiencia_norm?:
+            | Database["public"]["Enums"]["nivel_experiencia_enum"]
+            | null
           nutrition_quality?: string | null
           objetivo_secundario?: string | null
           pain_details?: string | null
@@ -508,6 +518,7 @@ export type Database = {
           estresse?: string | null
           evento_especifico?: string | null
           experiencia_previa?: boolean | null
+          flag_frustrado?: boolean
           frequencia_atual?: string | null
           frequencia_esperada?: number | null
           gender?: string | null
@@ -530,7 +541,11 @@ export type Database = {
           medicamento?: string | null
           motivacao?: string | null
           motivacao_real?: string | null
+          multi_dor?: boolean
           nivel_experiencia?: string | null
+          nivel_experiencia_norm?:
+            | Database["public"]["Enums"]["nivel_experiencia_enum"]
+            | null
           nutrition_quality?: string | null
           objetivo_secundario?: string | null
           pain_details?: string | null
@@ -787,6 +802,56 @@ export type Database = {
           video_shown_at?: string | null
         }
         Relationships: []
+      }
+      client_exercise_load_history: {
+        Row: {
+          client_id: string
+          created_at: string
+          current_load_kg: number
+          decided_by: string | null
+          exercise_id: string
+          id: string
+          last_progression_at: string | null
+          notes: string | null
+          previous_load_kg: number | null
+          progression_count: number
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          current_load_kg?: number
+          decided_by?: string | null
+          exercise_id: string
+          id?: string
+          last_progression_at?: string | null
+          notes?: string | null
+          previous_load_kg?: number | null
+          progression_count?: number
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          current_load_kg?: number
+          decided_by?: string | null
+          exercise_id?: string
+          id?: string
+          last_progression_at?: string | null
+          notes?: string | null
+          previous_load_kg?: number | null
+          progression_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_exercise_load_history_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       client_payment_configs: {
         Row: {
@@ -1210,6 +1275,7 @@ export type Database = {
           scheduled_for: string
           session_id: string | null
           session_order: number | null
+          session_status: Database["public"]["Enums"]["session_status_enum"]
           total_weight_lifted: number | null
         }
         Insert: {
@@ -1225,6 +1291,7 @@ export type Database = {
           scheduled_for: string
           session_id?: string | null
           session_order?: number | null
+          session_status?: Database["public"]["Enums"]["session_status_enum"]
           total_weight_lifted?: number | null
         }
         Update: {
@@ -1240,6 +1307,7 @@ export type Database = {
           scheduled_for?: string
           session_id?: string | null
           session_order?: number | null
+          session_status?: Database["public"]["Enums"]["session_status_enum"]
           total_weight_lifted?: number | null
         }
         Relationships: [
@@ -1335,6 +1403,7 @@ export type Database = {
           added_at: string | null
           biomechanical_class: string | null
           block: Database["public"]["Enums"]["exercise_block_enum"] | null
+          bloco_protocolo: number | null
           coaching_cues: string[] | null
           common_mistakes: string[] | null
           confidence_score: number | null
@@ -1354,7 +1423,10 @@ export type Database = {
           external_id: string | null
           id: string
           impact_level: string | null
+          is_fixed_base: boolean
           is_new: boolean | null
+          is_primary: boolean
+          kind: Database["public"]["Enums"]["exercise_kind_enum"] | null
           last_updated_at: string | null
           level: string | null
           limitation: string | null
@@ -1362,6 +1434,8 @@ export type Database = {
           long_description: string | null
           movement: string | null
           name: string
+          pain_region: Database["public"]["Enums"]["pain_region_enum"] | null
+          parent_exercise_id: string | null
           preparation_description: string | null
           preparation_video_url: string | null
           primary_muscle: string | null
@@ -1378,6 +1452,7 @@ export type Database = {
           tags: string[] | null
           target_audience: string[] | null
           thumbnail_url: string | null
+          treino_letra: Database["public"]["Enums"]["treino_letra_enum"] | null
           updated_at: string | null
           variation: string | null
           variations: string[] | null
@@ -1387,6 +1462,7 @@ export type Database = {
           added_at?: string | null
           biomechanical_class?: string | null
           block?: Database["public"]["Enums"]["exercise_block_enum"] | null
+          bloco_protocolo?: number | null
           coaching_cues?: string[] | null
           common_mistakes?: string[] | null
           confidence_score?: number | null
@@ -1406,7 +1482,10 @@ export type Database = {
           external_id?: string | null
           id?: string
           impact_level?: string | null
+          is_fixed_base?: boolean
           is_new?: boolean | null
+          is_primary?: boolean
+          kind?: Database["public"]["Enums"]["exercise_kind_enum"] | null
           last_updated_at?: string | null
           level?: string | null
           limitation?: string | null
@@ -1414,6 +1493,8 @@ export type Database = {
           long_description?: string | null
           movement?: string | null
           name: string
+          pain_region?: Database["public"]["Enums"]["pain_region_enum"] | null
+          parent_exercise_id?: string | null
           preparation_description?: string | null
           preparation_video_url?: string | null
           primary_muscle?: string | null
@@ -1430,6 +1511,7 @@ export type Database = {
           tags?: string[] | null
           target_audience?: string[] | null
           thumbnail_url?: string | null
+          treino_letra?: Database["public"]["Enums"]["treino_letra_enum"] | null
           updated_at?: string | null
           variation?: string | null
           variations?: string[] | null
@@ -1439,6 +1521,7 @@ export type Database = {
           added_at?: string | null
           biomechanical_class?: string | null
           block?: Database["public"]["Enums"]["exercise_block_enum"] | null
+          bloco_protocolo?: number | null
           coaching_cues?: string[] | null
           common_mistakes?: string[] | null
           confidence_score?: number | null
@@ -1458,7 +1541,10 @@ export type Database = {
           external_id?: string | null
           id?: string
           impact_level?: string | null
+          is_fixed_base?: boolean
           is_new?: boolean | null
+          is_primary?: boolean
+          kind?: Database["public"]["Enums"]["exercise_kind_enum"] | null
           last_updated_at?: string | null
           level?: string | null
           limitation?: string | null
@@ -1466,6 +1552,8 @@ export type Database = {
           long_description?: string | null
           movement?: string | null
           name?: string
+          pain_region?: Database["public"]["Enums"]["pain_region_enum"] | null
+          parent_exercise_id?: string | null
           preparation_description?: string | null
           preparation_video_url?: string | null
           primary_muscle?: string | null
@@ -1482,12 +1570,21 @@ export type Database = {
           tags?: string[] | null
           target_audience?: string[] | null
           thumbnail_url?: string | null
+          treino_letra?: Database["public"]["Enums"]["treino_letra_enum"] | null
           updated_at?: string | null
           variation?: string | null
           variations?: string[] | null
           video_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "exercises_parent_exercise_id_fkey"
+            columns: ["parent_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       funnel_events: {
         Row: {
@@ -2047,6 +2144,39 @@ export type Database = {
         }
         Relationships: []
       }
+      random_check_schedule: {
+        Row: {
+          active: boolean
+          created_at: string
+          fase: number
+          id: string
+          posicao_descricao: string | null
+          primary_exercise_slot: string
+          sessao_num: number
+          treino_letra: Database["public"]["Enums"]["treino_letra_enum"]
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          fase: number
+          id?: string
+          posicao_descricao?: string | null
+          primary_exercise_slot: string
+          sessao_num: number
+          treino_letra: Database["public"]["Enums"]["treino_letra_enum"]
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          fase?: number
+          id?: string
+          posicao_descricao?: string | null
+          primary_exercise_slot?: string
+          sessao_num?: number
+          treino_letra?: Database["public"]["Enums"]["treino_letra_enum"]
+        }
+        Relationships: []
+      }
       session_completions: {
         Row: {
           client_id: string | null
@@ -2180,6 +2310,54 @@ export type Database = {
             columns: ["volume_id"]
             isOneToOne: false
             referencedRelation: "volumes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      session_perception_signals: {
+        Row: {
+          client_id: string
+          created_at: string
+          exercise_id: string
+          id: string
+          load_at_signal: number | null
+          schedule_id: string | null
+          sessao_num: number | null
+          signal_type: Database["public"]["Enums"]["perception_signal_enum"]
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          exercise_id: string
+          id?: string
+          load_at_signal?: number | null
+          schedule_id?: string | null
+          sessao_num?: number | null
+          signal_type: Database["public"]["Enums"]["perception_signal_enum"]
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          exercise_id?: string
+          id?: string
+          load_at_signal?: number | null
+          schedule_id?: string | null
+          sessao_num?: number | null
+          signal_type?: Database["public"]["Enums"]["perception_signal_enum"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_perception_signals_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_perception_signals_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "daily_workout_schedule"
             referencedColumns: ["id"]
           },
         ]
@@ -2349,6 +2527,73 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      volume_outputs: {
+        Row: {
+          active: boolean
+          along_rule: Json
+          created_at: string
+          disposicao: Database["public"]["Enums"]["disposicao_categoria"] | null
+          dor_cat: Database["public"]["Enums"]["dor_categoria"]
+          fort_rule: Json
+          mob_rule: Json
+          modo_d3: boolean
+          n_ex_max: number
+          n_ex_min: number
+          notes: string | null
+          output_id: string
+          reps: number
+          resist_rule: Json
+          series_max: number
+          series_min: number
+          tempo_cat: Database["public"]["Enums"]["tempo_categoria"]
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          along_rule?: Json
+          created_at?: string
+          disposicao?:
+            | Database["public"]["Enums"]["disposicao_categoria"]
+            | null
+          dor_cat: Database["public"]["Enums"]["dor_categoria"]
+          fort_rule?: Json
+          mob_rule?: Json
+          modo_d3?: boolean
+          n_ex_max: number
+          n_ex_min: number
+          notes?: string | null
+          output_id: string
+          reps?: number
+          resist_rule?: Json
+          series_max: number
+          series_min: number
+          tempo_cat: Database["public"]["Enums"]["tempo_categoria"]
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          along_rule?: Json
+          created_at?: string
+          disposicao?:
+            | Database["public"]["Enums"]["disposicao_categoria"]
+            | null
+          dor_cat?: Database["public"]["Enums"]["dor_categoria"]
+          fort_rule?: Json
+          mob_rule?: Json
+          modo_d3?: boolean
+          n_ex_max?: number
+          n_ex_min?: number
+          notes?: string | null
+          output_id?: string
+          reps?: number
+          resist_rule?: Json
+          series_max?: number
+          series_min?: number
+          tempo_cat?: Database["public"]["Enums"]["tempo_categoria"]
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2644,7 +2889,14 @@ export type Database = {
         | "condicao_cardiaca"
         | "inconsistencia_checkin"
         | "divergencia_conduta"
+        | "gatilho_potencial"
+        | "pesado_recorrente"
+        | "dor_nova"
+        | "dor_escalada"
+        | "ausencia"
+        | "nao_concluiu"
       app_role: "admin" | "personal" | "client"
+      autonomia_enum: "A1" | "A2" | "A3"
       autonomia_nivel: "baixa" | "media" | "alta"
       client_status: "Ativo" | "Inativo" | "Suspenso"
       condicao_medica_flag:
@@ -2683,6 +2935,7 @@ export type Database = {
         | "Quadríceps"
         | "Posterior"
         | "Lombar"
+      exercise_kind_enum: "PAI" | "SUB"
       exercise_type_enum: "Musculação" | "Mobilidade" | "Cardio" | "Alongamento"
       inseguranca_categoria: "I1" | "I2" | "I3"
       intensity_level: "Fácil" | "Intermediário" | "Difícil"
@@ -2716,6 +2969,13 @@ export type Database = {
         | "intervalo"
         | "pos_sessao"
         | "sessao_inteira"
+      nivel_experiencia_enum: "iniciante" | "intermediario" | "avancado"
+      pain_region_enum: "L0" | "L1" | "L2" | "L3" | "L_MULTI"
+      perception_signal_enum:
+        | "ESPONTANEO_LEVE"
+        | "RANDOMICO_LEVE"
+        | "RANDOMICO_NORMAL"
+        | "RANDOMICO_PESADO"
       perfil_comportamental:
         | "P01_empurrado_pela_dor"
         | "P02_assustado_com_tempo"
@@ -2737,6 +2997,12 @@ export type Database = {
         | "fim"
       rotina_tipo: "pre_trabalho" | "pos_trabalho" | "livre"
       safety_level_enum: "S1" | "S2" | "S3" | "S4" | "S5"
+      session_status_enum:
+        | "CONCLUIDA"
+        | "AUTO_CONCLUIDA"
+        | "PARCIAL"
+        | "AUSENTE"
+        | "PRESUMIDO"
       session_type: "Mobilidade" | "Alongamento" | "Musculação"
       support_video_category:
         | "educacional"
@@ -2760,6 +3026,7 @@ export type Database = {
         | "Musculação"
         | "Funcional"
         | "Outro"
+      treino_letra_enum: "A" | "B"
       workout_type_enum: "standard" | "protocolo_destravamento"
     }
     CompositeTypes: {
@@ -2900,8 +3167,15 @@ export const Constants = {
         "condicao_cardiaca",
         "inconsistencia_checkin",
         "divergencia_conduta",
+        "gatilho_potencial",
+        "pesado_recorrente",
+        "dor_nova",
+        "dor_escalada",
+        "ausencia",
+        "nao_concluiu",
       ],
       app_role: ["admin", "personal", "client"],
+      autonomia_enum: ["A1", "A2", "A3"],
       autonomia_nivel: ["baixa", "media", "alta"],
       client_status: ["Ativo", "Inativo", "Suspenso"],
       condicao_medica_flag: [
@@ -2943,6 +3217,7 @@ export const Constants = {
         "Posterior",
         "Lombar",
       ],
+      exercise_kind_enum: ["PAI", "SUB"],
       exercise_type_enum: ["Musculação", "Mobilidade", "Cardio", "Alongamento"],
       inseguranca_categoria: ["I1", "I2", "I3"],
       intensity_level: ["Fácil", "Intermediário", "Difícil"],
@@ -2980,6 +3255,14 @@ export const Constants = {
         "pos_sessao",
         "sessao_inteira",
       ],
+      nivel_experiencia_enum: ["iniciante", "intermediario", "avancado"],
+      pain_region_enum: ["L0", "L1", "L2", "L3", "L_MULTI"],
+      perception_signal_enum: [
+        "ESPONTANEO_LEVE",
+        "RANDOMICO_LEVE",
+        "RANDOMICO_NORMAL",
+        "RANDOMICO_PESADO",
+      ],
       perfil_comportamental: [
         "P01_empurrado_pela_dor",
         "P02_assustado_com_tempo",
@@ -3003,6 +3286,13 @@ export const Constants = {
       ],
       rotina_tipo: ["pre_trabalho", "pos_trabalho", "livre"],
       safety_level_enum: ["S1", "S2", "S3", "S4", "S5"],
+      session_status_enum: [
+        "CONCLUIDA",
+        "AUTO_CONCLUIDA",
+        "PARCIAL",
+        "AUSENTE",
+        "PRESUMIDO",
+      ],
       session_type: ["Mobilidade", "Alongamento", "Musculação"],
       support_video_category: [
         "educacional",
@@ -3029,6 +3319,7 @@ export const Constants = {
         "Funcional",
         "Outro",
       ],
+      treino_letra_enum: ["A", "B"],
       workout_type_enum: ["standard", "protocolo_destravamento"],
     },
   },
