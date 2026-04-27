@@ -1,100 +1,141 @@
 
+# Implementação do Mapeamento de Vídeos JMP — Fases 1 a 5
 
-# Revisão da Jornada de Execução de Treino
+Sistema de vídeos contextuais do Protocolo Destravamento, conforme racional do profissional. Trabalho dividido em 5 fases entregues em conjunto.
 
-Vou refinar a tela `WorkoutSessionExecution` para criar um fluxo guiado por vídeo + áudio descritivo, com botão único contextual e gestão inteligente de séries/peso.
-
-## Visão Geral do Fluxo Proposto
+## Visão geral
 
 ```text
-┌─────────────────────────────────────────────────────────┐
-│ 1. PREPARAÇÃO       │ Vídeo de preparação roda em loop  │
-│  (Estado: prepare)  │ → Botão grande: "COMEÇAR"         │
-├─────────────────────────────────────────────────────────┤
-│ 2. EXECUÇÃO         │ Vídeo do exercício (auto-play)    │
-│  (Estado: execute)  │ Campo "Carga (kg)" abaixo (edit)  │
-│                     │ Indicador de série atual (1/3)    │
-│                     │ → Botão: "CONCLUIR SÉRIE"         │
-├─────────────────────────────────────────────────────────┤
-│ 3. DESCANSO         │ Timer circular + áudio "descanse" │
-│  (Estado: rest)     │ → Botão: "PRÓXIMA SÉRIE" (após)   │
-├─────────────────────────────────────────────────────────┤
-│ 4. CONCLUÍDO        │ Animação de check                 │
-│  (Estado: done)     │ → Auto-avança próximo exercício   │
-└─────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────┐
+│ Anamnese  →  ins_cat fixo (I1/I2/I3) — nunca sobe         │
+│   ↓                                                        │
+│ Sessão N + momento (abertura/antes_bloco/intervalo/...)   │
+│   ↓                                                        │
+│ RPC get_videos_for_session_moment(client, sessao, momento)│
+│   ↓                                                        │
+│ Hierarquia: Marco > Modo Seguro > Dor > ENC-I3 > 1ª vez   │
+│             exercício > Opcionais do nível                 │
+│   ↓                                                        │
+│ [VID-..., obrigatorio: true|false, ordem: N]              │
+└────────────────────────────────────────────────────────────┘
 ```
 
-## Mudanças por Arquivo
+## Fase 1 — Estender `agent_videos`
 
-### 1. Banco de Dados (migração)
-- **`exercises`**: adicionar `preparation_video_url` (text) e `preparation_description` (text) — vídeo curto opcional para preparação/setup do exercício.
-- **`session_completions`**: já existe; vamos garantir que `weight_used` aceite o último peso usado por exercício.
-- **Nova função RPC `get_last_weight_for_exercise(client_id, exercise_id)`**: retorna o último `weight_used` registrado, para sugerir como padrão na próxima execução (memória inteligente de carga).
+Migração que adiciona ao schema atual:
 
-### 2. `WorkoutSessionExecution.tsx` — Refatoração de máquina de estados
-Substituir o controle disperso (`showRestTimer`) por um único estado:
-```ts
-type Phase = "prepare" | "execute" | "rest" | "done";
+- `pilar` (enum): `mobilidade | fortalecimento | resistido | alongamento | encerramento | dor | modo_seguro | intro | progressao | fim`
+- `momento` (enum): `abertura | antes_bloco | antes_exercicio | intervalo | pos_sessao | sessao_inteira`
+- `obrigatorio` (boolean, default false) — dispara automaticamente sem opção do cliente
+- `gatilho` (text) — descrição humana ("Toda sessão — I3 — até sessão 6")
+- `sessoes_alvo` (int[]) — sessões específicas (`[1]`, `[6,12,18,24]`, `[36]`)
+- `bloco_alvo` (int) — 1, 2 ou 3 (null = qualquer bloco)
+- `exercise_id` (uuid, FK para exercises) — nullable, usado pelos VID-RES de setup
+- `ordem_sequencia` (int default 0) — ordem dentro do mesmo gatilho (D3 dispara 3 vídeos em sequência)
+- Índice composto `(pilar, recommended_for_ins_cat, momento)` para consultas rápidas
+
+**Seed completo** com as ~50 entradas do documento (skeleton — sem `youtube_url`):
+- I1: 5 vídeos (MOB, FORT, RES, ALONG, ENC)
+- I2: ~12 vídeos
+- I3: ~15 vídeos (mais reforço positivo)
+- Condição (DOR, MS): 7 vídeos (D1, D2, D3, MS)
+- Marcos (INTRO, PROG, FIM): 5 vídeos — já existem 7, complementar/ajustar
+
+Os 7 vídeos já cadastrados (`VID-INTRO-01`, `VID-INTRO-02`, `VID-PROG-B2`, `VID-PROG-B3`, `VID-FIM-01`, `VID-DOR-01`, `VID-ENC-I3-03`) recebem os novos campos via UPDATE.
+
+## Fase 2 — RPC `get_videos_for_session_moment`
+
+Função SECURITY DEFINER que centraliza a hierarquia de disparo (seção 4 do documento):
+
+```text
+Input:  client_id, sessao_num, momento, [exercise_id], [dor_cat], [modo_seguro]
+Output: Lista ordenada de vídeos { video_code, title, youtube_url, obrigatorio, ordem }
+
+Lógica em camadas (todas aditivas, ordenadas por prioridade):
+ 1. Marcos obrigatórios (sessao=1 → INTRO; sessao=13 → PROG-B2; sessao=25 → PROG-B3; sessao=36 → FIM)
+ 2. Modo Seguro ativo → sequência fixa VID-DOR-D3-01 + D3-02 + MS-01
+ 3. Dor D2/D3 (sem modo seguro) → VID-DOR-D2-* ou D3-*
+ 4. ENC-I3 obrigatório se ins_cat=I3 e (sessao ≤ 6 OR sessao IN [6,12,18,24])
+ 5. 1ª vez do exercício (consulta client_exercise_first_use) →
+       obrigatório se ins_cat=I3, opcional se I1/I2
+ 6. Vídeos opcionais do (pilar, ins_cat, momento, bloco_atual)
 ```
-- Cada exercício começa em `prepare` se houver `preparation_video_url`, senão pula direto para `execute`.
-- Botão principal único, contextual (CTA grande no rodapé):
-  - `prepare` → **"COMEÇAR"**
-  - `execute` → **"CONCLUIR SÉRIE X"**
-  - `rest` → **"PRÓXIMA SÉRIE"** (habilitado quando timer terminar; permite pular)
-  - última série + último exercício → **"FINALIZAR TREINO"**
-- Remover navegação manual prev/next durante execução (substituir por botão discreto "Pular exercício" no menu de overflow), evitando confusão.
 
-### 3. `ExerciseVideoPlayer.tsx` — Auto-play e loop
-- Aceitar prop `autoplay` e `loop`.
-- Para YouTube: usar parâmetros `?autoplay=1&loop=1&playlist=ID&mute=0&controls=1` (mute inicial só para garantir autoplay em mobile, com botão "Ativar áudio" sobreposto).
-- Para fase de preparação: vídeo em loop até clicar "Começar".
-- Para fase de execução: vídeo toca uma vez, ao terminar dispara callback para destacar botão "Concluir Série" (pulse animation).
+Função consulta `anamnesis.ins_cat`, `client_protocol_progress` (sessão e bloco), `client_exercise_first_use`, e o `daily_checkin_sessions` mais recente para `dor_cat`.
 
-### 4. `SeriesTracker.tsx` — Simplificar e integrar com peso sugerido
-- Remover botão interno "Concluir Série" (vai para o CTA principal do container).
-- Manter campo **Carga (kg)** editável, pré-preenchido com último peso registrado via RPC (`get_last_weight_for_exercise`).
-- Esconder campo de peso para exercícios sem carga (mobilidade, alongamento) — detectar via `exercise_type !== "Musculação"`.
-- Indicador visual compacto da série atual (chips 1/2/3).
-- Expor handler `onCompleteSet` para o pai chamar.
+## Fase 3 — Regra "nível nunca sobe" + alerta JMP s.6
 
-### 5. `RestTimer.tsx` — Auto-start e callback
-- Iniciar automaticamente ao entrar na fase `rest`.
-- Ao zerar, manter visível mas habilitar botão "Próxima Série" no CTA pai (sem auto-avanço — o usuário decide quando está pronto).
-- Adicionar feedback sonoro opcional (beep curto via Web Audio API) ao terminar.
+Ajuste no edge function `calculate-anamnesis-profile` (já existente) para aplicar a tabela de derivação:
 
-### 6. Áudio descritivo
-- **Implementação**: `SpeechSynthesisUtterance` (Web Speech API, já usado no daily check-in conforme memória).
-- Falas contextuais em pt-BR:
-  - Início de preparação: lê `preparation_description` do exercício.
-  - Início de execução: "Série X de Y. Vamos lá."
-  - Fim de série: "Boa! Descanse Z segundos."
-  - Fim de descanso: "Pronto para a próxima série."
-- Toggle global de áudio (ícone alto-falante no header) salvo em `localStorage`.
+| Insegurança declarada | Experiência prévia | `ins_cat` final | Ação |
+|---|---|---|---|
+| Alta | Sem | I3 | — |
+| Alta | Com | I3 | Cria `agent_alerts` tipo `revisao_nivel_s6` |
+| Média | Sem | I2 | — |
+| Média | Com | I1 | — |
+| Baixa | Sem | I2 | — |
+| Baixa | Com | I1 | — |
 
-### 7. Integração com banco
-- Cada `Concluir Série` continua chamando `useCompleteSet` (insere em `session_completions` com `weight_used`, `reps_completed`, `rest_time_used`).
-- Ao concluir todas as séries do último exercício: chama `useCompleteSession` (atualiza `daily_workout_schedule.completed=true`).
-- Trigger existente `increment_completed_sessions` e `update_frequencia_semanal_and_alert` continuam funcionando sem mudanças.
-- Para clientes do Protocolo Destravamento (`client_workouts.workout_type='protocolo_destravamento'`), o `MandatoryVideoModal` continua sendo exibido antes da preparação, conforme já implementado na Fase 3.
+A insegurança puxa o nível para baixo apenas quando há experiência. Adicionar enum `revisao_nivel_s6` em `alert_type_enum` se não existir.
 
-## Detalhes Técnicos
+## Fase 4 — UI Admin: Vídeos do Agente
 
-- **Estado da sessão**: `useReducer` em vez de múltiplos `useState` para garantir transições atômicas entre fases.
-- **Persistência local**: salvar progresso em `sessionStorage` (`workout-progress-{sessionId}`) para resistir a reload acidental.
-- **Acessibilidade**: botão CTA com `aria-label` dinâmico; respeitar `prefers-reduced-motion` para a animação de pulse.
-- **Mobile-first**: layout otimizado para 390px (vídeo no topo 16:9, CTA fixo no rodapé com `safe-area-inset-bottom`).
-- **Performance**: pré-carregar thumbnail do próximo exercício durante o descanso.
+Nova rota `/admin/agent-videos` separada de "Vídeos de Apoio" (mantém finalidades distintas).
 
-## Arquivos Afetados
-- `supabase/migrations/<novo>.sql` — colunas `preparation_video_url`, `preparation_description` + função `get_last_weight_for_exercise`.
-- `src/integrations/supabase/types.ts` — auto-regenerado.
-- `src/pages/client/WorkoutSessionExecution.tsx` — refatoração completa para máquina de estados.
-- `src/components/client/ExerciseVideoPlayer.tsx` — autoplay/loop/onEnd.
-- `src/components/client/YouTubePlayer.tsx` — aceitar params autoplay/loop/mute.
-- `src/components/client/SeriesTracker.tsx` — simplificar + peso sugerido.
-- `src/components/client/RestTimer.tsx` — auto-start + callback.
-- `src/hooks/useSessionCompletion.ts` — adicionar `useLastWeightForExercise(clientId, exerciseId)`.
-- `src/hooks/useExerciseAudioCues.ts` (novo) — wrapper Web Speech API + toggle localStorage.
-- `src/lib/schemas/exerciseSchema.ts` — incluir `preparation_video_url` e `preparation_description` (opcionais) para o trainer cadastrar.
-- `src/components/exercises/ExerciseDialog.tsx` — campos no formulário de exercício.
+**Página `src/pages/admin/AgentVideos.tsx`**:
+- Header com **card de progresso de produção**: "X de Y vídeos com link configurado"
+- Filtros: pilar (chips), nível (I1/I2/I3/All), momento, status (com URL / sem URL)
+- Grid agrupado por pilar > nível, mostrando código, título, status (✅ link configurado | ⚠️ pendente), badge "obrigatório"
+- Botão "Importar mapeamento JMP completo" → executa seed se houver gaps (idempotente)
+- Botão por linha: editar / excluir / preview
 
+**Dialog `src/components/admin/AgentVideoDialog.tsx`** (react-hook-form + Zod):
+- Campos: `video_code`, `title`, `description`, `pilar`, `recommended_for_ins_cat`, `momento`, `youtube_url`, `obrigatorio`, `gatilho` (textarea legível), `sessoes_alvo` (multi-input), `bloco_alvo`, `exercise_id` (autocomplete dos exercícios protocol_only), `recommended_for_dor_cat`, `mandatory_at_session`, `ordem_sequencia`, `active`
+- Preview do YouTube embutido quando URL preenchida
+- Validação cruzada: se `pilar=resistido` e `momento=antes_exercicio` → `exercise_id` obrigatório
+
+**Hook `src/hooks/useAgentVideos.ts`**: CRUD + filtros + função `seedFromMapping()` que invoca a edge function de re-seed.
+
+**Sidebar**: adicionar "Vídeos do Agente" sob "Repertório" no admin (separado de "Vídeos de Apoio").
+
+## Fase 5 — Aba "Mapa de Vídeos" no ProtocolAgentTab
+
+Estender `src/components/admin/ProtocolAgentTab.tsx` adicionando uma 3ª aba "Mapa de Vídeos" (junto de Diretrizes e Simulador):
+
+- **Card 1**: Tabela de atribuição I1/I2/I3 (regra "nunca sobe")
+- **Card 2**: Diagrama da hierarquia de disparo (5 prioridades) com badges coloridos
+- **Card 3**: Heatmap visual mostrando os ~50 vídeos agrupados por (pilar × nível), cor verde se URL configurada, amarelo se pendente
+- **Card 4**: Lista resumida das condições obrigatórias por sessão (1, 6, 12, 13, 18, 24, 25, 36)
+- Link "Gerenciar vídeos" que leva para `/admin/agent-videos`
+
+Tudo somente-leitura nesta aba — gestão fica em `/admin/agent-videos`.
+
+---
+
+## Arquivos criados / editados
+
+**Criados:**
+- `supabase/migrations/<timestamp>_extend_agent_videos.sql` (schema + seed)
+- `src/pages/admin/AgentVideos.tsx`
+- `src/components/admin/AgentVideoDialog.tsx`
+- `src/components/admin/AgentVideosMapTab.tsx` (Card-conteúdo da nova aba)
+- `src/hooks/useAgentVideos.ts`
+- `src/lib/schemas/agentVideoSchema.ts`
+
+**Editados:**
+- `src/App.tsx` — registra rota `/admin/agent-videos`
+- `src/components/sidebar/AppSidebar.tsx` — item "Vídeos do Agente"
+- `src/components/admin/ProtocolAgentTab.tsx` — terceira aba "Mapa de Vídeos"
+- `supabase/functions/calculate-anamnesis-profile/index.ts` — aplica regra ins_cat + cria alerta
+- `src/integrations/supabase/types.ts` — auto-regenerado
+
+---
+
+## Decisões aplicadas
+
+- **Seed completo** dos ~50 vídeos como skeleton (sem URL). Admin só preenche YouTube depois conforme conteúdo for produzido.
+- **VID-RES por exercício**: usar coluna nova `agent_videos.exercise_id` (mais flexível que `exercises.preparation_video_url`, que continua existindo para exercícios fora do protocolo).
+- **`agent_videos` ≠ `support_videos`**: mantidas como tabelas distintas com finalidades diferentes (motor determinístico do protocolo vs. biblioteca aberta).
+- **Consumo no fluxo de execução** (chamadas reais à RPC durante a sessão) fica para uma próxima entrega — primeiro precisamos popular as URLs.
+
+Posso prosseguir?
