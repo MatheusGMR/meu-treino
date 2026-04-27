@@ -417,6 +417,27 @@ serve(async (req) => {
 
     if (updateProfileError) throw updateProfileError;
 
+    // 9.1. Alerta JMP: revisão de nível na sessão 6 (I3 com experiência prévia)
+    if (trigger_revisao_s6) {
+      const { error: alertErr } = await supabase.from("agent_alerts").insert({
+        client_id: clientId,
+        alert_type: "revisao_nivel_I3",
+        severity: "media",
+        title: "Revisar nível na sessão 6",
+        description:
+          "Cliente classificado como I3 mas declarou experiência prévia. Revisar progresso e considerar reclassificação na sessão 6.",
+        payload: {
+          ins_cat,
+          inseguranca,
+          tem_experiencia: temExperiencia,
+          tipos_de_treino_feitos: anamnesis.tipos_de_treino_feitos ?? null,
+          checkpoint_session: 6,
+        },
+      });
+      if (alertErr) console.warn("⚠️ Falha ao criar alerta revisao_nivel_I3:", alertErr);
+      else console.log("🔔 Alerta revisao_nivel_I3 criado para cliente", clientId);
+    }
+
     console.log("✅ Perfil calculado e atualizado com sucesso:", {
       profile: finalProfile,
       confidence: `${(finalConfidence * 100).toFixed(1)}%`,
