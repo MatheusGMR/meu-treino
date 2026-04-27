@@ -43,6 +43,7 @@ import PendingUpdates from "./pages/admin/PendingUpdates";
 import ExerciseImport from "./pages/admin/ExerciseImport";
 import SupportVideos from "./pages/admin/SupportVideos";
 import AgentVideos from "./pages/admin/AgentVideos";
+import ProtocolBank from "./pages/admin/ProtocolBank";
 
 import Marketing from "./pages/admin/Marketing";
 import JmpAlerts from "./pages/admin/JmpAlerts";
@@ -408,6 +409,16 @@ const App = () => (
                 <AuthGuard>
                   <RoleGuard allowedRoles={["admin"]}>
                     <AgentVideos />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/admin/protocol-bank"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["admin"]}>
+                    <ProtocolBank />
                   </RoleGuard>
                 </AuthGuard>
               }
