@@ -44,6 +44,7 @@ export const ExerciseDialog = ({
         <ProtocolExerciseWizard
           exercise={(exercise as unknown as ProtocolExercise) ?? null}
           onClose={() => onOpenChange(false)}
+          protocolOnly={false}
         />
       </DialogContent>
     </Dialog>
