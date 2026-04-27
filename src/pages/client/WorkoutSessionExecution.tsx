@@ -355,12 +355,13 @@ const WorkoutSessionExecution = () => {
     );
   }
 
-  // Determinar fonte de mídia
+  // Determinar fonte de mídia (vídeo de preparação > vídeo de execução > thumbnail)
+  const exerciseVideo = (currentExercise.exercises as any)?.video_url as string | undefined;
+  const thumbnail = (currentExercise.exercises as any)?.thumbnail_url as string | undefined;
   const mainVideo =
     state.phase === "prepare" && preparationUrl
       ? preparationUrl
-      : (currentExercise.exercises as any)?.video_url;
-  const thumbnail = (currentExercise.exercises as any)?.thumbnail_url;
+      : exerciseVideo || thumbnail;
 
   // CTA contextual
   const ctaLabel =
@@ -387,18 +388,11 @@ const WorkoutSessionExecution = () => {
         {mainVideo ? (
           <ExerciseVideoPlayer
             mediaUrl={mainVideo}
-            mediaType="video"
             exerciseName={(currentExercise.exercises as any)?.name || ""}
             autoplay
             loop={state.phase === "prepare"}
             mute={false}
             onEnded={state.phase === "execute" ? handleVideoEnded : undefined}
-          />
-        ) : thumbnail ? (
-          <img
-            src={thumbnail}
-            alt={(currentExercise.exercises as any)?.name}
-            className="w-full h-full object-cover"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-card">

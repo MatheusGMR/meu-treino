@@ -2,12 +2,24 @@ import { YouTubePlayer } from "./YouTubePlayer";
 
 interface ExerciseVideoPlayerProps {
   mediaUrl?: string | null;
+  /** Dica opcional. Se omitido, é detectado pela extensão/URL. */
   mediaType?: string | null;
   exerciseName: string;
   autoplay?: boolean;
   loop?: boolean;
   mute?: boolean;
   onEnded?: () => void;
+}
+
+const IMAGE_EXT = /\.(png|jpe?g|gif|webp|avif|svg)(\?|#|$)/i;
+const VIDEO_EXT = /\.(mp4|webm|ogg|mov|m4v)(\?|#|$)/i;
+
+function detectKind(url: string): "youtube" | "image" | "video" | "unknown" {
+  if (!url) return "unknown";
+  if (url.includes("youtube.com") || url.includes("youtu.be")) return "youtube";
+  if (IMAGE_EXT.test(url)) return "image";
+  if (VIDEO_EXT.test(url)) return "video";
+  return "unknown";
 }
 
 export const ExerciseVideoPlayer = ({
@@ -21,23 +33,38 @@ export const ExerciseVideoPlayer = ({
 }: ExerciseVideoPlayerProps) => {
   if (!mediaUrl) {
     return (
-      <div className="aspect-video rounded-lg bg-muted flex items-center justify-center">
+      <div className="w-full h-full bg-muted flex items-center justify-center">
         <p className="text-muted-foreground">Sem mídia disponível</p>
       </div>
     );
   }
 
-  const isYouTube = mediaUrl.includes("youtube.com") || mediaUrl.includes("youtu.be");
+  const detected = detectKind(mediaUrl);
+  // mediaType (hint) só é respeitado quando a URL não denuncia outro formato.
+  const kind =
+    detected !== "unknown"
+      ? detected
+      : mediaType === "image"
+      ? "image"
+      : mediaType === "video"
+      ? "video"
+      : "unknown";
 
-  if ((mediaType === "video" || isYouTube) && isYouTube) {
+  if (kind === "youtube") {
     return (
-      <YouTubePlayer url={mediaUrl} autoplay={autoplay} loop={loop} mute={mute} onEnded={onEnded} />
+      <YouTubePlayer
+        url={mediaUrl}
+        autoplay={autoplay}
+        loop={loop}
+        mute={mute}
+        onEnded={onEnded}
+      />
     );
   }
 
-  if (mediaType === "video") {
+  if (kind === "video") {
     return (
-      <div className="aspect-video rounded-lg overflow-hidden bg-black">
+      <div className="w-full h-full overflow-hidden bg-black">
         <video
           src={mediaUrl}
           autoPlay={autoplay}
@@ -52,21 +79,26 @@ export const ExerciseVideoPlayer = ({
     );
   }
 
-  if (mediaType === "image") {
+  if (kind === "image") {
     return (
-      <div className="aspect-video rounded-lg overflow-hidden">
+      <div className="w-full h-full overflow-hidden bg-black">
         <img
           src={mediaUrl}
           alt={exerciseName}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain"
         />
       </div>
     );
   }
 
+  // Fallback: tenta como iframe genérico (Vimeo etc.)
   return (
-    <div className="aspect-video rounded-lg bg-muted flex items-center justify-center">
-      <p className="text-muted-foreground">Formato de mídia não suportado</p>
-    </div>
+    <iframe
+      src={mediaUrl}
+      title={exerciseName}
+      className="w-full h-full"
+      allow="autoplay; encrypted-media; picture-in-picture"
+      allowFullScreen
+    />
   );
 };
