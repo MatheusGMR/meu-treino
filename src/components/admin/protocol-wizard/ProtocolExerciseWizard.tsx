@@ -139,10 +139,12 @@ export const ProtocolExerciseWizard = ({ exercise, onClose, protocolOnly = true 
   };
 
   const handleSave = async () => {
+    const equipFromForm = (form as any)._equip ?? null;
     const payload: any = {
       ...form,
       external_id: generatedId,
       difficulty_code: form._level,
+      equipment_code: equipFromForm,
       protocol_only: protocolOnly,
     };
     delete payload._level;
