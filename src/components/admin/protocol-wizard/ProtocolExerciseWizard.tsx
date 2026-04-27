@@ -24,6 +24,8 @@ import { StepSucesso } from "./StepSucesso";
 interface Props {
   exercise?: ProtocolExercise | null;
   onClose: () => void;
+  /** true = exercício do Protocolo JMP; false = biblioteca regular. Default: true */
+  protocolOnly?: boolean;
 }
 
 type FormState = Partial<ProtocolExercise> & {
