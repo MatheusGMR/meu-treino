@@ -331,18 +331,43 @@ serve(async (req) => {
       dor_cat = "D0";
     }
 
-    // ins_cat: I1/I2/I3 a partir de campos preenchidos pelo cliente (já vem mapeado da UI)
-    // Se ainda não temos, inferimos: estreante + frustrado + sem experiência => I3
-    let ins_cat: "I1" | "I2" | "I3" | null = anamnesis.ins_cat ?? null;
-    if (!ins_cat) {
-      if (anamnesis.perfil_primario === "04" || anamnesis.perfil_primario === "03") {
-        ins_cat = "I3";
-      } else if (anamnesis.perfil_primario === "01" || anamnesis.perfil_primario === "05") {
-        ins_cat = "I2";
-      } else {
-        ins_cat = "I1";
-      }
+    // ins_cat: I1/I2/I3 — REGRA "NUNCA SOBE" (mapeamento JMP)
+    // Tabela oficial:
+    //   Insegurança ALTA + sem exp.  → I3
+    //   Insegurança ALTA + com exp.  → I3 (+ alerta revisao_nivel_I3 na sessão 6)
+    //   Insegurança MÉDIA + sem exp. → I2
+    //   Insegurança MÉDIA + com exp. → I1
+    //   Insegurança BAIXA + sem exp. → I2
+    //   Insegurança BAIXA + com exp. → I1
+    // A presença de experiência sempre puxa o nível para baixo (I1), exceto quando a insegurança é alta.
+    const temExperiencia = Boolean(
+      anamnesis.previous_weight_training === true ||
+        anamnesis.experiencia_previa === true ||
+        (Array.isArray(anamnesis.tipos_de_treino_feitos) && anamnesis.tipos_de_treino_feitos.length > 0)
+    );
+
+    // Insegurança declarada: perfis 03/04 = alta, 01/05 = média, demais = baixa
+    type InsegurancaNivel = "alta" | "media" | "baixa";
+    const inseguranca: InsegurancaNivel =
+      anamnesis.perfil_primario === "04" || anamnesis.perfil_primario === "03"
+        ? "alta"
+        : anamnesis.perfil_primario === "01" || anamnesis.perfil_primario === "05"
+        ? "media"
+        : "baixa";
+
+    let ins_cat: "I1" | "I2" | "I3";
+    let trigger_revisao_s6 = false;
+
+    if (inseguranca === "alta") {
+      ins_cat = "I3";
+      if (temExperiencia) trigger_revisao_s6 = true;
+    } else if (inseguranca === "media") {
+      ins_cat = temExperiencia ? "I1" : "I2";
+    } else {
+      ins_cat = temExperiencia ? "I1" : "I2";
     }
+
+    console.log("📊 ins_cat (regra nunca sobe):", { inseguranca, temExperiencia, ins_cat, trigger_revisao_s6 });
 
     // alert_medical: dispara alerta JMP antes da Sessão 1 se houver sinal vermelho
     const alert_medical = Boolean(
