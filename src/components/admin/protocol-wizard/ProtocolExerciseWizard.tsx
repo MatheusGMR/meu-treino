@@ -24,6 +24,8 @@ import { StepSucesso } from "./StepSucesso";
 interface Props {
   exercise?: ProtocolExercise | null;
   onClose: () => void;
+  /** true = exercício do Protocolo JMP; false = biblioteca regular. Default: true */
+  protocolOnly?: boolean;
 }
 
 type FormState = Partial<ProtocolExercise> & {
@@ -31,7 +33,7 @@ type FormState = Partial<ProtocolExercise> & {
   _level?: LevelCode | "";
 };
 
-export const ProtocolExerciseWizard = ({ exercise, onClose }: Props) => {
+export const ProtocolExerciseWizard = ({ exercise, onClose, protocolOnly = true }: Props) => {
   const upsert = useUpsertProtocolExercise();
   const { data: allBank } = useProtocolBank();
 
@@ -64,7 +66,7 @@ export const ProtocolExerciseWizard = ({ exercise, onClose }: Props) => {
         is_primary: false,
         is_fixed_base: false,
         safety_level: null,
-        protocol_only: true,
+        protocol_only: protocolOnly,
         exercise_group: "Outro",
         exercise_type: "Musculação",
         parent_exercise_id: null,
@@ -141,7 +143,7 @@ export const ProtocolExerciseWizard = ({ exercise, onClose }: Props) => {
       ...form,
       external_id: generatedId,
       difficulty_code: form._level,
-      protocol_only: true,
+      protocol_only: protocolOnly,
     };
     delete payload._level;
     delete payload._equip;

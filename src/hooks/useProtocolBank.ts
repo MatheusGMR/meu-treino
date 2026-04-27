@@ -67,7 +67,7 @@ export const useUpsertProtocolExercise = () => {
     mutationFn: async (input: Partial<ProtocolExercise> & { id?: string; name: string }) => {
       const payload: any = {
         ...input,
-        protocol_only: true,
+        protocol_only: input.protocol_only ?? true,
         exercise_group: input.exercise_group ?? "Outro",
         exercise_type: input.exercise_type ?? "Musculação",
       };
