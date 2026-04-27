@@ -313,7 +313,6 @@ export default function AgentVideos() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </div>
-    </AppLayout>
+    </div>
   );
 }
