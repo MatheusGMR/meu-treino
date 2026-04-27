@@ -7,7 +7,10 @@ export type ProtocolExercise = {
   name: string;
   exercise_id: string | null;
   external_id: string | null;
-  block: "MOB" | "FORT" | "RESIST" | "ALONG" | null;
+  block: "MOB" | "FORT" | "MS" | "MI" | "CARD" | "ALONG" | null;
+  equipment_code: "PC" | "ELAS" | "MAC" | "DIV" | "CONV" | "CAB" | "BAR" | "HAL" | null;
+  difficulty_code: string | null;
+  movement_vector: string | null;
   kind: "PAI" | "SUB" | null;
   parent_exercise_id: string | null;
   pain_region: "L0" | "L1" | "L2" | "L3" | "L_MULTI" | null;
@@ -24,6 +27,9 @@ export type ProtocolExercise = {
   created_at: string | null;
 };
 
+const SELECT_COLS =
+  "id,name,exercise_id,external_id,block,equipment_code,difficulty_code,movement_vector,kind,parent_exercise_id,pain_region,treino_letra,bloco_protocolo,is_primary,is_fixed_base,safety_level,video_url,protocol_only,primary_muscle,exercise_group,exercise_type,created_at";
+
 export const useProtocolBank = (filters?: {
   bloco?: number;
   treino?: "A" | "B";
@@ -36,9 +42,7 @@ export const useProtocolBank = (filters?: {
     queryFn: async () => {
       let q = supabase
         .from("exercises")
-        .select(
-          "id,name,exercise_id,external_id,block,kind,parent_exercise_id,pain_region,treino_letra,bloco_protocolo,is_primary,is_fixed_base,safety_level,video_url,protocol_only,primary_muscle,exercise_group,exercise_type,created_at"
-        )
+        .select(SELECT_COLS)
         .eq("protocol_only", true)
         .order("bloco_protocolo", { ascending: true, nullsFirst: false })
         .order("treino_letra", { ascending: true, nullsFirst: false })
@@ -52,7 +56,7 @@ export const useProtocolBank = (filters?: {
 
       const { data, error } = await q;
       if (error) throw error;
-      return (data ?? []) as ProtocolExercise[];
+      return (data ?? []) as unknown as ProtocolExercise[];
     },
   });
 };
@@ -64,8 +68,7 @@ export const useUpsertProtocolExercise = () => {
       const payload: any = {
         ...input,
         protocol_only: true,
-        // garante grupo/tipo presentes
-        exercise_group: input.exercise_group ?? "Outros",
+        exercise_group: input.exercise_group ?? "Outro",
         exercise_type: input.exercise_type ?? "Musculação",
       };
       if (payload.id) {
