@@ -134,7 +134,14 @@ const ClientDashboard = () => {
       {/* Day Selector */}
       <div className="px-5 mb-6">
         <div className="flex gap-2 justify-center">
-          {weeklySchedule.length > 0
+          {scheduleLoading
+            ? Array.from({ length: 5 }).map((_, i) => (
+                <div
+                  key={`sk-${i}`}
+                  className="w-14 h-20 rounded-lg bg-muted/40 animate-pulse"
+                />
+              ))
+            : weeklySchedule.length > 0
             ? weeklySchedule.map((day, i) => {
                 const isCompleted = day.completed;
                 const hasSession = !day.locked;
