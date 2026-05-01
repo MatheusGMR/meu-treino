@@ -55,6 +55,37 @@ const ProtocoloCheckout = () => {
     }
   };
 
+  // ⚠️ TEMPORÁRIO (DEV): pula o pagamento e simula a continuidade pós-checkout
+  const handleSkipPayment = async () => {
+    if (!user?.id) return;
+    setLoading("skip");
+    try {
+      track("checkout_attempt", undefined, { method: "skip_dev" });
+
+      // Marca a eligibility como paga (mesmo comportamento de CheckoutSuccess)
+      try {
+        await supabase
+          .from("eligibility_submissions")
+          .update({ payment_status: "paid", payment_provider: "dev_skip" } as any)
+          .eq("user_id", user.id);
+      } catch (e) {
+        console.error("Skip payment update error:", e);
+      }
+
+      sessionStorage.setItem("eligibility_done", "true");
+      track("checkout_complete", undefined, { method: "skip_dev" });
+
+      toast({
+        title: "Pagamento pulado (DEV)",
+        description: "Continuando para a anamnese...",
+      });
+
+      navigate("/client/anamnesis", { replace: true });
+    } finally {
+      setLoading(null);
+    }
+  };
+
   const benefits = [
     "Treino personalizado e adaptado às suas necessidades",
     "Acompanhamento profissional do time JMP",
