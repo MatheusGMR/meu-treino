@@ -14,6 +14,8 @@ import { StructuredCheckinDialog } from "@/components/client/StructuredCheckinDi
 import { Clock, Dumbbell } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const ClientDashboard = () => {
   const navigate = useNavigate();
