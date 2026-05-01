@@ -20,6 +20,7 @@ import { toast } from "sonner";
 const ClientDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { anamnesisCompleted, loading: anamnesisLoading } = useAnamnesisStatus();
   const { data: hasWorkout, isLoading: workoutLoading } = useHasWorkout();
   // Splash desabilitado: dashboard abre direto com o treino e em seguida o popup do check-in.
@@ -27,6 +28,8 @@ const ClientDashboard = () => {
   const [isExpanding, setIsExpanding] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const [showCheckin, setShowCheckin] = useState(false);
+  const [generatingTrial, setGeneratingTrial] = useState(false);
+  const trialAttempted = useRef(false);
 
   const { data: weeklySchedule = [], isLoading: scheduleLoading } = useWeeklySchedule();
   const { data: clientGoals } = useClientGoals();
