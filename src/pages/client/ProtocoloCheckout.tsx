@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { useFunnelTracking } from "@/hooks/useFunnelTracking";
-import { CreditCard, QrCode, Loader2, ShieldCheck, CheckCircle } from "lucide-react";
+import { CreditCard, QrCode, Loader2, ShieldCheck, CheckCircle, FastForward } from "lucide-react";
 import { motion } from "framer-motion";
 import meuTreinoLogo from "@/assets/meu-treino-logo.png";
 
