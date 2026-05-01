@@ -168,14 +168,14 @@ export const StructuredCheckinDialog = ({
         contexto_pergunta: ctx.contexto,
         pergunta_exibida: ctx.pergunta,
         transcription: `[ESTRUTURADO] T=${tempoCat} D=${dorCat} Local=${dorLocal.join(",")} Disp=${value}`,
-        dor_cat_dia: dorCat,
+        dor_cat_dia: dorCat as any,
         dor_local_dia: dorLocal,
-        tempo_cat: tempoCat,
-        disposicao: value,
+        tempo_cat: tempoCat as any,
+        disposicao: value as any,
         vocab_capturado: [],
         ai_summary: null,
         ai_raw_response: null,
-      });
+      } as any);
 
       if (error) throw error;
 
