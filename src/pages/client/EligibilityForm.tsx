@@ -35,6 +35,9 @@ const EligibilityForm = () => {
 
   useEffect(() => {
     track("eligibility_start");
+    // Limpa flags antigas para garantir que a nova jornada comece sempre limpa
+    sessionStorage.removeItem("eligibility_done");
+    sessionStorage.removeItem("eligibility_pain");
   }, []);
 
   const updateField = (field: string, value: any) => {
@@ -306,15 +309,26 @@ const EligibilityForm = () => {
         pain_lower_back: formData.pain_lower_back,
         pain_knee: formData.pain_knee,
       }));
-      sessionStorage.setItem("eligibility_done", "true");
+      // NÃO marcamos eligibility_done aqui — só após o checkout completo.
+      // Isso evita que o ClientDashboard interprete o usuário como pronto
+      // para anamnese e pule as telas de Approved → Onboarding → Summary.
 
       toast({
         title: "Conta criada com sucesso! 🎉",
         description: "Vamos te conhecer um pouquinho melhor.",
       });
 
-      // 6. Redirect to approval celebration
-      navigate("/client/eligibility/approved");
+      // 6. Aguarda a sessão propagar antes de navegar (evita AuthGuard race)
+      let tries = 0;
+      while (tries < 10) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.id) break;
+        await new Promise((r) => setTimeout(r, 200));
+        tries++;
+      }
+
+      // 7. Redirect to approval celebration
+      navigate("/client/eligibility/approved", { replace: true });
     } catch (error: any) {
       console.error("Eligibility submit error:", error);
       toast({ title: "Erro", description: error.message || "Tente novamente.", variant: "destructive" });
