@@ -10,7 +10,7 @@ import { WelcomeSplash } from "@/components/client/WelcomeSplash";
 import { WaitingForWorkout } from "@/components/client/WaitingForWorkout";
 import { AnamnesisNotification } from "@/components/client/AnamnesisNotification";
 import { BottomNavigation } from "@/components/client/BottomNavigation";
-import { DailyCheckinDialog } from "@/components/client/DailyCheckinDialog";
+import { StructuredCheckinDialog } from "@/components/client/StructuredCheckinDialog";
 import { Clock, Dumbbell } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -286,10 +286,9 @@ const ClientDashboard = () => {
 
       <BottomNavigation activeTab="plano" />
 
-      <DailyCheckinDialog
+      <StructuredCheckinDialog
         open={showCheckin}
         onClose={handleCheckinClose}
-        sessionId={todayWorkout?.session_id}
       />
     </div>
   );
