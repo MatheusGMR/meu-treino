@@ -26,9 +26,9 @@ const ClientDashboard = () => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [showCheckin, setShowCheckin] = useState(false);
 
-  const { data: weeklySchedule = [] } = useWeeklySchedule();
+  const { data: weeklySchedule = [], isLoading: scheduleLoading } = useWeeklySchedule();
   const { data: clientGoals } = useClientGoals();
-  const { data: todayWorkout } = useTodayWorkout();
+  const { data: todayWorkout, isLoading: todayWorkoutLoading } = useTodayWorkout();
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
