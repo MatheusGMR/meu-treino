@@ -97,20 +97,20 @@ const ClientDashboard = () => {
     }
   }, [anamnesisCompleted, anamnesisLoading, navigate]);
 
-  if (anamnesisLoading || workoutLoading) {
+  // Bloqueia apenas durante a checagem de anamnese (decide rota).
+  // Demais loadings exibem skeletons inline para manter a UI responsiva.
+  if (anamnesisLoading) {
     return (
       <div className="client-dark min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-foreground text-lg font-semibold">
-            {anamnesisLoading ? "Carregando perfil..." : "Verificando treinos..."}
-          </p>
+          <p className="text-foreground text-lg font-semibold">Carregando perfil...</p>
         </div>
       </div>
     );
   }
 
-  if (anamnesisCompleted && !hasWorkout) {
+  if (!workoutLoading && anamnesisCompleted && !hasWorkout) {
     return <WaitingForWorkout />;
   }
 
