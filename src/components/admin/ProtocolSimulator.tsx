@@ -87,8 +87,9 @@ export const ProtocolSimulator = () => {
     setRunning(true);
     setResult(null);
     try {
-      const { data, error } = await supabase.functions.invoke("simulate-protocol-session", {
+      const { data, error } = await supabase.functions.invoke("build-session", {
         body: {
+          mode: "simulation",
           session_number: sessionNumber,
           perfil_primario: perfil,
           ins_cat: insCat,
