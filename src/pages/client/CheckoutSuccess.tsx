@@ -38,7 +38,7 @@ const CheckoutSuccess = () => {
 
       // Redirect to anamnesis after 2 seconds
       setTimeout(() => {
-        navigate("/client/anamnesis", { replace: true });
+        navigate("/client/dashboard", { replace: true });
       }, 2500);
     };
 

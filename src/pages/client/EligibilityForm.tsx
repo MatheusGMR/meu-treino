@@ -310,11 +310,11 @@ const EligibilityForm = () => {
 
       toast({
         title: "Conta criada com sucesso! 🎉",
-        description: "Vamos ao pagamento para iniciar seu protocolo.",
+        description: "Vamos te conhecer um pouquinho melhor.",
       });
 
-      // 6. Redirect to checkout
-      navigate("/client/checkout");
+      // 6. Redirect to approval celebration
+      navigate("/client/eligibility/approved");
     } catch (error: any) {
       console.error("Eligibility submit error:", error);
       toast({ title: "Erro", description: error.message || "Tente novamente.", variant: "destructive" });

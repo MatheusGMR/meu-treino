@@ -96,6 +96,7 @@ export const StructuredCheckinDialog = ({
   const [dorLocal, setDorLocal] = useState<string[]>([]);
   const [disposicao, setDisposicao] = useState<string | null>(null);
   const [hasPainProfile, setHasPainProfile] = useState(false);
+  const [profilePainRegions, setProfilePainRegions] = useState<string[]>([]);
 
   useEffect(() => {
     if (!open) {
@@ -112,11 +113,16 @@ export const StructuredCheckinDialog = ({
     if (!user?.id || !open) return;
     supabase
       .from("anamnesis")
-      .select("dor_cat, dor_local")
+      .select("dor_cat, dor_local, pain_locations")
       .eq("client_id", user.id)
+      .order("completed_at", { ascending: false })
+      .limit(1)
       .maybeSingle()
       .then(({ data }) => {
-        setHasPainProfile(data?.dor_cat !== "D0" && data?.dor_cat !== null);
+        const hasPain = data?.dor_cat !== "D0" && data?.dor_cat !== null;
+        setHasPainProfile(!!hasPain);
+        const regions: string[] = (data?.pain_locations as string[]) || [];
+        setProfilePainRegions(regions);
       });
   }, [user?.id, open]);
 
@@ -201,13 +207,16 @@ export const StructuredCheckinDialog = ({
     <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
       <div className="w-full max-w-md bg-card rounded-t-3xl border-t border-border p-6 pb-10 animate-in slide-in-from-bottom duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <span className="text-sm font-semibold text-primary uppercase tracking-wider">
-            Check-in do dia
-          </span>
+        <div className="flex justify-between items-start mb-5">
+          <div className="space-y-1">
+            <h3 className="text-base font-bold text-foreground">Vamos entender como você está hoje?</h3>
+            <p className="text-xs text-muted-foreground">
+              Responda rapidinho para eu ajustar seu treino do melhor jeito para você. ♡
+            </p>
+          </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors"
+            className="p-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors shrink-0"
           >
             <X className="w-4 h-4 text-muted-foreground" />
           </button>
@@ -243,7 +252,13 @@ export const StructuredCheckinDialog = ({
           <div className="space-y-4">
             <div className="flex items-center gap-2 justify-center mb-2">
               <AlertCircle className="w-5 h-5 text-primary" />
-              <h2 className="text-xl font-bold text-foreground">Como está a dor hoje?</h2>
+              <h2 className="text-xl font-bold text-foreground">
+                {profilePainRegions.length === 1
+                  ? `E ${profilePainRegions[0]}, está doendo hoje?`
+                  : profilePainRegions.length > 1
+                  ? `E ${profilePainRegions.slice(0, 2).join(" e ")}, estão doendo hoje?`
+                  : "Como está a dor hoje?"}
+              </h2>
             </div>
             <div className="space-y-3">
               {DOR_OPTIONS.map((opt) => (
@@ -333,6 +348,12 @@ export const StructuredCheckinDialog = ({
             </div>
             <p className="font-bold text-foreground">Vamos lá!</p>
           </div>
+        )}
+        {/* Footer trust */}
+        {(step === "tempo" || step === "dor" || step === "dor_local" || step === "disposicao") && (
+          <p className="mt-6 text-[11px] text-center text-muted-foreground leading-relaxed">
+            Sua segurança vem sempre primeiro. Suas respostas são confidenciais e usadas apenas para ajustar seu treino.
+          </p>
         )}
       </div>
     </div>

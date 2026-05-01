@@ -80,7 +80,7 @@ const ProtocoloCheckout = () => {
         description: "Continuando para a anamnese...",
       });
 
-      navigate("/client/anamnesis", { replace: true });
+      navigate("/client/dashboard", { replace: true });
     } finally {
       setLoading(null);
     }
