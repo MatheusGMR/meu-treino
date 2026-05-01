@@ -199,9 +199,7 @@ const App = () => (
               path="/client/eligibility/approved"
               element={
                 <AuthGuard>
-                  <RoleGuard allowedRoles={["client"]}>
-                    <EligibilityApproved />
-                  </RoleGuard>
+                  <EligibilityApproved />
                 </AuthGuard>
               }
             />
@@ -209,9 +207,7 @@ const App = () => (
               path="/client/onboarding"
               element={
                 <AuthGuard>
-                  <RoleGuard allowedRoles={["client"]}>
-                    <ClientOnboarding />
-                  </RoleGuard>
+                  <ClientOnboarding />
                 </AuthGuard>
               }
             />
@@ -219,9 +215,7 @@ const App = () => (
               path="/client/onboarding/summary"
               element={
                 <AuthGuard>
-                  <RoleGuard allowedRoles={["client"]}>
-                    <OnboardingSummary />
-                  </RoleGuard>
+                  <OnboardingSummary />
                 </AuthGuard>
               }
             />
