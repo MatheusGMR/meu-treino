@@ -103,24 +103,53 @@ serve(async (req) => {
       );
     }
 
-    // 3. Buscar método e volume padrão
-    const { data: defaultMethod } = await supabase
+    // 3. Buscar método e volume padrão (criar fallback automaticamente se vazio)
+    let { data: defaultMethod } = await supabase
       .from("methods")
       .select("id")
       .limit(1)
-      .single();
+      .maybeSingle();
 
-    const { data: defaultVolume } = await supabase
+    if (!defaultMethod) {
+      console.log("⚙️ Nenhum método encontrado — criando fallback padrão");
+      const { data: newMethod, error: nmErr } = await supabase
+        .from("methods")
+        .insert({
+          name: "Padrão Mobilidade",
+          reps_min: 8,
+          reps_max: 12,
+          rest_seconds: 30,
+          load_level: "Baixa",
+          cadence_contraction: 2,
+          cadence_pause: 1,
+          cadence_stretch: 2,
+          reps_description: "8 a 12 repetições controladas",
+        })
+        .select("id")
+        .single();
+      if (nmErr) throw nmErr;
+      defaultMethod = newMethod;
+    }
+
+    let { data: defaultVolume } = await supabase
       .from("volumes")
       .select("id")
       .limit(1)
-      .single();
+      .maybeSingle();
 
-    if (!defaultMethod || !defaultVolume) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Método ou volume padrão não configurados" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (!defaultVolume) {
+      console.log("⚙️ Nenhum volume encontrado — criando fallback padrão");
+      const { data: newVolume, error: nvErr } = await supabase
+        .from("volumes")
+        .insert({
+          name: "Padrão Mobilidade",
+          num_series: 3,
+          num_exercises: 6,
+        })
+        .select("id")
+        .single();
+      if (nvErr) throw nvErr;
+      defaultVolume = newVolume;
     }
 
     // 4. Determinar tipo de sessão
