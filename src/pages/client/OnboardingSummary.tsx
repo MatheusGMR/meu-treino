@@ -17,7 +17,7 @@ import {
   Dumbbell,
   Heart,
   Flame,
-  Stretch as StretchIcon,
+  Sparkle,
 } from "lucide-react";
 import meuTreinoLogo from "@/assets/meu-treino-logo.png";
 
@@ -148,7 +148,7 @@ const OnboardingSummary = () => {
                     A estrutura de cada sessão
                   </p>
                   <div className="space-y-2">
-                    <BlockRow icon={<StretchIcon className="w-4 h-4" />} title="Mobilidade" desc="Aquece e prepara o corpo" />
+                    <BlockRow icon={<Sparkle className="w-4 h-4" />} title="Mobilidade" desc="Aquece e prepara o corpo" />
                     <BlockRow icon={<Heart className="w-4 h-4" />} title="Fortalecimento" desc="Cuida das regiões sensíveis" />
                     <BlockRow icon={<Dumbbell className="w-4 h-4" />} title="Resistido" desc="Constrói força com segurança" />
                     <BlockRow icon={<Flame className="w-4 h-4" />} title="Alongamento" desc="Recupera e relaxa" />
