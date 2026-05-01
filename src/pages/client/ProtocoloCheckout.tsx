@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { useFunnelTracking } from "@/hooks/useFunnelTracking";
-import { CreditCard, QrCode, Loader2, ShieldCheck, CheckCircle } from "lucide-react";
+import { CreditCard, QrCode, Loader2, ShieldCheck, CheckCircle, FastForward } from "lucide-react";
 import { motion } from "framer-motion";
 import meuTreinoLogo from "@/assets/meu-treino-logo.png";
 
@@ -50,6 +50,37 @@ const ProtocoloCheckout = () => {
         description: "Não foi possível iniciar o pagamento. Tente novamente.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  // ⚠️ TEMPORÁRIO (DEV): pula o pagamento e simula a continuidade pós-checkout
+  const handleSkipPayment = async () => {
+    if (!user?.id) return;
+    setLoading("skip");
+    try {
+      track("checkout_attempt", undefined, { method: "skip_dev" });
+
+      // Marca a eligibility como paga (mesmo comportamento de CheckoutSuccess)
+      try {
+        await supabase
+          .from("eligibility_submissions")
+          .update({ payment_status: "paid", payment_provider: "dev_skip" } as any)
+          .eq("user_id", user.id);
+      } catch (e) {
+        console.error("Skip payment update error:", e);
+      }
+
+      sessionStorage.setItem("eligibility_done", "true");
+      track("checkout_complete", undefined, { method: "skip_dev" });
+
+      toast({
+        title: "Pagamento pulado (DEV)",
+        description: "Continuando para a anamnese...",
+      });
+
+      navigate("/client/anamnesis", { replace: true });
     } finally {
       setLoading(null);
     }
@@ -151,6 +182,22 @@ const ProtocoloCheckout = () => {
                 <QrCode className="w-5 h-5" />
               )}
               Pagar com PIX
+            </Button>
+
+            {/* ⚠️ TEMPORÁRIO (DEV): botão para pular pagamento */}
+            <Button
+              size="lg"
+              variant="ghost"
+              className="w-full h-12 text-sm gap-2 border border-dashed border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10 hover:text-yellow-500"
+              onClick={handleSkipPayment}
+              disabled={!!loading}
+            >
+              {loading === "skip" ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <FastForward className="w-4 h-4" />
+              )}
+              Pular pagamento (DEV)
             </Button>
           </motion.div>
 
