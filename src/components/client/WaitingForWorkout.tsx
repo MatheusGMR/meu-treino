@@ -23,11 +23,11 @@ export const WaitingForWorkout = () => {
 
           <h1 className="text-3xl font-bold text-foreground mb-4 flex items-center justify-center gap-2">
             <span className="inline-block animate-spin-slow">🎉</span>
-            <span>Ótimo!</span>
+            <span>Tudo pronto para começar!</span>
           </h1>
           
           <p className="text-xl text-muted-foreground mb-6">
-            Recebemos suas informações e estamos montando seu treino personalizado
+            Seu treino inicial já está liberado. Você pode iniciá-lo agora mesmo no seu ritmo.
           </p>
 
           <div className="bg-primary/5 rounded-lg p-6 mb-6">
@@ -38,12 +38,12 @@ export const WaitingForWorkout = () => {
               </p>
             </div>
             <p className="text-sm text-muted-foreground">
-              Um personal trainer entrará em contato em breve para finalizar seu plano de treino baseado nas suas respostas. Fique de olho! 👀
+              Em breve um profissional da JMP entrará em contato com você para acompanhar de perto a sua jornada e dar os próximos passos rumo a uma vida mais saudável. 💚
             </p>
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Você receberá uma notificação assim que seu treino estiver pronto
+            Enquanto isso, comece seu treino e aproveite — estamos com você nessa.
           </p>
         </CardContent>
       </Card>
