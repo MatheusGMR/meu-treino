@@ -20,10 +20,8 @@ const ClientDashboard = () => {
   const { user } = useAuth();
   const { anamnesisCompleted, loading: anamnesisLoading } = useAnamnesisStatus();
   const { data: hasWorkout, isLoading: workoutLoading } = useHasWorkout();
-  const [showSplash, setShowSplash] = useState(() => {
-    const shown = sessionStorage.getItem("splash_shown");
-    return !shown;
-  });
+  // Splash desabilitado: dashboard abre direto com o treino e em seguida o popup do check-in.
+  const [showSplash, setShowSplash] = useState(false);
   const [isExpanding, setIsExpanding] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const [showCheckin, setShowCheckin] = useState(false);
@@ -67,17 +65,12 @@ const ClientDashboard = () => {
   const totalSessions = weeklySchedule.length;
   const currentWeek = 1;
 
-  useEffect(() => {
-    if (!showSplash) return;
-    sessionStorage.setItem("splash_shown", "true");
-    const timer = setTimeout(() => setShowSplash(false), 3000);
-    return () => clearTimeout(timer);
-  }, [showSplash]);
+  // Splash removido — dashboard renderiza direto.
 
-  // Show checkin dialog after splash if not done today (test user always sees it)
+  // Show checkin dialog shortly after dashboard is mounted, if not done today.
   const isTestUser = user?.email === "matheusmotaroldan@gmail.com";
   useEffect(() => {
-    if (!showSplash && todayWorkout?.session_id && !showCheckin) {
+    if (todayWorkout?.session_id && !showCheckin) {
       const checkinShown = sessionStorage.getItem("checkin_shown_today");
       if (checkinShown) return;
       if (isTestUser || !todayCheckin) {
@@ -85,7 +78,7 @@ const ClientDashboard = () => {
         return () => clearTimeout(timer);
       }
     }
-  }, [showSplash, todayCheckin, todayWorkout, showCheckin, isTestUser]);
+  }, [todayCheckin, todayWorkout, showCheckin, isTestUser]);
 
   const handleCheckinClose = () => {
     setShowCheckin(false);
@@ -121,9 +114,7 @@ const ClientDashboard = () => {
     return <WaitingForWorkout />;
   }
 
-  if (showSplash) {
-    return <WelcomeSplash />;
-  }
+  // Splash desabilitado — dashboard renderiza diretamente.
 
   const dayLabels = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'];
 
