@@ -328,6 +328,7 @@ const EligibilityForm = () => {
       }
 
       // 7. Redirect to approval celebration
+      console.log("[EligibilityForm] Navigating to /client/eligibility/approved");
       navigate("/client/eligibility/approved", { replace: true });
     } catch (error: any) {
       console.error("Eligibility submit error:", error);
@@ -412,7 +413,7 @@ const EligibilityForm = () => {
                 className="gap-2"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                Continuar para Pagamento
+                Avançar
                 <ChevronRight className="w-4 h-4" />
               </Button>
             ) : (
