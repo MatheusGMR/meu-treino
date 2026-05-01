@@ -14,10 +14,13 @@ import { StructuredCheckinDialog } from "@/components/client/StructuredCheckinDi
 import { Clock, Dumbbell } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const ClientDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { anamnesisCompleted, loading: anamnesisLoading } = useAnamnesisStatus();
   const { data: hasWorkout, isLoading: workoutLoading } = useHasWorkout();
   // Splash desabilitado: dashboard abre direto com o treino e em seguida o popup do check-in.
@@ -25,6 +28,8 @@ const ClientDashboard = () => {
   const [isExpanding, setIsExpanding] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const [showCheckin, setShowCheckin] = useState(false);
+  const [generatingTrial, setGeneratingTrial] = useState(false);
+  const trialAttempted = useRef(false);
 
   const { data: weeklySchedule = [], isLoading: scheduleLoading } = useWeeklySchedule();
   const { data: clientGoals } = useClientGoals();
@@ -97,6 +102,41 @@ const ClientDashboard = () => {
     }
   }, [anamnesisCompleted, anamnesisLoading, navigate]);
 
+  // Auto-recovery: se anamnese está completa mas não há treino,
+  // dispara o gerador de treino experimental como rede de segurança.
+  // Isto cobre o caso em que o invoke do client falhou (rede caiu, tab fechado,
+  // navegação prematura) durante o fluxo de finalização da anamnese.
+  useEffect(() => {
+    if (
+      !anamnesisLoading &&
+      !workoutLoading &&
+      anamnesisCompleted &&
+      hasWorkout === false &&
+      !trialAttempted.current &&
+      user?.id
+    ) {
+      trialAttempted.current = true;
+      setGeneratingTrial(true);
+      console.log("[ClientDashboard] Auto-recovering trial workout for", user.id);
+      supabase.functions
+        .invoke("generate-trial-workout", { body: { clientId: user.id } })
+        .then(async ({ error }) => {
+          if (error) {
+            console.error("[ClientDashboard] Trial workout recovery failed:", error);
+            toast.error("Não conseguimos preparar seu treino agora. Tente recarregar a página.");
+          } else {
+            await queryClient.invalidateQueries({ queryKey: ["has-workout", user.id] });
+            await queryClient.invalidateQueries({ queryKey: ["today-workout", user.id] });
+            await queryClient.invalidateQueries({ queryKey: ["weekly-schedule", user.id] });
+          }
+        })
+        .catch((e) => {
+          console.error("[ClientDashboard] Trial workout recovery exception:", e);
+        })
+        .finally(() => setGeneratingTrial(false));
+    }
+  }, [anamnesisLoading, workoutLoading, anamnesisCompleted, hasWorkout, user?.id, queryClient]);
+
   // Bloqueia apenas durante a checagem de anamnese (decide rota).
   // Demais loadings exibem skeletons inline para manter a UI responsiva.
   if (anamnesisLoading) {
@@ -110,8 +150,19 @@ const ClientDashboard = () => {
     );
   }
 
-  if (!workoutLoading && anamnesisCompleted && !hasWorkout) {
-    return <WaitingForWorkout />;
+  // Enquanto o treino está sendo gerado em recovery, exibe estado de "preparando".
+  if (generatingTrial || (anamnesisCompleted && hasWorkout === false && trialAttempted.current === false && !workoutLoading)) {
+    return (
+      <div className="client-dark min-h-screen flex items-center justify-center bg-background px-6">
+        <div className="text-center max-w-sm">
+          <div className="w-14 h-14 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-6" />
+          <h2 className="text-foreground text-xl font-bold mb-2">Preparando seu treino...</h2>
+          <p className="text-muted-foreground text-sm">
+            Estamos montando uma sessão inicial de mobilidade para você começar agora mesmo.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   // Splash desabilitado — dashboard renderiza diretamente.
