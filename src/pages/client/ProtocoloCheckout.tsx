@@ -183,6 +183,22 @@ const ProtocoloCheckout = () => {
               )}
               Pagar com PIX
             </Button>
+
+            {/* ⚠️ TEMPORÁRIO (DEV): botão para pular pagamento */}
+            <Button
+              size="lg"
+              variant="ghost"
+              className="w-full h-12 text-sm gap-2 border border-dashed border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10 hover:text-yellow-500"
+              onClick={handleSkipPayment}
+              disabled={!!loading}
+            >
+              {loading === "skip" ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <FastForward className="w-4 h-4" />
+              )}
+              Pular pagamento (DEV)
+            </Button>
           </motion.div>
 
           <p className="text-xs text-center text-muted-foreground">
