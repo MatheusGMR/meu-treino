@@ -188,7 +188,20 @@ const ClientDashboard = () => {
       <div className="px-5">
         <h2 className="text-lg font-bold text-foreground mb-4">Seu treino de hoje</h2>
 
-        {todayWorkout ? (
+        {(todayWorkoutLoading || workoutLoading) ? (
+          <div className="rounded-xl overflow-hidden bg-card border border-border" aria-busy="true" aria-label="Carregando treino do dia">
+            <div className="w-full aspect-[16/10] bg-muted/40 animate-pulse" />
+            <div className="p-5 space-y-3">
+              <div className="h-6 w-2/3 bg-muted/40 rounded animate-pulse" />
+              <div className="flex gap-4">
+                <div className="h-4 w-16 bg-muted/40 rounded animate-pulse" />
+                <div className="h-4 w-24 bg-muted/40 rounded animate-pulse" />
+              </div>
+              <div className="h-4 w-full bg-muted/40 rounded animate-pulse" />
+              <div className="h-12 w-full bg-muted/40 rounded-lg animate-pulse mt-2" />
+            </div>
+          </div>
+        ) : todayWorkout ? (
           <div
             ref={cardRef}
             className={`rounded-xl overflow-hidden bg-card border border-border transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
