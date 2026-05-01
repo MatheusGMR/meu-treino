@@ -96,6 +96,7 @@ export const StructuredCheckinDialog = ({
   const [dorLocal, setDorLocal] = useState<string[]>([]);
   const [disposicao, setDisposicao] = useState<string | null>(null);
   const [hasPainProfile, setHasPainProfile] = useState(false);
+  const [profilePainRegions, setProfilePainRegions] = useState<string[]>([]);
 
   useEffect(() => {
     if (!open) {
@@ -112,11 +113,16 @@ export const StructuredCheckinDialog = ({
     if (!user?.id || !open) return;
     supabase
       .from("anamnesis")
-      .select("dor_cat, dor_local")
+      .select("dor_cat, dor_local, pain_locations")
       .eq("client_id", user.id)
+      .order("completed_at", { ascending: false })
+      .limit(1)
       .maybeSingle()
       .then(({ data }) => {
-        setHasPainProfile(data?.dor_cat !== "D0" && data?.dor_cat !== null);
+        const hasPain = data?.dor_cat !== "D0" && data?.dor_cat !== null;
+        setHasPainProfile(!!hasPain);
+        const regions: string[] = (data?.pain_locations as string[]) || [];
+        setProfilePainRegions(regions);
       });
   }, [user?.id, open]);
 
