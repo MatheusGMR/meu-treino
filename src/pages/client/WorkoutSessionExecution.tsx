@@ -558,6 +558,25 @@ const WorkoutSessionExecution = () => {
             <p className="text-xs text-muted-foreground mt-2 text-center">
               Próxima: Série {state.currentSet + 1} de {totalSets}
             </p>
+            {/* Botão "Ficou leve?" — diretriz JMP Feedback v1, componente 2 */}
+            <button
+              onClick={async () => {
+                if (!user?.id || !currentExercise) return;
+                try {
+                  await supabase.functions.invoke("record-perception-signal", {
+                    body: {
+                      exercise_id: (currentExercise as any).exercise_id,
+                      signal_type: "ESPONTANEO_LEVE",
+                      schedule_id: todaySchedule?.id,
+                    },
+                  });
+                  speak("Sinal registrado.");
+                } catch { /* silent */ }
+              }}
+              className="mt-3 px-4 py-2 rounded-lg border border-primary/30 bg-primary/5 text-primary text-xs font-medium hover:bg-primary/10 transition-colors"
+            >
+              ■ Ficou leve?
+            </button>
           </div>
         )}
 

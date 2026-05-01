@@ -1,6 +1,7 @@
-// Simulador do motor determinístico do Protocolo Destravamento
-// Recebe inputs hipotéticos (anamnese + check-in) e retorna o treino que seria gerado,
-// sem persistir nada no banco. Usado pelo admin para validar/refinar a lógica.
+// Simulador do Protocolo Destravamento — v3 (MOTOR UNIFICADO)
+// Delega 100% para a RPC `select_session_exercises` — mesmo motor que o cliente usa.
+// Cria dados temporários de simulação, chama a RPC, retorna resultado.
+// Nenhuma lógica de seleção/volume/dor existe aqui — tudo está na RPC.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.50.5";
 
@@ -11,15 +12,15 @@ const corsHeaders = {
 
 interface SimRequest {
   session_number: number;
-  // Anamnese simulada
   perfil_primario: string;
   ins_cat: "I1" | "I2" | "I3";
   dor_cat: "D0" | "D1" | "D2" | "D3";
   dor_local: string[];
-  // Check-in do dia (opcional — sobrepõe anamnese se fornecido)
   tempo_cat: "T1" | "T2" | "T3";
   disposicao: "OK" | "Moderada" | "Comprometida";
   client_name?: string;
+  client_id?: string;
+  nivel_experiencia?: "iniciante" | "intermediario" | "avancado";
 }
 
 const PERFIL_TO_SHORT: Record<string, string> = {
@@ -31,14 +32,14 @@ const PERFIL_TO_SHORT: Record<string, string> = {
   P06_deslocado: "06",
 };
 
-function pickAB(n: number): "A" | "B" {
-  return n % 2 === 1 ? "A" : "B";
-}
 function blocoFromSession(n: number): number {
   if (n <= 12) return 1;
   if (n <= 24) return 2;
   return 3;
 }
+
+// UUID fixo para o "cliente simulação" — nunca é um cliente real
+const SIM_CLIENT_ID = "00000000-0000-0000-0000-sim000000001";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -52,7 +53,6 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Verificar admin
     const userClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_ANON_KEY")!,
@@ -74,12 +74,6 @@ serve(async (req) => {
       throw new Error("session_number deve estar entre 1 e 36");
 
     const bloco = blocoFromSession(sessionNumber);
-    const { data: milestones } = await supabase
-      .from("protocol_milestones")
-      .select("*")
-      .order("session_number");
-    const milestone = (milestones ?? []).find((m: any) => m.session_number === sessionNumber);
-
     const dor_cat = body.dor_cat ?? "D0";
     const dor_local = body.dor_local ?? [];
     const tempo_cat = body.tempo_cat ?? "T2";
@@ -88,94 +82,68 @@ serve(async (req) => {
     const perfil = body.perfil_primario ?? "P04_estreante";
     const perfil_curto = PERFIL_TO_SHORT[perfil] ?? "04";
     const clientName = (body.client_name ?? "Cliente").split(" ")[0];
+    const nivel = body.nivel_experiencia ?? "iniciante";
 
-    const decisions: string[] = [];
+    // Usar cliente real se fornecido, senão preparar dados temporários
+    const clientId = body.client_id ?? SIM_CLIENT_ID;
 
-    // PASSO 1-2: Dor
-    let intensity_factor = 1.0;
-    let avoid_groups: string[] = [];
-    if (dor_cat === "D3") {
-      intensity_factor = 0.4;
-      avoid_groups = dor_local;
-      decisions.push(`DOR D3: reduzir intensidade 40%, evitar regiões: ${dor_local.join(", ") || "(nenhuma)"}`);
-    } else if (dor_cat === "D2") {
-      intensity_factor = 0.7;
-      decisions.push("DOR D2: reduzir intensidade 30%");
-    } else {
-      decisions.push(`DOR ${dor_cat}: sem ajustes por dor`);
+    if (!body.client_id) {
+      // Upsert anamnese de simulação
+      await supabase.from("anamnesis").upsert({
+        client_id: SIM_CLIENT_ID,
+        ins_cat,
+        perfil_primario: perfil,
+        dor_cat,
+        dor_local,
+        nivel_experiencia_norm: nivel,
+        completed_at: new Date().toISOString(),
+      }, { onConflict: "client_id" });
+
+      // Upsert progresso de simulação
+      await supabase.from("client_protocol_progress").upsert({
+        client_id: SIM_CLIENT_ID,
+        sessao_atual: Math.max(0, sessionNumber - 1),
+        bloco_atual: bloco,
+        total_sessoes: 36,
+        status: "ativo",
+      }, { onConflict: "client_id" });
+
+      // Upsert check-in de simulação (mesmo dia)
+      const today = new Date().toISOString().split("T")[0];
+      // Deleta check-ins anteriores do dia para evitar duplicatas
+      await supabase.from("daily_checkin_sessions")
+        .delete()
+        .eq("client_id", SIM_CLIENT_ID)
+        .eq("checkin_date", today);
+      await supabase.from("daily_checkin_sessions").insert({
+        client_id: SIM_CLIENT_ID,
+        checkin_date: today,
+        tempo_cat,
+        dor_cat_dia: dor_cat,
+        dor_local_dia: dor_local,
+        disposicao,
+        transcription: `[SIM] T=${tempo_cat} D=${dor_cat} Disp=${disposicao} Local=${dor_local.join(",")}`,
+      });
     }
 
-    // PASSO 3-4: Tempo
-    let max_exercises = 8;
-    if (tempo_cat === "T1") {
-      max_exercises = 5;
-      decisions.push("TEMPO T1: sessão curta (5 ex)");
-    } else if (tempo_cat === "T3") {
-      max_exercises = 10;
-      decisions.push("TEMPO T3: sessão longa (10 ex)");
-    } else {
-      decisions.push("TEMPO T2: sessão padrão (8 ex)");
-    }
-
-    // PASSO 5: Disposição
-    if (disposicao === "Comprometida") {
-      intensity_factor *= 0.7;
-      decisions.push("DISPOSIÇÃO Comprometida: -30% intensidade");
-    } else if (disposicao === "Moderada") {
-      intensity_factor *= 0.85;
-      decisions.push("DISPOSIÇÃO Moderada: -15% intensidade");
-    } else {
-      decisions.push("DISPOSIÇÃO OK: sem ajustes");
-    }
-
-    // PASSO 6: Insegurança → safety
-    let allowed_safety: string[] = [];
-    if (ins_cat === "I3") {
-      allowed_safety = ["S1"];
-      decisions.push("INS I3: apenas S1");
-    } else if (ins_cat === "I2") {
-      allowed_safety = ["S1", "S2"];
-      decisions.push("INS I2: S1-S2");
-    } else {
-      allowed_safety = ["S1", "S2", "S3"];
-      decisions.push("INS I1: S1-S3");
-    }
-
-    // PASSO 7: A/B
-    const variant = pickAB(sessionNumber);
-    decisions.push(`Variação ${variant} (sessão ${sessionNumber})`);
-
-    // Buscar exercícios do protocolo
-    const { data: allExercises } = await supabase
-      .from("exercises")
-      .select("id, name, primary_muscle, block, safety_level, video_url")
-      .eq("protocol_only", true)
-      .in("safety_level", allowed_safety as any);
-
-    const blocosPermitidos: string[] = ["MOB"];
-    if (bloco >= 1) blocosPermitidos.push("FORT");
-    if (bloco >= 2) blocosPermitidos.push("MS", "MI");
-    if (bloco >= 3) blocosPermitidos.push("CARD");
-    blocosPermitidos.push("ALONG");
-    decisions.push(`Bloco ${bloco}: liberados ${blocosPermitidos.join(", ")}`);
-
-    const filteredByBlock = (allExercises ?? []).filter((e: any) =>
-      e.block ? blocosPermitidos.includes(e.block) : true
+    // ============ CHAMAR A MESMA RPC DO MOTOR REAL ============
+    const { data: selection, error: rpcErr } = await supabase.rpc(
+      "select_session_exercises",
+      { _client_id: clientId, _sessao_num: sessionNumber }
     );
-    const filteredByPain = filteredByBlock.filter((e: any) => {
-      if (!avoid_groups.length) return true;
-      const muscle = (e.primary_muscle ?? "").toLowerCase();
-      return !avoid_groups.some((g) => muscle.includes(g.toLowerCase()));
-    });
+    if (rpcErr) throw rpcErr;
+    if (!selection || (selection as any).error) {
+      throw new Error(`RPC retornou erro: ${JSON.stringify(selection)}`);
+    }
+    const sel = selection as any;
 
-    const mobs = filteredByPain.filter((e: any) => e.block === "MOB").slice(0, 2);
-    const others = filteredByPain
-      .filter((e: any) => e.block !== "MOB" && e.block !== "ALONG")
-      .slice(0, max_exercises - 3);
-    const along = filteredByPain.filter((e: any) => e.block === "ALONG").slice(0, 1);
-    const sessionExercises = [...mobs, ...others, ...along].slice(0, max_exercises);
+    // Marcos
+    const { data: milestones } = await supabase
+      .from("protocol_milestones")
+      .select("*")
+      .order("session_number");
+    const milestone = (milestones ?? []).find((m: any) => m.session_number === sessionNumber);
 
-    // Vídeos obrigatórios do marco
     let mandatoryVideos: any[] = [];
     if (milestone?.required_video_codes?.length) {
       const { data: videos } = await supabase
@@ -201,7 +169,12 @@ serve(async (req) => {
         templates.find((t: any) => t.perfil_primario === null);
     }
 
-    const tempoEstimado = max_exercises * 4;
+    const totalEx =
+      (sel.mobilidade?.length ?? 0) +
+      (sel.fortalecimento?.length ?? 0) +
+      (sel.resistido ? (Array.isArray(sel.resistido) ? sel.resistido : JSON.parse(JSON.stringify(sel.resistido))).length : 0) +
+      (sel.alongamento?.length ?? 0);
+    const tempoEstimado = totalEx * 4;
     const calibratedMessage = (chosenTemplate?.template ?? "Bom treino, {nome}!")
       .replace(/\{nome\}/g, clientName)
       .replace(/\{sessao\}/g, String(sessionNumber))
@@ -211,16 +184,22 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         simulation: true,
+        unified_motor: true,
         session: {
           number: sessionNumber,
           bloco,
-          variant,
-          intensity_factor: Number(intensity_factor.toFixed(2)),
-          allowed_safety,
-          allowed_blocks: blocosPermitidos,
-          max_exercises,
-          exercise_count: sessionExercises.length,
-          exercises: sessionExercises,
+          treino_letra: sel.treino_letra,
+          output_id: sel.output_id,
+          modo_d3: sel.modo_d3,
+          reps: sel.reps,
+          series: sel.series,
+          n_exercicios: sel.n_exercicios,
+          safety_max: sel.safety_max,
+          mobilidade: sel.mobilidade ?? [],
+          fortalecimento: sel.fortalecimento ?? [],
+          resistido: sel.resistido ?? [],
+          alongamento: sel.alongamento ?? [],
+          exercise_count: totalEx,
         },
         milestone: milestone
           ? {
@@ -240,8 +219,18 @@ serve(async (req) => {
             }
           : null,
         moment,
-        decisions,
-        context: { dor_cat, dor_local, tempo_cat, disposicao, ins_cat, perfil_primario: perfil, perfil_curto },
+        decisions: sel.decisions ?? [],
+        context: {
+          tempo_cat: sel.tempo_cat,
+          dor_cat: sel.dor_cat,
+          disposicao: sel.disposicao,
+          pain_region: sel.pain_region,
+          dor_locals: sel.dor_locals,
+          ins_cat: sel.ins_cat,
+          nivel_experiencia: sel.nivel_experiencia,
+          safety_max: sel.safety_max,
+          perfil_primario: perfil_curto,
+        },
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
