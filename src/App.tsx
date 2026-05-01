@@ -48,6 +48,9 @@ import ProtocolBank from "./pages/admin/ProtocolBank";
 import Marketing from "./pages/admin/Marketing";
 import JmpAlerts from "./pages/admin/JmpAlerts";
 import EligibilityForm from "./pages/client/EligibilityForm";
+import EligibilityApproved from "./pages/client/EligibilityApproved";
+import ClientOnboarding from "./pages/client/ClientOnboarding";
+import OnboardingSummary from "./pages/client/OnboardingSummary";
 import ProtocoloCheckout from "./pages/client/ProtocoloCheckout";
 import NotFound from "./pages/NotFound";
 
@@ -191,6 +194,36 @@ const App = () => (
             <Route
               path="/client/eligibility"
               element={<EligibilityForm />}
+            />
+            <Route
+              path="/client/eligibility/approved"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["client"]}>
+                    <EligibilityApproved />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/client/onboarding"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["client"]}>
+                    <ClientOnboarding />
+                  </RoleGuard>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/client/onboarding/summary"
+              element={
+                <AuthGuard>
+                  <RoleGuard allowedRoles={["client"]}>
+                    <OnboardingSummary />
+                  </RoleGuard>
+                </AuthGuard>
+              }
             />
             <Route
               path="/client/checkout"
