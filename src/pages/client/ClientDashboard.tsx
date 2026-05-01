@@ -26,9 +26,9 @@ const ClientDashboard = () => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [showCheckin, setShowCheckin] = useState(false);
 
-  const { data: weeklySchedule = [] } = useWeeklySchedule();
+  const { data: weeklySchedule = [], isLoading: scheduleLoading } = useWeeklySchedule();
   const { data: clientGoals } = useClientGoals();
-  const { data: todayWorkout } = useTodayWorkout();
+  const { data: todayWorkout, isLoading: todayWorkoutLoading } = useTodayWorkout();
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -97,20 +97,20 @@ const ClientDashboard = () => {
     }
   }, [anamnesisCompleted, anamnesisLoading, navigate]);
 
-  if (anamnesisLoading || workoutLoading) {
+  // Bloqueia apenas durante a checagem de anamnese (decide rota).
+  // Demais loadings exibem skeletons inline para manter a UI responsiva.
+  if (anamnesisLoading) {
     return (
       <div className="client-dark min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-foreground text-lg font-semibold">
-            {anamnesisLoading ? "Carregando perfil..." : "Verificando treinos..."}
-          </p>
+          <p className="text-foreground text-lg font-semibold">Carregando perfil...</p>
         </div>
       </div>
     );
   }
 
-  if (anamnesisCompleted && !hasWorkout) {
+  if (!workoutLoading && anamnesisCompleted && !hasWorkout) {
     return <WaitingForWorkout />;
   }
 
@@ -134,7 +134,14 @@ const ClientDashboard = () => {
       {/* Day Selector */}
       <div className="px-5 mb-6">
         <div className="flex gap-2 justify-center">
-          {weeklySchedule.length > 0
+          {scheduleLoading
+            ? Array.from({ length: 5 }).map((_, i) => (
+                <div
+                  key={`sk-${i}`}
+                  className="w-14 h-20 rounded-lg bg-muted/40 animate-pulse"
+                />
+              ))
+            : weeklySchedule.length > 0
             ? weeklySchedule.map((day, i) => {
                 const isCompleted = day.completed;
                 const hasSession = !day.locked;
@@ -181,7 +188,20 @@ const ClientDashboard = () => {
       <div className="px-5">
         <h2 className="text-lg font-bold text-foreground mb-4">Seu treino de hoje</h2>
 
-        {todayWorkout ? (
+        {(todayWorkoutLoading || workoutLoading) ? (
+          <div className="rounded-xl overflow-hidden bg-card border border-border" aria-busy="true" aria-label="Carregando treino do dia">
+            <div className="w-full aspect-[16/10] bg-muted/40 animate-pulse" />
+            <div className="p-5 space-y-3">
+              <div className="h-6 w-2/3 bg-muted/40 rounded animate-pulse" />
+              <div className="flex gap-4">
+                <div className="h-4 w-16 bg-muted/40 rounded animate-pulse" />
+                <div className="h-4 w-24 bg-muted/40 rounded animate-pulse" />
+              </div>
+              <div className="h-4 w-full bg-muted/40 rounded animate-pulse" />
+              <div className="h-12 w-full bg-muted/40 rounded-lg animate-pulse mt-2" />
+            </div>
+          </div>
+        ) : todayWorkout ? (
           <div
             ref={cardRef}
             className={`rounded-xl overflow-hidden bg-card border border-border transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
