@@ -1,91 +1,86 @@
 ## Objetivo
 
-Substituir o diálogo atual de cadastro de exercício do Protocolo (`ProtocolExerciseDialog`) por um **wizard em 6 passos** que segue exatamente o fluxo do protótipo enviado, mantendo a base de dados e a modelagem determinística (PAI/SUB, regiões de dor, treino A/B, bloco do protocolo) já implementadas nas Fases 1-5.
+Incorporar a Unificação v3.0 do motor JMP: motor único entre simulador e cliente real, RPC corrigida (D3 cirúrgico, L_MULTI, Safety I→S), check-in/feedback estruturados em botões, e botão "Ficou leve?" durante a execução.
 
-O wizard será renderizado dentro do mesmo `Dialog` existente, acessível pelo botão **"Novo exercício"** em `/admin/protocol-bank` e pelo lápis de edição de cada item.
+## Escopo (6 arquivos)
 
-## Fluxo do wizard (6 passos)
+### 1. Migração SQL — RPC `select_session_exercises` reescrita
+**Arquivo:** `supabase/migrations/20260501120000_unificacao_motor_v3.sql`
 
-```text
-1. Nome      → texto livre (mín. 3 chars, máx. 100)
-2. Bloco     → MOB · FORT · MS · MI · CARD · ALONG
-3. Equipam.  → opções filtradas por bloco; segurança S1-S5 derivada automaticamente
-4. Nível     → BI · BII · BIII · IN1 · IN2 · IN3  (grava em difficulty_code)
-5. Detalhes  → Grupo muscular, Vetor de movimento + campos PAI/SUB do protocolo
-6. Confirmar → preview do ID JMP gerado + resumo + salvar
-```
+Aplicar via tool de migração. Reescreve a RPC com:
+- **L_MULTI tratado:** itera sobre cada local em `dor_local[]` para MOB, FORT e ALONG (antes era ignorado, deixando o aluno sem exercícios por dor).
+- **Safety corrigido:** `I1→S2`, `I2→S2`, `I3→S1` (antes era I1→S5/I2→S4/I3→S3, fora da diretriz JMP).
+- **D3 = remoção cirúrgica:** `REMOVE_LOCAL` remove apenas exercícios do local de dor (todos os locais quando L_MULTI), preservando o restante do resistido.
+- Novo campo no retorno: `dor_locals` (array completo, para auditoria).
+- `REVOKE` de `PUBLIC/anon` + `GRANT EXECUTE` para `authenticated`.
 
-Stepper no topo com números, check (✓) quando concluído e cliques retroativos permitidos. Botões "Voltar" e "Próximo" no rodapé. Tela de sucesso com o ID destacado e ações ("+ Cadastrar outro" / "Ver biblioteca").
+### 2. Edge Function — Simulador unificado
+**Arquivo:** `supabase/functions/simulate-protocol-session/index.ts` (substituir conteúdo)
 
-## Mapeamento Bloco × Equipamento × Segurança
+Reescrita completa: remove toda lógica própria de seleção (intensity_factor, allowed_safety, max_exercises hardcoded). Agora:
+- Cria/atualiza dados temporários (anamnese + check-in + progresso) num "cliente simulação" com UUID fixo.
+- Chama a mesma RPC `select_session_exercises` que o motor real.
+- Retorna o resultado no mesmo formato. Garante paridade simulador ↔ cliente.
 
-Vai para um arquivo de constantes reutilizável `src/lib/protocol/exerciseTaxonomy.ts`:
+### 3. UI Simulador
+**Arquivo:** `src/components/admin/ProtocolSimulator.tsx` (substituir conteúdo)
 
-- **MOB / FORT / ALONG** → `PC`, `ELAS`, `BAR` (este só MOB) → S1
-- **MS / MI** → `MAC` (S1) · `DIV` (S2) · `CONV` (S2) · `CAB` (S4) · `BAR` (S3) · `HAL` (S5) · `PC` (S1)
-- **CARD** → `MAC` (equipamento aeróbio) → S1
+- Labels Tempo: T1=30-40min (3-5 ex), T2=40-50min (4-6 ex), T3=50-60min (6-8 ex).
+- Labels Dor: D3 = "Limitante (remoção cirúrgica do local)".
+- Labels Insegurança: I1=S2, I2=S2, I3=S1.
+- Remove percentuais inexistentes de Disposição.
+- Novo seletor: **Nível de Experiência** (iniciante/intermediário/avançado).
+- Resultado renderizado por bloco (MOB / FORT / RESIST / ALONG) ao invés de lista plana.
+- Interface `SimResult` adaptada ao formato da RPC.
 
-Cada equipamento tem `nome`, `seg`, `desc` (texto explicativo curto) e cores derivadas dos tokens semânticos do design system (não hardcode roxo do protótipo — adaptar para Crimson #DC143C sobre dark do projeto).
+### 4. Check-in Estruturado (novo)
+**Arquivo:** `src/components/client/StructuredCheckinDialog.tsx` (criar)
 
-## Vetores de movimento (novo campo `movement_vector`)
+Fluxo Typeform-style com botões fixos, sem voz/IA:
+- Tela 1: Tempo (T1/T2/T3).
+- Tela 2: Dor (D0–D3) — só aparece se anamnese registra dor.
+- Tela 2b: Local da dor (Lombar/Ombro/Joelho, multi-select) — só se D>0.
+- Tela 3: Disposição contextualizada por horário (manhã: "Dormiu bem?"; tarde: "Muito cansado do dia?"; noite: "Como foi o dia?").
+- Grava direto em `daily_checkin_sessions`.
 
-Lista agrupada (Padrões MMSS, MMII, Capacidades Articulares, Mobilidade, Fortalecimento, Alongamento, Cardio) — total ~30 opções. Salvo em **uma nova coluna texto `movement_vector`** em `exercises` (códigos: `EMP-F`, `EMP-I`, `REM`, `PUX-C`, `LEV`, `EC-JOE`, `CA-JOE-E`, etc.). Reutiliza coluna existente `movement` apenas se for sinônimo — vou usar coluna nova para não quebrar dados pré-existentes.
+`DailyCheckinDialog` (voz) permanece como alternativa.
 
-## Geração do ID JMP
+### 5. Feedback Pós-Sessão Estruturado (novo)
+**Arquivo:** `src/components/client/StructuredFeedbackDialog.tsx` (criar)
 
-Formato: `{BLOCO}{EQUIP}{SEG}{NIVEL}{NNN}` — ex.: `MSMACS1BI073`.
+Máximo 4 toques:
+1. "Como você está saindo daqui?" → Bem / Cansado mas bem / Senti algo
+2. (se "Senti algo") "Onde foi o desconforto?" → Lombar/Joelho/Ombro/Outra
+3. (se "Senti algo") "Como foi a intensidade?" → Leve/Normal/Puxado
+4. Encerra. Chama `submit-post-session-feedback` (já trata `dor_nova`).
 
-- O sufixo numérico de 3 dígitos é o próximo livre na combinação (não aleatório como no protótipo). Implementado por uma função RPC simples `next_protocol_exercise_seq(_block, _equip, _safety, _level)` que faz `MAX(...)+1`.
-- Salvo em `external_id`. Se o usuário quiser sobrescrever manualmente, abre um campo editável no passo Confirmar.
+### 6. Execução de treino — botão "Ficou leve?"
+**Arquivo:** `src/pages/client/WorkoutSessionExecution.tsx` (editar)
 
-## Campos do protocolo PAI/SUB integrados
+Na fase `rest` entre séries, adicionar botão discreto "Ficou leve?" que chama `record-perception-signal` com `signal_type: "ESPONTANEO_LEVE"`. Trigger SQL existente (`check_gatilho_potencial`) avalia 2× consecutivos = alerta JMP automático.
 
-Os campos da modelagem JMP (já existentes nas Fases 1-3) entram em **etapas dedicadas dentro do passo 5 (Detalhes)** para não fragmentar:
+## Não incluído nesta entrega (do changelog "ainda falta")
 
-- **Tipo (PAI/SUB)** — chip toggle
-- **PAI vinculado** (apenas quando SUB) — select com PAIs do mesmo `bloco_protocolo`
-- **Região de dor** — L0, L1, L2, L3, L_MULTI (chips)
-- **Treino A / B / Ambos** — chip
-- **Bloco do protocolo** (1-4) — number input
-- **É primário?** / **Base fixa?** — toggles com tooltip
-- **Vídeo YouTube Shorts** — input URL
+- Randômico (perguntas a cada 3-4 sessões).
+- Pergunta de cardio no check-in.
+- Integração de vídeos D2/D3 na UI de execução (RPC `get_videos_for_session_moment` já existe).
+- Trocar default `DailyCheckinDialog` → `StructuredCheckinDialog` na rotina diária.
+- Trocar default `PostWorkoutFeedbackDialog` → `StructuredFeedbackDialog`.
 
-Tooltips obrigatórios em cada campo técnico (regra `interactive-help-standard`).
+Posso seguir com essas 5 trocas de default + integrações em uma segunda rodada após validar o motor unificado. Ou já incluo as duas trocas de default agora — me avise.
 
-## Banco de dados
+## Riscos / observações
 
-Apenas **uma migration** necessária:
+- A RPC nova mantém a mesma assinatura `(uuid, integer)` → não quebra `agent-build-session`.
+- Simulador usa UUID fixo `00000000-0000-0000-0000-sim000000001`; precisa que ele não exista como cliente real (é). Os upserts garantem idempotência.
+- Mudança de Safety (I→S2/S1) reduz o pool de exercícios elegíveis para resistido. Após a migração, revisar no Simulador alguns cenários para conferir que ainda há exercícios suficientes para todos os perfis. Se o pool ficar curto, ajusto a regra ou populo a base.
+- Após a migração, a função `linter` será executada — se aparecer warning de `SECURITY DEFINER`, é esperado pois a RPC já era assim.
 
-1. Adicionar coluna `movement_vector text` em `exercises`
-2. Criar função `next_protocol_exercise_seq(_block, _equip, _safety, _level)` retornando o próximo nº disponível como texto zero-padded (ex.: `'073'`)
+## Plano de execução
 
-Nenhuma mudança nos enums — todos já existem.
-
-## Arquivos a criar / editar
-
-**Novos**
-- `src/lib/protocol/exerciseTaxonomy.ts` — constantes BLOCOS, EQUIP_MAP, SEG_MAP, NIVEIS, VETORES
-- `src/components/admin/protocol-wizard/ProtocolExerciseWizard.tsx` — orquestrador de steps
-- `src/components/admin/protocol-wizard/StepNome.tsx`
-- `src/components/admin/protocol-wizard/StepBloco.tsx`
-- `src/components/admin/protocol-wizard/StepEquipamento.tsx`
-- `src/components/admin/protocol-wizard/StepNivel.tsx`
-- `src/components/admin/protocol-wizard/StepDetalhes.tsx`
-- `src/components/admin/protocol-wizard/StepConfirmar.tsx`
-- `src/components/admin/protocol-wizard/WizardStepper.tsx`
-
-**Editados**
-- `src/components/admin/ProtocolExerciseDialog.tsx` → passa a renderizar o wizard
-- `src/hooks/useProtocolBank.ts` → adicionar `equipment_code`, `difficulty_code`, `movement_vector` nos selects e mutations
-- `src/integrations/supabase/types.ts` (auto-gerado após migration)
-
-**Migration**
-- `supabase/migrations/<ts>_protocol_wizard_support.sql`
-
-## Estilo visual
-
-Adaptar a paleta roxa do protótipo para o **Crimson Red (#DC143C) sobre fundo dark** já estabelecido no projeto (usando tokens `--primary`, `--card`, `--background`, etc. do `index.css`). Mesmas mecânicas de stepper, chips e cards de resumo, apenas reskinned.
-
-## Saída final
-
-Após salvar, o wizard chama `useUpsertProtocolExercise` (já existente), invalida a query do Banco e mostra a tela de sucesso com o ID gerado e dois CTAs.
+1. Aplicar migração SQL (RPC v3).
+2. Substituir `simulate-protocol-session/index.ts` (deploy automático).
+3. Substituir `ProtocolSimulator.tsx`.
+4. Criar `StructuredCheckinDialog.tsx` e `StructuredFeedbackDialog.tsx`.
+5. Editar `WorkoutSessionExecution.tsx` adicionando o botão "Ficou leve?" no `rest`.
+6. Rodar linter Supabase e checar logs do simulador com 1–2 cenários.
